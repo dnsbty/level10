@@ -42,7 +42,7 @@ defmodule Level10.Games.Game do
       discard_pile: [],
       draw_pile: [],
       hands: %{},
-      players: %{},
+      players: players,
       scoring: %{},
       table: %{}
     }
