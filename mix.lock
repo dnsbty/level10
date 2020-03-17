@@ -1,6 +1,8 @@
 %{
   "cowboy": {:hex, :cowboy, "2.7.0", "91ed100138a764355f43316b1d23d7ff6bdb0de4ea618cb5d8677c93a7a2f115", [:rebar3], [{:cowlib, "~> 2.8.0", [hex: :cowlib, repo: "hexpm", optional: false]}, {:ranch, "~> 1.7.1", [hex: :ranch, repo: "hexpm", optional: false]}], "hexpm", "04fd8c6a39edc6aaa9c26123009200fc61f92a3a94f3178c527b70b767c6e605"},
   "cowlib": {:hex, :cowlib, "2.8.0", "fd0ff1787db84ac415b8211573e9a30a3ebe71b5cbff7f720089972b2319c8a4", [:rebar3], [], "hexpm", "79f954a7021b302186a950a32869dbc185523d99d3e44ce430cd1f3289f41ed4"},
+  "decimal": {:hex, :decimal, "1.8.1", "a4ef3f5f3428bdbc0d35374029ffcf4ede8533536fa79896dd450168d9acdf3c", [:mix], [], "hexpm", "3cb154b00225ac687f6cbd4acc4b7960027c757a5152b369923ead9ddbca7aec"},
+  "ecto": {:hex, :ecto, "3.3.4", "95b05c82ae91361475e5491c9f3ac47632f940b3f92ae3988ac1aad04989c5bb", [:mix], [{:decimal, "~> 1.6 or ~> 2.0", [hex: :decimal, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: true]}], "hexpm", "9b96cbb83a94713731461ea48521b178b0e3863d310a39a3948c807266eebd69"},
   "file_system": {:hex, :file_system, "0.2.8", "f632bd287927a1eed2b718f22af727c5aeaccc9a98d8c2bd7bff709e851dc986", [:mix], [], "hexpm", "97a3b6f8d63ef53bd0113070102db2ce05352ecf0d25390eb8d747c2bde98bca"},
   "gettext": {:hex, :gettext, "0.17.4", "f13088e1ec10ce01665cf25f5ff779e7df3f2dc71b37084976cf89d1aa124d5c", [:mix], [], "hexpm", "3c75b5ea8288e2ee7ea503ff9e30dfe4d07ad3c054576a6e60040e79a801e14d"},
   "jason": {:hex, :jason, "1.1.2", "b03dedea67a99223a2eaf9f1264ce37154564de899fd3d8b9a21b1a6fd64afe7", [:mix], [{:decimal, "~> 1.0", [hex: :decimal, repo: "hexpm", optional: true]}], "hexpm", "fdf843bca858203ae1de16da2ee206f53416bbda5dc8c9e78f43243de4bc3afe"},

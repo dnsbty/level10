@@ -32,6 +32,7 @@ defmodule Level10.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:ecto, "~> 3.3.4"},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
       {:phoenix, "~> 1.4.16"},
