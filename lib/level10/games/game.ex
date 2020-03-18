@@ -47,4 +47,37 @@ defmodule Level10.Games.Game do
       table: %{}
     }
   end
+
+  @doc """
+  Creates a new shuffled deck for the draw pile.
+  """
+  @spec put_new_deck(t()) :: t()
+  def put_new_deck(game) do
+    %{game | draw_pile: new_deck()}
+  end
+
+  @spec new_deck() :: Card.t()
+  defp new_deck do
+    color_cards =
+      for value <- ~W[one two three four five six seven eight nine ten eleven twelve wild]a,
+          color <- ~W[blue green red yellow]a,
+          card = Card.new(value, color),
+          _repeat <- 1..2 do
+        card
+      end
+
+    skips = for _repeat <- 1..4, do: Card.new(:skip, :blue)
+
+    color_cards
+    |> Stream.concat(skips)
+    |> Enum.shuffle()
+  end
+
+  @doc """
+  Shuffles the discard pile to make a new draw pile.
+  """
+  @spec reshuffle_deck(t()) :: t()
+  def reshuffle_deck(game = %{discard_pile: discard_pile}) do
+    %{game | discard_pile: [], draw_pile: Enum.shuffle(discard_pile)}
+  end
 end
