@@ -66,7 +66,7 @@ defmodule Level10.Games.Game do
         card
       end
 
-    skips = for _repeat <- 1..4, Card.new(:skip, :blue)
+    skips = for _repeat <- 1..4, do: Card.new(:skip, :blue)
 
     color_cards
     |> Stream.concat(skips)
