@@ -11,8 +11,8 @@ defmodule Level10.Games.Levels do
     4 => [run: 7],
     5 => [run: 8],
     6 => [run: 9],
-    7 => [color: 7],
-    8 => [set: 4, set: 4],
+    7 => [set: 4, set: 4],
+    8 => [color: 7],
     9 => [set: 5, set: 2],
     10 => [set: 5, set: 3]
   }
