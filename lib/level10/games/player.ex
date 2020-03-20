@@ -1,9 +1,9 @@
 defmodule Level10.Games.Player do
-  defstruct [:key, :name]
+  defstruct [:id, :name]
 
   def new(name) do
     %__MODULE__{
-      key: Ecto.UUID.generate(),
+      id: Ecto.UUID.generate(),
       name: name
     }
   end
