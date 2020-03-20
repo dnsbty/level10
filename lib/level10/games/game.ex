@@ -10,6 +10,7 @@ defmodule Level10.Games.Game do
 
   @type join_code :: <<_::32>>
   @type t :: %__MODULE__{
+          current_round: non_neg_integer() | :pending | :completed,
           join_code: join_code(),
           players: [Player.t()]
         }
@@ -25,7 +26,7 @@ defmodule Level10.Games.Game do
   #           table: map()
   #         }
 
-  defstruct [:join_code, :players]
+  defstruct ~W[current_round join_code players]a
 
   @spec generate_join_code() :: join_code()
   def generate_join_code do
@@ -48,6 +49,7 @@ defmodule Level10.Games.Game do
   @spec new(join_code(), Player.t()) :: t()
   def new(join_code, player) do
     %__MODULE__{
+      current_round: :pending,
       join_code: join_code,
       players: [player]
     }
@@ -70,4 +72,15 @@ defmodule Level10.Games.Game do
   #       table: %{}
   #     }
   #   end
+
+  @spec put_player(t(), Player.t()) :: {:ok, t()} | :already_started
+  def put_player(game, player)
+
+  def put_player(game = %{current_round: :pending, players: players}, player) do
+    {:ok, %{game | players: players ++ [player]}}
+  end
+
+  def put_player(_game, _player) do
+    :already_started
+  end
 end

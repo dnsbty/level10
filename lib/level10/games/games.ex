@@ -42,27 +42,20 @@ defmodule Level10.Games do
     {:via, Registry, {GameRegistry, join_code}}
   end
 
-  # def new_agent(players) do
-  #   code = generate_code()
+  @spec join_game(Game.join_code(), String.t()) :: {:ok, Player.id()} | :already_started
+  def join_game(join_code, player_name) do
+    player = Player.new(player_name)
 
-  #   case Agent.start_link(__MODULE__, :new, [players], name: game_name(code)) do
-  #     {:ok, _pid} ->
-  #       {:ok, code}
+    Agent.get_and_update(via(join_code), fn game ->
+      case Game.put_player(game, player) do
+        {:ok, game} ->
+          {{:ok, player.id}, game}
 
-  #     {:error, {:already_started, _pid}} ->
-  #       new_agent(players)
-  #   end
-  # end
-
-  # defp generate_code do
-  #   <<:random.uniform(1_048_576)::40>>
-  #   |> Base.encode32()
-  #   |> binary_part(4, 4)
-  # end
-
-  # defp game_name(code) do
-  #   {:via, Registry, {GameRegistry, code}}
-  # end
+        :already_started ->
+          {:already_started, game}
+      end
+    end)
+  end
 
   # @doc """
   # This function will make all of the necessary changes to start a round. It
