@@ -6,7 +6,7 @@ defmodule Level10.Games.Game do
   down to clients.
   """
 
-  alias Level10.Games.{Card, Player}
+  alias Level10.Games.{Card, GameRegistry, Player}
 
   @type t :: %__MODULE__{
           complete: boolean(),
@@ -29,6 +29,28 @@ defmodule Level10.Games.Game do
     :scoring,
     :table
   ]
+
+  def new_agent(players) do
+    code = generate_code()
+
+    case Agent.start_link(__MODULE__, :new, [players], name: game_name(code)) do
+      {:ok, _pid} ->
+        {:ok, code}
+
+      {:error, {:already_started, _pid}} ->
+        new_agent(players)
+    end
+  end
+
+  defp generate_code do
+    <<:random.uniform(1_048_576)::40>>
+    |> Base.encode32()
+    |> binary_part(4, 4)
+  end
+
+  defp game_name(code) do
+    {:via, Registry, {GameRegistry, code}}
+  end
 
   @doc """
   Takes a list of players and returns a new game struct with all values set to
