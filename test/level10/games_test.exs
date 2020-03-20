@@ -3,6 +3,29 @@ defmodule Level10.GamesTest do
   alias Level10.Games
   alias Games.{Card, Game, Player}
 
+  describe "start_round/1" do
+    @game Game.new([Player.new("Player 1"), Player.new("Player 2")])
+
+    test "increments the current_round" do
+      assert @game.current_round == 0
+      game = Games.start_round(@game)
+      assert game.current_round == 1
+    end
+
+    test "gives each player a hand with 10 cards" do
+      assert @game.hands == %{}
+      game = Games.start_round(@game)
+      assert length(game.hands["Player 1"]) == 10
+      assert length(game.hands["Player 2"]) == 10
+    end
+
+    test "attaches a new deck with 108 cards - 20 (for 2 hands)" do
+      assert @game.draw_pile == []
+      game = Games.start_round(@game)
+      assert length(game.draw_pile) == 88
+    end
+  end
+
   describe "complete_round/1" do
     @game Game.new([Player.new("Player 1"), Player.new("Player 2")])
     @hand_nothing [
