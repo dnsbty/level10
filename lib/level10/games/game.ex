@@ -9,7 +9,8 @@ defmodule Level10.Games.Game do
 
   @type join_code :: String.t()
   @type t :: %__MODULE__{
-          current_round: non_neg_integer() | :pending | :completed,
+          current_round: non_neg_integer(),
+          current_stage: :finish | :lobby | :play | :score,
           discard_pile: [Card.t()],
           draw_pile: [Card.t()],
           hands: %{optional(Player.id()) => [Card.t()]},
@@ -21,6 +22,7 @@ defmodule Level10.Games.Game do
 
   defstruct ~W[
     current_round
+    current_stage
     discard_pile
     draw_pile
     hands
@@ -73,7 +75,7 @@ defmodule Level10.Games.Game do
   @spec check_complete(t()) :: t()
   defp check_complete(%{scoring: scoring} = game) do
     if Enum.any?(scoring, &match?({_player, {_level = 11, _score}}, &1)) do
-      %{game | current_round: :completed}
+      %{game | current_stage: :finish}
     else
       game
     end
@@ -94,7 +96,8 @@ defmodule Level10.Games.Game do
   @spec new(join_code(), Player.t()) :: t()
   def new(join_code, player) do
     game = %__MODULE__{
-      current_round: :pending,
+      current_round: 0,
+      current_stage: :lobby,
       discard_pile: [],
       draw_pile: [],
       hands: %{},
@@ -111,7 +114,7 @@ defmodule Level10.Games.Game do
   @spec put_player(t(), Player.t()) :: {:ok, t()} | :already_started
   def put_player(game, player)
 
-  def put_player(game = %{current_round: :pending, players: players, scoring: scoring}, player) do
+  def put_player(game = %{current_stage: :lobby, players: players, scoring: scoring}, player) do
     players = players ++ [player]
     scoring = Map.put(scoring, player.id, {1, 0})
 
@@ -152,12 +155,8 @@ defmodule Level10.Games.Game do
   @spec increment_current_round(t()) :: t()
   defp increment_current_round(game)
 
-  defp increment_current_round(%{current_round: :completed}) do
+  defp increment_current_round(%{current_stage: :finish}) do
     :game_over
-  end
-
-  defp increment_current_round(game = %{current_round: :pending}) do
-    {:ok, %{game | current_round: 1}}
   end
 
   defp increment_current_round(game = %{current_round: current_round}) do

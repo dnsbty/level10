@@ -6,7 +6,7 @@ defmodule Level10.Games.GameTest do
     @game Game.new("ABCD", Player.new("Player 1"))
 
     test "increments the current_round" do
-      assert @game.current_round == :pending
+      assert @game.current_round == 0
       {:ok, game} = Game.start_round(@game)
       assert game.current_round == 1
     end
@@ -105,7 +105,7 @@ defmodule Level10.Games.GameTest do
 
       game = Game.complete_round(game)
 
-      assert game.current_round == :completed
+      assert game.current_stage == :finish
     end
   end
 end
