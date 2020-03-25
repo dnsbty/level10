@@ -97,6 +97,13 @@ defmodule Level10.Games.Game do
     |> binary_part(4, 4)
   end
 
+  @spec discard(t(), Card.t()) :: t()
+  def discard(game = %{current_player: player, discard_pile: pile, hands: hands}, card) do
+    hands = Map.update!(hands, player.id, &List.delete(&1, card))
+    pile = [card | pile]
+    %{game | discard_pile: pile, hands: hands}
+  end
+
   @spec draw_card(t(), :draw_pile | :discard_pile) :: t()
   def draw_card(game, pile)
 
