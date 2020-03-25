@@ -26,7 +26,7 @@ jobs:
     - name: Setup Node
       uses: actions/setup-node@v1
       with:
-        node-version: 13.8.0
+        node-version: 13.11.0
 
     - name: Fetch Dependencies from Cache
       uses: actions/cache@v1
@@ -42,17 +42,22 @@ jobs:
         path: _build
         key: ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
-    - uses: actions/cache@v1
+    - name: Find yarn cache location
+      id: yarn-cache
+      run: echo "::set-output name=dir::$(yarn cache dir)"
+
+    - name: Fetch Node Modules from Cache
+      uses: actions/cache@v1
       with:
-        path: ~/.npm
-        key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+        path: ${{ steps.yarn-cache.outputs.dir }}
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
-          ${{ runner.os }}-npm-
+          ${{ runner.os }}-yarn-
 
     - name: Install Dependencies
       run: |
         mix deps.get
-        npm install --prefix assets
+        (cd assets && yarn)
 
     - name: Check Formatting
       run: mix format --check-formatted
