@@ -5,28 +5,26 @@ defmodule Level10.Games.Game do
   game's state, and then stored on the server to be updated or to serve data
   down to clients.
   """
-  # alias Level10.Games.{Card, GameRegistry, Player}
-  alias Level10.Games.Player
+  alias Level10.Games.{Card, Player}
 
   @type join_code :: <<_::32>>
   @type t :: %__MODULE__{
           current_round: non_neg_integer() | :pending | :completed,
+          discard_pile: [Card.t()],
+          draw_pile: [Card.t()],
+          hands: %{optional(Player.id()) => [Card.t()]},
           join_code: join_code(),
           players: [Player.t()]
         }
 
-  #   @type t :: %__MODULE__{
-  #           complete: boolean(),
-  #           current_round: integer(),
-  #           discard_pile: list(Card.t()),
-  #           draw_pile: list(Card.t()),
-  #           hands: map(),
-  #           players: map(),
-  #           scoring: map(),
-  #           table: map()
-  #         }
-
-  defstruct ~W[current_round join_code players]a
+  defstruct ~W[
+    current_round
+    discard_pile
+    draw_pile
+    hands
+    join_code
+    players
+  ]a
 
   @spec generate_join_code() :: join_code()
   def generate_join_code do
@@ -35,43 +33,17 @@ defmodule Level10.Games.Game do
     |> binary_part(4, 4)
   end
 
-  #   defstruct [
-  #     :complete,
-  #     :current_round,
-  #     :discard_pile,
-  #     :draw_pile,
-  #     :hands,
-  #     :players,
-  #     :scoring,
-  #     :table
-  #   ]
-
   @spec new(join_code(), Player.t()) :: t()
   def new(join_code, player) do
     %__MODULE__{
       current_round: :pending,
+      discard_pile: [],
+      draw_pile: [],
+      hands: %{},
       join_code: join_code,
       players: [player]
     }
   end
-
-  #   @doc """
-  #   Takes a list of players and returns a new game struct with all values set to
-  #   defaults.
-  #   """
-  #   @spec new(list(Player.t())) :: t()
-  #   def new(players) do
-  #     %__MODULE__{
-  #       complete: false,
-  #       current_round: 0,
-  #       discard_pile: [],
-  #       draw_pile: [],
-  #       hands: %{},
-  #       players: players,
-  #       scoring: %{},
-  #       table: %{}
-  #     }
-  #   end
 
   @spec put_player(t(), Player.t()) :: {:ok, t()} | :already_started
   def put_player(game, player)
