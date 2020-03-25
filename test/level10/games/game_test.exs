@@ -35,7 +35,7 @@ defmodule Level10.Games.GameTest do
 
   describe "complete_round/1" do
     @game Game.new("ABCD", Player.new("Player 1"))
-    # @game Game.new([Player.new("Player 1"), Player.new("Player 2")])
+
     @hand_nothing [
       %Card{color: :blue, value: :one},
       %Card{color: :red, value: :one},

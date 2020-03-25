@@ -97,6 +97,28 @@ defmodule Level10.Games.Game do
     |> binary_part(4, 4)
   end
 
+  @spec draw_card(t(), :draw_pile | :discard_pile) :: t()
+  def draw_card(game, pile)
+
+  def draw_card(game = %{current_player: player, draw_pile: pile, hands: hands}, :draw_pile) do
+    case pile do
+      [card | pile] ->
+        hands = Map.update!(hands, player.id, &[card | &1])
+        %{game | draw_pile: pile, hands: hands}
+
+      [] ->
+        game
+        |> reshuffle_deck()
+        |> draw_card(:draw_pile)
+    end
+  end
+
+  def draw_card(game = %{current_player: player, discard_pile: pile, hands: hands}, :discard_pile) do
+    [card | pile] = pile
+    hands = Map.update!(hands, player.id, &[card | &1])
+    %{game | discard_pile: pile, hands: hands}
+  end
+
   @spec new(join_code(), Player.t()) :: t()
   def new(join_code, player) do
     game = %__MODULE__{
