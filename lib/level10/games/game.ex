@@ -83,4 +83,66 @@ defmodule Level10.Games.Game do
   def put_player(_game, _player) do
     :already_started
   end
+
+  @spec start_round(t()) :: t()
+  def start_round(game) do
+    case increment_current_round(game) do
+      {:ok, game} ->
+        game
+        |> put_new_deck()
+        |> deal_hands()
+
+      :game_over ->
+        :game_over
+    end
+  end
+
+  @spec increment_current_round(t()) :: t()
+  defp increment_current_round(game)
+
+  defp increment_current_round(%{current_round: :completed}) do
+    :game_over
+  end
+
+  defp increment_current_round(game = %{current_round: :pending}) do
+    %{game | current_round: 1}
+  end
+
+  defp increment_current_round(game = %{current_round: current_round}) do
+    %{game | current_round: current_round + 1}
+  end
+
+  @spec put_new_deck(t()) :: t()
+  defp put_new_deck(game) do
+    %{game | draw_pile: new_deck()}
+  end
+
+  @spec new_deck() :: [Card.t()]
+  defp new_deck do
+    color_cards =
+      for value <- ~W[one two three four five six seven eight nine ten eleven twelve wild]a,
+          color <- ~W[blue green red yellow]a,
+          card = Card.new(value, color),
+          _repeat <- 1..2 do
+        card
+      end
+
+    skips = for _repeat <- 1..4, do: Card.new(:skip, :blue)
+
+    color_cards
+    |> Stream.concat(skips)
+    |> Enum.shuffle()
+  end
+
+  @spec deal_hands(t()) :: t()
+  defp deal_hands(game = %{draw_pile: deck, players: players}) do
+    {hands, deck} =
+      Enum.reduce(players, {%{}, deck}, fn %{id: player_id}, {hands, deck} ->
+        {hand, deck} = Enum.split(deck, 10)
+        hands = Map.put(hands, player_id, hand)
+        {hands, deck}
+      end)
+
+    %{game | draw_pile: deck, hands: hands}
+  end
 end
