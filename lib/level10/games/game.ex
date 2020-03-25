@@ -9,8 +9,10 @@ defmodule Level10.Games.Game do
 
   @type join_code :: String.t()
   @type t :: %__MODULE__{
+          current_player: Player.t(),
           current_round: non_neg_integer(),
           current_stage: :finish | :lobby | :play | :score,
+          current_turn: non_neg_integer(),
           discard_pile: [Card.t()],
           draw_pile: [Card.t()],
           hands: %{optional(Player.id()) => [Card.t()]},
@@ -21,8 +23,10 @@ defmodule Level10.Games.Game do
         }
 
   defstruct ~W[
+    current_player
     current_round
     current_stage
+    current_turn
     discard_pile
     draw_pile
     hands
@@ -96,8 +100,10 @@ defmodule Level10.Games.Game do
   @spec new(join_code(), Player.t()) :: t()
   def new(join_code, player) do
     game = %__MODULE__{
+      current_player: player,
       current_round: 0,
       current_stage: :lobby,
+      current_turn: 0,
       discard_pile: [],
       draw_pile: [],
       hands: %{},
@@ -142,6 +148,7 @@ defmodule Level10.Games.Game do
       {:ok, game} ->
         game =
           game
+          |> put_current_player()
           |> put_new_deck()
           |> deal_hands()
 
@@ -152,6 +159,14 @@ defmodule Level10.Games.Game do
     end
   end
 
+  @spec put_current_player(t()) :: t()
+  defp put_current_player(game = %{current_turn: current_turn, players: players}) do
+    total_players = length(players)
+    player_index = rem(current_turn + 1, total_players)
+    player = Enum.at(players, player_index)
+    %{game | current_turn: current_turn + 1, current_player: player}
+  end
+
   @spec increment_current_round(t()) :: t()
   defp increment_current_round(game)
 
@@ -159,8 +174,12 @@ defmodule Level10.Games.Game do
     :game_over
   end
 
+  defp increment_current_round(game = %{current_stage: :lobby}) do
+    {:ok, %{game | current_round: 1, current_stage: :play}}
+  end
+
   defp increment_current_round(game = %{current_round: current_round}) do
-    {:ok, %{game | current_round: current_round + 1}}
+    {:ok, %{game | current_round: current_round + 1, current_turn: 0}}
   end
 
   @spec put_new_deck(t()) :: t()
