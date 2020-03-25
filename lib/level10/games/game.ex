@@ -13,6 +13,7 @@ defmodule Level10.Games.Game do
           current_round: non_neg_integer(),
           current_stage: :finish | :lobby | :play | :score,
           current_turn: non_neg_integer(),
+          current_turn_drawn?: boolean(),
           discard_pile: [Card.t()],
           draw_pile: [Card.t()],
           hands: %{optional(Player.id()) => [Card.t()]},
@@ -27,6 +28,7 @@ defmodule Level10.Games.Game do
     current_round
     current_stage
     current_turn
+    current_turn_drawn?
     discard_pile
     draw_pile
     hands
@@ -98,20 +100,31 @@ defmodule Level10.Games.Game do
   end
 
   @spec discard(t(), Card.t()) :: t()
+  def discard(game, card)
+
+  def discard(game = %{current_turn_drawn?: false}, _card) do
+    game
+  end
+
   def discard(game = %{current_player: player, discard_pile: pile, hands: hands}, card) do
     hands = Map.update!(hands, player.id, &List.delete(&1, card))
     pile = [card | pile]
-    %{game | discard_pile: pile, hands: hands}
+    game = %{game | discard_pile: pile, hands: hands}
+    increment_current_turn(game)
   end
 
   @spec draw_card(t(), :draw_pile | :discard_pile) :: t()
   def draw_card(game, pile)
 
+  def draw_card(game = %{current_turn_drawn?: true}, _pile) do
+    game
+  end
+
   def draw_card(game = %{current_player: player, draw_pile: pile, hands: hands}, :draw_pile) do
     case pile do
       [card | pile] ->
         hands = Map.update!(hands, player.id, &[card | &1])
-        %{game | draw_pile: pile, hands: hands}
+        %{game | current_turn_drawn?: true, draw_pile: pile, hands: hands}
 
       [] ->
         game
@@ -120,10 +133,14 @@ defmodule Level10.Games.Game do
     end
   end
 
-  def draw_card(game = %{current_player: player, discard_pile: pile, hands: hands}, :discard_pile) do
-    [card | pile] = pile
+  def draw_card(game = %{discard_pile: []}, :discard_pile) do
+    game
+  end
+
+  def draw_card(game, :discard_pile) do
+    %{current_player: player, discard_pile: [card | pile], hands: hands} = game
     hands = Map.update!(hands, player.id, &[card | &1])
-    %{game | discard_pile: pile, hands: hands}
+    %{game | current_turn_drawn?: true, discard_pile: pile, hands: hands}
   end
 
   @spec new(join_code(), Player.t()) :: t()
@@ -133,6 +150,7 @@ defmodule Level10.Games.Game do
       current_round: 0,
       current_stage: :lobby,
       current_turn: 0,
+      current_turn_drawn?: false,
       discard_pile: [],
       draw_pile: [],
       hands: %{},
@@ -177,7 +195,7 @@ defmodule Level10.Games.Game do
       {:ok, game} ->
         game =
           game
-          |> put_current_player()
+          |> increment_current_turn()
           |> put_new_deck()
           |> deal_hands()
 
@@ -188,12 +206,12 @@ defmodule Level10.Games.Game do
     end
   end
 
-  @spec put_current_player(t()) :: t()
-  defp put_current_player(game = %{current_turn: current_turn, players: players}) do
+  @spec increment_current_turn(t()) :: t()
+  defp increment_current_turn(game = %{current_turn: current_turn, players: players}) do
     total_players = length(players)
     player_index = rem(current_turn + 1, total_players)
     player = Enum.at(players, player_index)
-    %{game | current_turn: current_turn + 1, current_player: player}
+    %{game | current_turn: current_turn + 1, current_turn_drawn?: false, current_player: player}
   end
 
   @spec increment_current_round(t()) :: t()
