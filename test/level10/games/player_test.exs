@@ -9,11 +9,11 @@ defmodule Level10.Games.PlayerTest do
       assert player.name == "Some Player"
     end
 
-    test "generates a random key for player" do
+    test "generates a random id for player" do
       player_one = Player.new("Other Player")
       player_two = Player.new("Other Player")
 
-      assert player_one.key != player_two.key
+      assert player_one.id != player_two.id
     end
   end
 end

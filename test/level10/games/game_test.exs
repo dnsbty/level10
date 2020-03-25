@@ -1,33 +1,41 @@
-defmodule Level10.GamesTest do
+defmodule Level10.Games.GameTest do
   use ExUnit.Case, async: true
-  alias Level10.Games
-  alias Games.{Card, Game, Player}
+  alias Level10.Games.{Card, Game, Player}
 
   describe "start_round/1" do
-    @game Game.new([Player.new("Player 1"), Player.new("Player 2")])
+    @game Game.new("ABCD", Player.new("Player 1"))
 
     test "increments the current_round" do
-      assert @game.current_round == 0
-      game = Games.start_round(@game)
+      assert @game.current_round == :pending
+      {:ok, game} = Game.start_round(@game)
       assert game.current_round == 1
     end
 
     test "gives each player a hand with 10 cards" do
       assert @game.hands == %{}
-      game = Games.start_round(@game)
-      assert length(game.hands["Player 1"]) == 10
-      assert length(game.hands["Player 2"]) == 10
+
+      {:ok, game} = Game.put_player(@game, Player.new("Player 2"))
+      {:ok, game} = Game.start_round(game)
+
+      [player1, player2] = game.players
+
+      assert length(game.hands[player1.id]) == 10
+      assert length(game.hands[player2.id]) == 10
     end
 
     test "attaches a new deck with 108 cards - 20 (for 2 hands)" do
       assert @game.draw_pile == []
-      game = Games.start_round(@game)
+
+      {:ok, game} = Game.put_player(@game, Player.new("Player 2"))
+      {:ok, game} = Game.start_round(game)
+
       assert length(game.draw_pile) == 88
     end
   end
 
   describe "complete_round/1" do
-    @game Game.new([Player.new("Player 1"), Player.new("Player 2")])
+    @game Game.new("ABCD", Player.new("Player 1"))
+    # @game Game.new([Player.new("Player 1"), Player.new("Player 2")])
     @hand_nothing [
       %Card{color: :blue, value: :one},
       %Card{color: :red, value: :one},
@@ -66,9 +74,8 @@ defmodule Level10.GamesTest do
 
       game = %{@game | current_round: 2, hands: hands, scoring: scoring, table: table}
 
-      game = Games.complete_round(game)
+      game = Game.complete_round(game)
 
-      assert game.complete == false
       assert game.current_round == 2
       assert game.scoring["Player 1"] == {3, 45}
       assert game.scoring["Player 2"] == {2, 85}
@@ -81,9 +88,8 @@ defmodule Level10.GamesTest do
 
       game = %{@game | current_round: 2, hands: hands, scoring: scoring, table: table}
 
-      game = Games.complete_round(game)
+      game = Game.complete_round(game)
 
-      assert game.complete == false
       assert game.discard_pile == []
       assert game.draw_pile == []
       assert game.hands == %{}
@@ -97,9 +103,9 @@ defmodule Level10.GamesTest do
 
       game = %{@game | current_round: 2, hands: hands, scoring: scoring, table: table}
 
-      game = Games.complete_round(game)
+      game = Game.complete_round(game)
 
-      assert game.complete == true
+      assert game.current_round == :completed
     end
   end
 end

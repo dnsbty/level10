@@ -99,7 +99,7 @@ defmodule Level10.Games.Game do
       draw_pile: [],
       hands: %{},
       join_code: join_code,
-      players: [player],
+      players: [],
       scoring: %{},
       table: %{}
     }
@@ -112,7 +112,7 @@ defmodule Level10.Games.Game do
   def put_player(game, player)
 
   def put_player(game = %{current_round: :pending, players: players, scoring: scoring}, player) do
-    players = player ++ [player]
+    players = players ++ [player]
     scoring = Map.put(scoring, player.id, {1, 0})
 
     {:ok, %{game | players: players, scoring: scoring}}
@@ -137,9 +137,12 @@ defmodule Level10.Games.Game do
   def start_round(game) do
     case increment_current_round(game) do
       {:ok, game} ->
-        game
-        |> put_new_deck()
-        |> deal_hands()
+        game =
+          game
+          |> put_new_deck()
+          |> deal_hands()
+
+        {:ok, game}
 
       :game_over ->
         :game_over
@@ -154,11 +157,11 @@ defmodule Level10.Games.Game do
   end
 
   defp increment_current_round(game = %{current_round: :pending}) do
-    %{game | current_round: 1}
+    {:ok, %{game | current_round: 1}}
   end
 
   defp increment_current_round(game = %{current_round: current_round}) do
-    %{game | current_round: current_round + 1}
+    {:ok, %{game | current_round: current_round + 1}}
   end
 
   @spec put_new_deck(t()) :: t()
