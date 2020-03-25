@@ -8,6 +8,7 @@ defmodule Level10.Application do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
+      {Registry, keys: :unique, name: Level10.Games.GameRegistry},
       # Start the endpoint when the application starts
       Level10Web.Endpoint
       # Starts a worker by calling: Level10.Worker.start_link(arg)
