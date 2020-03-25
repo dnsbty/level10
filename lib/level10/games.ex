@@ -27,7 +27,7 @@ defmodule Level10.Games do
   defp do_create_game(player, attempts_remaining) do
     join_code = Game.generate_join_code()
 
-    case Agent.start_link(Game, :new, [join_code, player], name: via(join_code)) do
+    case Agent.start(Game, :new, [join_code, player], name: via(join_code)) do
       {:ok, _pid} ->
         {:ok, join_code, player.id}
 

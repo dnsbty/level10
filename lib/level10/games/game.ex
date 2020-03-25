@@ -7,7 +7,7 @@ defmodule Level10.Games.Game do
   """
   alias Level10.Games.{Card, Player}
 
-  @type join_code :: <<_::32>>
+  @type join_code :: String.t()
   @type t :: %__MODULE__{
           current_round: non_neg_integer() | :pending | :completed,
           discard_pile: [Card.t()],
@@ -16,7 +16,7 @@ defmodule Level10.Games.Game do
           join_code: join_code(),
           players: [Player.t()],
           scoring: %{optional(Player.id()) => {non_neg_integer(), non_neg_integer()}},
-          table: %{optional(Player.id()) => keyword()}
+          table: %{optional(Player.id()) => keyword([Card.t()])}
         }
 
   defstruct ~W[
