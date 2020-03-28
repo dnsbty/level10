@@ -24,6 +24,8 @@ defmodule Level10Web do
       import Plug.Conn
       import Level10Web.Gettext
       alias Level10Web.Router.Helpers, as: Routes
+
+      import Phoenix.LiveView.Controller
     end
   end
 
@@ -41,8 +43,9 @@ defmodule Level10Web do
 
       import Level10Web.ErrorHelpers
       import Level10Web.Gettext
-      import Phoenix.LiveView.Controller
       alias Level10Web.Router.Helpers, as: Routes
+
+      import Phoenix.LiveView.Helpers
     end
   end
 
@@ -51,7 +54,7 @@ defmodule Level10Web do
       use Phoenix.Router
       import Plug.Conn
       import Phoenix.Controller
-      import Phoenix.LiveView.Helpers
+      import Phoenix.LiveView.Router
     end
   end
 
@@ -59,7 +62,6 @@ defmodule Level10Web do
     quote do
       use Phoenix.Channel
       import Level10Web.Gettext
-      import Phoenix.LiveView.Router
     end
   end
 

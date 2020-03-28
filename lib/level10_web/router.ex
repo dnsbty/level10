@@ -1,6 +1,5 @@
 defmodule Level10Web.Router do
   use Level10Web, :router
-  import Phoenix.LiveView.Router
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -8,6 +7,7 @@ defmodule Level10Web.Router do
     plug :fetch_live_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :put_root_layout, {Level10Web.LayoutView, "root.html"}
   end
 
   pipeline :api do
@@ -17,7 +17,7 @@ defmodule Level10Web.Router do
   scope "/", Level10Web do
     pipe_through :browser
 
-    get "/", PageController, :index
+    live "/", LobbyLive
   end
 
   # Other scopes may use custom stacks.
