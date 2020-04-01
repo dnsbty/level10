@@ -8,7 +8,7 @@
   <div class="sm:mx-auto sm:w-full sm:max-w-md">
     <div class="py-8 px-4 sm:rounded-lg sm:px-10">
       <%= if @action in [:create, :join] do %>
-      <%= f = form_for :info, "#", [phx_change: :validate, phx_submit: @action] %>
+        <%= f = form_for :info, "#", [phx_change: :validate, phx_submit: "#{@action}_game"] %>
         <div>
           <label for="name" class="block text-sm font-medium leading-5 text-gray-300">
             Your name

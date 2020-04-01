@@ -6,6 +6,7 @@ defmodule Level10.Games do
   """
   alias Level10.Games.{Game, GameRegistry, Player}
 
+  @typep event_type :: atom()
   @typep game_name :: Agent.name()
 
   @max_attempts 10
@@ -41,6 +42,11 @@ defmodule Level10.Games do
     {:via, Registry, {GameRegistry, join_code}}
   end
 
+  @spec get_players(Game.join_code()) :: list(Player.t())
+  def get_players(join_code) do
+    Agent.get(via(join_code), & &1.players)
+  end
+
   @spec join_game(Game.join_code(), String.t()) :: {:ok, Player.id()} | :already_started
   def join_game(join_code, player_name) do
     player = Player.new(player_name)
@@ -48,6 +54,7 @@ defmodule Level10.Games do
     Agent.get_and_update(via(join_code), fn game ->
       case Game.put_player(game, player) do
         {:ok, game} ->
+          broadcast(game.join_code, :players_updated, game.players)
           {{:ok, player.id}, game}
 
         :already_started ->
@@ -67,5 +74,15 @@ defmodule Level10.Games do
           {:game_over, game}
       end
     end)
+  end
+
+  @spec subscribe(String.t()) :: :ok | {:error, term()}
+  def subscribe(game_code) do
+    Phoenix.PubSub.subscribe(Level10.PubSub, "game:" <> game_code)
+  end
+
+  @spec broadcast(Game.join_code(), event_type(), term()) :: :ok | {:error, term()}
+  defp broadcast(join_code, event_type, event) do
+    Phoenix.PubSub.broadcast(Level10.PubSub, "game:" <> join_code, {event_type, event})
   end
 end
