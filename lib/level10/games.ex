@@ -4,7 +4,7 @@ defmodule Level10.Games do
   functions will take in a game struct and manipulate that struct and return
   it.
   """
-  alias Level10.Games.{Game, GameRegistry, Player}
+  alias Level10.Games.{Game, GameRegistry, GameSupervisor, Player}
 
   @typep event_type :: atom()
   @typep game_name :: Agent.name()
@@ -28,7 +28,13 @@ defmodule Level10.Games do
   defp do_create_game(player, attempts_remaining) do
     join_code = Game.generate_join_code()
 
-    case Agent.start(Game, :new, [join_code, player], name: via(join_code)) do
+    game = %{
+      id: join_code,
+      start: {Agent, :start_link, [Game, :new, [join_code, player], [name: via(join_code)]]},
+      restart: :temporary
+    }
+
+    case DynamicSupervisor.start_child(GameSupervisor, game) do
       {:ok, _pid} ->
         {:ok, join_code, player.id}
 

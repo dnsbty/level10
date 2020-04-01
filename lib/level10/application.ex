@@ -8,6 +8,7 @@ defmodule Level10.Application do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
+      {DynamicSupervisor, strategy: :one_for_one, name: Level10.Games.GameSupervisor},
       {Registry, keys: :unique, name: Level10.Games.GameRegistry},
       # Start the endpoint when the application starts
       Level10Web.Endpoint
