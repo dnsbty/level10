@@ -9,7 +9,6 @@ secret_key_base =
 
 config :level10, Level10Web.Endpoint,
   http: [
-    port: String.to_integer(System.get_env("PORT") || "4000"),
     transport_options: [socket_opts: [:inet6]]
   ],
   secret_key_base: secret_key_base

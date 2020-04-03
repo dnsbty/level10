@@ -9,6 +9,7 @@ use Mix.Config
 
 # Configures the endpoint
 config :level10, Level10Web.Endpoint,
+  http: [port: String.to_integer(System.get_env("PORT") || "4000")],
   url: [host: "localhost"],
   secret_key_base: "/zVsH2ul2vyeKjwK7OVZI8dJM7bnN8DqwXb8N8Oy3Cw+KscU88U/oB4JXeBPWM+t",
   render_errors: [view: Level10Web.ErrorView, accepts: ~w(html json)],
