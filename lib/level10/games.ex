@@ -82,6 +82,19 @@ defmodule Level10.Games do
     end)
   end
 
+  @spec start_game(Game.join_code()) :: :ok
+  def start_game(join_code) do
+    Agent.get_and_update(via(join_code), fn game ->
+      case Game.start_game(game) do
+        {:ok, game} ->
+          {:ok, game}
+
+        :single_player ->
+          {:single_player, game}
+      end
+    end)
+  end
+
   @spec subscribe(String.t()) :: :ok | {:error, term()}
   def subscribe(game_code) do
     Phoenix.PubSub.subscribe(Level10.PubSub, "game:" <> game_code)

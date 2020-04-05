@@ -189,6 +189,25 @@ defmodule Level10.Games.Game do
     %{game | discard_pile: [], draw_pile: Enum.shuffle(discard_pile)}
   end
 
+  @doc """
+  Starts the game.
+
+  Checks to make sure that there are at least two players present.
+  """
+  @spec start_game(t()) :: {:ok, t()} | :single_player
+  def start_game(%{players: players}) when length(players) < 2, do: :single_player
+
+  def start_game(game) do
+    case start_round(game) do
+      {:ok, game} -> {:ok, game}
+      :game_over -> raise "Trying to start finished game: #{game.join_code}"
+    end
+  end
+
+  @doc """
+  Sets everything up to start the next round. Shuffles and deals a new deck and
+  all hands.
+  """
   @spec start_round(t()) :: t()
   def start_round(game) do
     case increment_current_round(game) do
