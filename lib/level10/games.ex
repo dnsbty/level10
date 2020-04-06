@@ -57,6 +57,8 @@ defmodule Level10.Games do
   def join_game(join_code, player_name) do
     player = Player.new(player_name)
 
+    # TODO: check if the game actually exists
+
     Agent.get_and_update(via(join_code), fn game ->
       case Game.put_player(game, player) do
         {:ok, game} ->
@@ -82,7 +84,7 @@ defmodule Level10.Games do
     end)
   end
 
-  @spec start_game(Game.join_code()) :: :ok
+  @spec start_game(Game.join_code()) :: :ok | :single_player
   def start_game(join_code) do
     Agent.get_and_update(via(join_code), fn game ->
       case Game.start_game(game) do

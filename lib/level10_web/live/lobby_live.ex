@@ -10,8 +10,16 @@ defmodule Level10Web.LobbyLive do
   alias Level10.Games
 
   def mount(_params, _session, socket) do
-    socket = assign(socket, action: :none, join_code: "", name: "", player_id: nil, players: [])
-    {:ok, socket}
+    initial_assigns = [
+      action: :none,
+      join_code: "",
+      name: "",
+      player_id: nil,
+      players: [],
+      is_creator: false
+    ]
+
+    {:ok, assign(socket, initial_assigns)}
   end
 
   def render(assigns) do
@@ -36,6 +44,7 @@ defmodule Level10Web.LobbyLive do
         socket =
           assign(socket,
             action: :wait,
+            is_creator: true,
             join_code: join_code,
             player_id: player_id,
             players: players
@@ -68,6 +77,31 @@ defmodule Level10Web.LobbyLive do
 
   def handle_event("leave", _params, socket) do
     {:noreply, assign(socket, action: :none, join_code: "", name: "")}
+  end
+
+  def handle_event("start_game", _params, %{assigns: %{is_creator: false}} = socket) do
+    Logger.warn("Non-creator tried to start game #{socket.assigns.join_code}")
+    {:noreply, socket}
+  end
+
+  def handle_event("start_game", _params, socket) do
+    case Games.start_game(socket.assigns.join_code) do
+      :single_player ->
+        Logger.warn("User tried to start game #{socket.assigns.join_code} with no other players")
+
+        socket =
+          put_flash(
+            socket,
+            :error,
+            "At least 2 players are needed to play Level 10. Try inviting a friend!"
+          )
+
+        {:noreply, socket}
+
+      :ok ->
+        Logger.info("Starting game #{socket.assigns.join_code}")
+        {:noreply, assign(socket, starting: true)}
+    end
   end
 
   def handle_event("validate", %{"info" => info}, socket) do
