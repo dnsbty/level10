@@ -182,12 +182,8 @@ defmodule Level10.Games.Game do
   @spec put_player(t(), Player.t()) :: {:ok, t()} | :already_started
   def put_player(game, player)
 
-  # TODO move scoring into start game
-  def put_player(game = %{current_stage: :lobby, players: players, scoring: scoring}, player) do
-    players = players ++ [player]
-    scoring = Map.put(scoring, player.id, {1, 0})
-
-    {:ok, %{game | players: players, scoring: scoring}}
+  def put_player(game = %{current_stage: :lobby, players: players}, player) do
+    {:ok, %{game | players: [player | players]}}
   end
 
   def put_player(_game, _player) do
@@ -215,9 +211,14 @@ defmodule Level10.Games.Game do
 
   def start_game(game) do
     case start_round(game) do
-      {:ok, game} -> {:ok, game}
+      {:ok, game} -> {:ok, add_empty_scores(game)}
       :game_over -> raise "Trying to start finished game: #{game.join_code}"
     end
+  end
+
+  @spec add_empty_scores(t()) :: t()
+  defp add_empty_scores(game = %{players: players}) do
+    %{game | scoring: Map.new(players, &{&1.id, {1, 0}})}
   end
 
   @doc """
