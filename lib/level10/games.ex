@@ -71,6 +71,20 @@ defmodule Level10.Games do
     end)
   end
 
+  @spec leave_game(Game.join_code(), Player.id()) :: :ok | :already_started
+  def leave_game(join_code, player_id) do
+    Agent.get_and_update(via(join_code), fn game ->
+      case Game.delete_player(game, player_id) do
+        {:ok, game} ->
+          broadcast(game.join_code, :players_updated, game.players)
+          {:ok, game}
+
+        :already_started ->
+          {:already_started, game}
+      end
+    end)
+  end
+
   @spec start_round(Game.join_code()) :: :ok | :game_over
   def start_round(join_code) do
     Agent.get_and_update(via(join_code), fn game ->
@@ -100,6 +114,11 @@ defmodule Level10.Games do
   @spec subscribe(String.t()) :: :ok | {:error, term()}
   def subscribe(game_code) do
     Phoenix.PubSub.subscribe(Level10.PubSub, "game:" <> game_code)
+  end
+
+  @spec unsubscribe(String.t()) :: :ok | {:error, term()}
+  def unsubscribe(game_code) do
+    Phoenix.PubSub.unsubscribe(Level10.PubSub, "game:" <> game_code)
   end
 
   @spec broadcast(Game.join_code(), event_type(), term()) :: :ok | {:error, term()}

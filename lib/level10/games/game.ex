@@ -5,6 +5,7 @@ defmodule Level10.Games.Game do
   game's state, and then stored on the server to be updated or to serve data
   down to clients.
   """
+  require Logger
   alias Level10.Games.{Card, Player}
 
   @type join_code :: String.t()
@@ -99,6 +100,20 @@ defmodule Level10.Games.Game do
     |> binary_part(4, 4)
   end
 
+  @spec delete_player(t(), Player.id()) :: t()
+  def delete_player(game, player_id)
+
+  def delete_player(game = %{current_stage: :lobby, players: players}, player_id) do
+    {:ok, %{game | players: Enum.filter(players, &(&1.id != player_id))}}
+  end
+
+  def delete_player(game, player_id) do
+    metadata = [game_id: game.join_code, player_id: player_id]
+    Logger.warn("Player tried to leave game that has already started", metadata)
+
+    :already_started
+  end
+
   @spec discard(t(), Card.t()) :: t()
   def discard(game, card)
 
@@ -167,6 +182,7 @@ defmodule Level10.Games.Game do
   @spec put_player(t(), Player.t()) :: {:ok, t()} | :already_started
   def put_player(game, player)
 
+  # TODO move scoring into start game
   def put_player(game = %{current_stage: :lobby, players: players, scoring: scoring}, player) do
     players = players ++ [player]
     scoring = Map.put(scoring, player.id, {1, 0})
