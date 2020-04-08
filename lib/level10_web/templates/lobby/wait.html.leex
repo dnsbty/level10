@@ -1,0 +1,46 @@
+<div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+  <h2 class="mt-6 text-center text-4xl leading-9 font-extrabold text-gray-100">
+    Level 10
+  </h2>
+</div>
+<div class="sm:mx-auto sm:w-full sm:max-w-md">
+  <div class="py-8 px-4 sm:rounded-lg sm:px-10">
+    <div class="mt-4">
+      <span class="block w-full rounded-md">
+        <button type="cancel" phx-click="leave" class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-gray-300 bg-purple-800 hover:bg-purple-700 focus:outline-none focus:border-purple-700 focus:shadow-outline-purple active:bg-purple-800 transition duration-150 ease-in-out">
+          <%= @join_code %>
+        </button>
+      </span>
+    </div>
+    <div class="mt-4">
+      <span class="block w-full rounded-md">
+        <span class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-gray-300 bg-purple-800 hover:bg-purple-700 focus:outline-none focus:border-purple-700 focus:shadow-outline-purple active:bg-purple-800 transition duration-150 ease-in-out">
+          Players
+        </span>
+      <%= for player <- @players do %>
+        <span class="block w-full rounded-md">
+          <span class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-gray-300 bg-purple-800 hover:bg-purple-700 focus:outline-none focus:border-purple-700 focus:shadow-outline-purple active:bg-purple-800 transition duration-150 ease-in-out">
+            <%= player.name %>
+          </span>
+        </span>
+      <% end %>
+    </div>
+    <%= if @is_creator do %>
+    <div class="mt-6">
+      <span class="block w-full rounded-md shadow-sm">
+        <button type="submit" phx-click="start_game" <%= if assigns[:starting], do: "disabled" %>class="w-full flex justify-center py-2 px-4 border border-transparent text-xl font-bold rounded-md text-white bg-red-600 hover:bg-red-500 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-700 transition duration-150 ease-in-out">
+          <%= if assigns[:starting], do: "Starting...", else: "Start Game" %>
+        </button>
+      </span>
+    </div>
+    <% end %>
+    <div class="mt-4">
+      <span class="block w-full rounded-md">
+        <button type="cancel" phx-click="leave" class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-gray-300 bg-purple-800 hover:bg-purple-700 focus:outline-none focus:border-purple-700 focus:shadow-outline-purple active:bg-purple-800 transition duration-150 ease-in-out">
+          Leave
+        </button>
+      </span>
+    </div>
+  </div>
+</div>
+

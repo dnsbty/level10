@@ -23,7 +23,7 @@ defmodule Level10Web.LobbyLive do
   end
 
   def render(assigns) do
-    LobbyView.render("create_or_join.html", assigns)
+    LobbyView.render("#{assigns.action}.html", assigns)
   end
 
   def handle_event("cancel", _params, socket) do
