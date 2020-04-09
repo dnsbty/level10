@@ -108,6 +108,7 @@ defmodule Level10.Games do
     Agent.get_and_update(via(join_code), fn game ->
       case Game.start_game(game) do
         {:ok, game} ->
+          broadcast(game.join_code, :game_started, nil)
           {:ok, game}
 
         :single_player ->

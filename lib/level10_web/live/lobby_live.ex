@@ -6,6 +6,7 @@ defmodule Level10Web.LobbyLive do
   use Phoenix.LiveView, layout: {Level10Web.LayoutView, "live.html"}
   require Logger
 
+  alias Level10Web.Router.Helpers, as: Routes
   alias Level10Web.LobbyView
   alias Level10.Games
 
@@ -146,6 +147,16 @@ defmodule Level10Web.LobbyLive do
   def handle_event("validate", %{"info" => info}, socket) do
     socket = assign(socket, name: info["name"], join_code: String.upcase(info["join_code"] || ""))
     {:noreply, socket}
+  end
+
+  def handle_info({:game_started, _}, socket) do
+    join_code = socket.assigns.join_code
+    player_id = socket.assigns.player_id
+
+    path =
+      Routes.live_path(Level10Web.Endpoint, Level10Web.GameLive, join_code, player_id: player_id)
+
+    {:noreply, push_redirect(socket, to: path)}
   end
 
   def handle_info({:players_updated, players}, socket) do
