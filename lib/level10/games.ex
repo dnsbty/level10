@@ -26,7 +26,7 @@ defmodule Level10.Games do
   end
 
   defp do_create_game(player, attempts_remaining) do
-    join_code = Game.generate_join_code()
+    join_code = Game.generate_join_code() |> IO.inspect(label: "game code")
 
     game = %{
       id: join_code,

@@ -1,30 +1,25 @@
-<div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-  <h2 class="mt-6 text-center text-4xl leading-9 font-extrabold text-gray-100">
-    Level 10
+<div class="flex-1 mt-10 sm:mx-auto sm:w-full sm:max-w-md">
+  <h3 class="text-center text-sm text-gray-100 font-bold tracking-widest uppercase">
+    Join Code
+  </h3>
+  <h2 class="text-center text-4xl leading-9 font-extrabold text-gray-100">
+    <%= @join_code %>
   </h2>
+  <div class="mt-12 sm:mx-auto sm:w-full sm:max-w-md">
+    <h2 class="text-center text-sm text-gray-100 font-bold tracking-widest uppercase">
+      Players
+    </h2>
+    <ol class="mt-6 px-12 list-decimal">
+      <%= for player <- @players do %>
+      <li class="px-4 py-2 font-bold tracking-wide text-2xl text-gray-100">
+        <%= player.name %>
+      </li>
+      <% end %>
+    </ol>
+  </div>
 </div>
 <div class="sm:mx-auto sm:w-full sm:max-w-md">
   <div class="py-8 px-4 sm:rounded-lg sm:px-10">
-    <div class="mt-4">
-      <span class="block w-full rounded-md">
-        <button type="cancel" phx-click="leave" class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-gray-300 bg-purple-800 hover:bg-purple-700 focus:outline-none focus:border-purple-700 focus:shadow-outline-purple active:bg-purple-800 transition duration-150 ease-in-out">
-          <%= @join_code %>
-        </button>
-      </span>
-    </div>
-    <div class="mt-4">
-      <span class="block w-full rounded-md">
-        <span class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-gray-300 bg-purple-800 hover:bg-purple-700 focus:outline-none focus:border-purple-700 focus:shadow-outline-purple active:bg-purple-800 transition duration-150 ease-in-out">
-          Players
-        </span>
-      <%= for player <- @players do %>
-        <span class="block w-full rounded-md">
-          <span class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-gray-300 bg-purple-800 hover:bg-purple-700 focus:outline-none focus:border-purple-700 focus:shadow-outline-purple active:bg-purple-800 transition duration-150 ease-in-out">
-            <%= player.name %>
-          </span>
-        </span>
-      <% end %>
-    </div>
     <%= if @is_creator do %>
     <div class="mt-6">
       <span class="block w-full rounded-md shadow-sm">

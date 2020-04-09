@@ -95,7 +95,7 @@ defmodule Level10.Games.Game do
 
   @spec generate_join_code() :: join_code()
   def generate_join_code do
-    <<:random.uniform(1_048_576)::40>>
+    <<:rand.uniform(1_048_576)::40>>
     |> Base.encode32()
     |> binary_part(4, 4)
   end
