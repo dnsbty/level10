@@ -144,7 +144,7 @@ defmodule Level10Web.LobbyLive do
   end
 
   def handle_event("validate", %{"info" => info}, socket) do
-    socket = assign(socket, name: info["name"], join_code: info["join_code"])
+    socket = assign(socket, name: info["name"], join_code: String.upcase(info["join_code"] || ""))
     {:noreply, socket}
   end
 
