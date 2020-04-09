@@ -53,22 +53,27 @@ defmodule Level10.Games do
     Agent.get(via(join_code), & &1.players)
   end
 
-  @spec join_game(Game.join_code(), String.t()) :: {:ok, Player.id()} | :already_started
+  @spec join_game(Game.join_code(), String.t()) ::
+          {:ok, Player.id()} | :already_started | :not_found
   def join_game(join_code, player_name) do
     player = Player.new(player_name)
 
-    # TODO: check if the game actually exists
+    case Registry.lookup(GameRegistry, join_code) do
+      [] ->
+        :not_found
 
-    Agent.get_and_update(via(join_code), fn game ->
-      case Game.put_player(game, player) do
-        {:ok, game} ->
-          broadcast(game.join_code, :players_updated, game.players)
-          {{:ok, player.id}, game}
+      _ ->
+        Agent.get_and_update(via(join_code), fn game ->
+          case Game.put_player(game, player) do
+            {:ok, game} ->
+              broadcast(game.join_code, :players_updated, game.players)
+              {{:ok, player.id}, game}
 
-        :already_started ->
-          {:already_started, game}
-      end
-    end)
+            :already_started ->
+              {:already_started, game}
+          end
+        end)
+    end
   end
 
   @spec leave_game(Game.join_code(), Player.id()) :: :ok | :already_started

@@ -53,7 +53,14 @@ defmodule Level10Web.LobbyLive do
         {:noreply, socket}
 
       :error ->
-        {:noreply, assign(socket, error: "Game could not be created")}
+        socket =
+          put_flash(
+            socket,
+            :error,
+            "Something went wrong with our system and the game couldn't be created. Sorry we suck 😕"
+          )
+
+        {:noreply, socket}
     end
   end
 
@@ -70,8 +77,25 @@ defmodule Level10Web.LobbyLive do
 
         {:noreply, assign(socket, action: :wait, player_id: player_id, players: players)}
 
+      :not_found ->
+        socket =
+          put_flash(
+            socket,
+            :error,
+            "That join code doesn't exist. Are you trying to hack us? 🤨"
+          )
+
+        {:noreply, socket}
+
       :already_started ->
-        {:noreply, assign(socket, error: "Game already started")}
+        socket =
+          put_flash(
+            socket,
+            :error,
+            "The game you're trying to join has already started. Looks like you need some new friends 😬"
+          )
+
+        {:noreply, socket}
     end
   end
 
@@ -83,7 +107,14 @@ defmodule Level10Web.LobbyLive do
         {:noreply, assign(socket, action: :none, join_code: "", name: "")}
 
       :already_started ->
-        {:noreply, assign(socket, error: "Game already started")}
+        socket =
+          put_flash(
+            socket,
+            :error,
+            "The game has already started. Don't screw it up for everyone else! 😡"
+          )
+
+        {:noreply, socket}
     end
   end
 
@@ -101,7 +132,7 @@ defmodule Level10Web.LobbyLive do
           put_flash(
             socket,
             :error,
-            "At least 2 players are needed to play Level 10. Try inviting a friend!"
+            "At least 2 players are needed to play Level 10. Time to make some friends! 😘"
           )
 
         {:noreply, socket}
