@@ -18,6 +18,7 @@ defmodule Level10Web.Router do
     pipe_through :browser
 
     live "/", LobbyLive
+    live "/game/:join_code", GameLive
   end
 
   # Other scopes may use custom stacks.

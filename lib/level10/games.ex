@@ -43,6 +43,14 @@ defmodule Level10.Games do
     end
   end
 
+  @spec exists?(Game.join_code()) :: boolean()
+  def exists?(join_code) do
+    case Registry.lookup(GameRegistry, join_code) do
+      [] -> false
+      _ -> true
+    end
+  end
+
   @spec via(Game.join_code()) :: game_name()
   defp via(join_code) do
     {:via, Registry, {GameRegistry, join_code}}
@@ -58,21 +66,19 @@ defmodule Level10.Games do
   def join_game(join_code, player_name) do
     player = Player.new(player_name)
 
-    case Registry.lookup(GameRegistry, join_code) do
-      [] ->
-        :not_found
+    if exists?(join_code) do
+      Agent.get_and_update(via(join_code), fn game ->
+        case Game.put_player(game, player) do
+          {:ok, game} ->
+            broadcast(game.join_code, :players_updated, game.players)
+            {{:ok, player.id}, game}
 
-      _ ->
-        Agent.get_and_update(via(join_code), fn game ->
-          case Game.put_player(game, player) do
-            {:ok, game} ->
-              broadcast(game.join_code, :players_updated, game.players)
-              {{:ok, player.id}, game}
-
-            :already_started ->
-              {:already_started, game}
-          end
-        end)
+          :already_started ->
+            {:already_started, game}
+        end
+      end)
+    else
+      :not_found
     end
   end
 
@@ -87,6 +93,13 @@ defmodule Level10.Games do
         :already_started ->
           {:already_started, game}
       end
+    end)
+  end
+
+  @spec player_exists?(Game.join_code(), Player.id()) :: boolean()
+  def player_exists?(join_code, player_id) do
+    Agent.get(via(join_code), fn game ->
+      Enum.any?(game.players, fn player -> player.id == player_id end)
     end)
   end
 
@@ -108,11 +121,30 @@ defmodule Level10.Games do
     Agent.get_and_update(via(join_code), fn game ->
       case Game.start_game(game) do
         {:ok, game} ->
+          broadcast(game.join_code, :game_started, nil)
           {:ok, game}
 
         :single_player ->
           {:single_player, game}
       end
+    end)
+  end
+
+  @doc """
+  Check whether or not a game has started.
+
+  ## Examples
+
+      iex> started?("ABCD")
+      true
+
+      iex> started?("EFGH")
+      false
+  """
+  @spec started?(Game.join_code()) :: boolean()
+  def started?(join_code) do
+    Agent.get(via(join_code), fn game ->
+      game.current_stage != :lobby
     end)
   end
 
