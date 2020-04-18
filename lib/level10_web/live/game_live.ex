@@ -6,14 +6,23 @@ defmodule Level10Web.GameLive do
   alias Level10.Games
 
   def mount(params, _session, socket) do
-    assigns = [
-      join_code: params["join_code"],
-      player_id: params["player_id"]
-    ]
+    join_code = params["join_code"]
+    player_id = params["player_id"]
 
-    Games.subscribe(params["join_code"])
+    # TODO: Make sure the game has started. If not, redirect them to the lobby
 
-    {:ok, assign(socket, assigns)}
+    if Games.exists?(join_code) && Games.player_exists?(join_code, player_id) do
+      assigns = [
+        join_code: params["join_code"],
+        player_id: params["player_id"]
+      ]
+
+      Games.subscribe(params["join_code"])
+
+      {:ok, assign(socket, assigns)}
+    else
+      {:ok, push_redirect(socket, to: "/")}
+    end
   end
 
   def render(assigns) do
