@@ -9,6 +9,10 @@ defmodule Level10.Games.Game do
   alias Level10.Games.{Card, Player}
 
   @type join_code :: String.t()
+  @type level :: non_neg_integer()
+  @type score :: non_neg_integer()
+  @type scores :: %{optional(Player.id()) => scoring()}
+  @type scoring :: {level(), score()}
   @type t :: %__MODULE__{
           current_player: Player.t(),
           current_round: non_neg_integer(),
@@ -20,7 +24,7 @@ defmodule Level10.Games.Game do
           hands: %{optional(Player.id()) => [Card.t()]},
           join_code: join_code(),
           players: [Player.t()],
-          scoring: %{optional(Player.id()) => {non_neg_integer(), non_neg_integer()}},
+          scoring: scores(),
           table: %{optional(Player.id()) => keyword([Card.t()])}
         }
 

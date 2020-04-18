@@ -1,6 +1,13 @@
-<div class="grid grid-cols-5 gap-2">
+<div class="flex flex-row ml-2 mb-4">
+  <%= for group <- @player_level do %>
+  <div class="flex-1 mr-2 bg-purple-900 text-purple-200 text-center rounded-md py-8">
+    <%= level_group_name(group) %>
+  </div>
+  <% end %>
+</div>
+<div class="grid grid-cols-5 gap-2 px-2">
   <%= for card <- @hand do %>
-  <div class="<%= background_class(card.color) %> border-4 border-white rounded-md text-white">
+  <div class="text-center text-4xl py-2 <%= background_class(card.color) %> border-4 border-white rounded-md text-white">
     <%= number(card.value) %>
   </div>
   <% end %>

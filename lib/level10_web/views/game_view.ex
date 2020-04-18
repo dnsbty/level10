@@ -1,11 +1,20 @@
 defmodule Level10Web.GameView do
   use Level10Web, :view
 
+  alias Level10.Game.Levels
+
+  @spec background_class(atom()) :: String.t()
   def background_class(:blue), do: "bg-blue-600"
   def background_class(:green), do: "bg-green-600"
   def background_class(:red), do: "bg-red-600"
   def background_class(:yellow), do: "bg-yellow-600"
 
+  @spec level_group_name(Levels.level()) :: String.t()
+  def level_group_name({:set, count}), do: "Set of #{count}"
+  def level_group_name({:run, count}), do: "Run of #{count}"
+  def level_group_name({:color, count}), do: "#{count} of one Color"
+
+  @spec number(atom()) :: String.t()
   def number(:one), do: "1"
   def number(:two), do: "2"
   def number(:three), do: "3"

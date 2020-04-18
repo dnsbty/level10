@@ -4,6 +4,10 @@ defmodule Level10.Games.Levels do
   for those levels so that they can be grabbed when needed.
   """
 
+  @type group :: :color | :set | :run
+  @type count :: non_neg_integer()
+  @type level :: list({group(), count()})
+
   @levels %{
     1 => [set: 3, set: 3],
     2 => [set: 3, run: 4],
