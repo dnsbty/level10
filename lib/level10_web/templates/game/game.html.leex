@@ -1,11 +1,25 @@
-<div class="flex flex-row ml-2 mb-4">
+<div>
+  <%= for player <- @players, player.id != @player_id do %>
+  <div class="flex flex-row items-center ml-4 mr-2 mb-4">
+    <div class="flex-1 text-white text-lg">
+      <%= player.name %>
+    </div>
+    <%= for group <- @levels[player.id] do %>
+    <div class="flex-1 mr-2 bg-purple-900 text-purple-200 text-center rounded-md py-2">
+      <%= level_group_name(group) %>
+    </div>
+    <% end %>
+  </div>
+  <% end %>
+</div>
+<div class="flex flex-row ml-4 mr-2 mb-4">
   <%= for group <- @player_level do %>
   <div class="flex-1 mr-2 bg-purple-900 text-purple-200 text-center rounded-md py-8">
     <%= level_group_name(group) %>
   </div>
   <% end %>
 </div>
-<div class="grid grid-cols-5 gap-2 px-2">
+<div class="grid grid-cols-5 gap-2 px-4">
   <%= for card <- @hand do %>
   <div class="text-center text-4xl py-2 <%= background_class(card.color) %> border-4 border-white rounded-md text-white">
     <%= number(card.value) %>
