@@ -130,6 +130,24 @@ defmodule Level10.Games do
     end)
   end
 
+  @doc """
+  Check whether or not a game has started.
+
+  ## Examples
+
+      iex> started?("ABCD")
+      true
+
+      iex> started?("EFGH")
+      false
+  """
+  @spec started?(Game.join_code()) :: boolean()
+  def started?(join_code) do
+    Agent.get(via(join_code), fn game ->
+      game.current_stage != :lobby
+    end)
+  end
+
   @spec subscribe(String.t()) :: :ok | {:error, term()}
   def subscribe(game_code) do
     Phoenix.PubSub.subscribe(Level10.PubSub, "game:" <> game_code)

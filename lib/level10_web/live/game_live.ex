@@ -9,9 +9,9 @@ defmodule Level10Web.GameLive do
     join_code = params["join_code"]
     player_id = params["player_id"]
 
-    # TODO: Make sure the game has started. If not, redirect them to the lobby
-
-    if Games.exists?(join_code) && Games.player_exists?(join_code, player_id) do
+    with true <- Games.exists?(join_code),
+         true <- Games.started?(join_code),
+         true <- Games.player_exists?(join_code, player_id) do
       assigns = [
         join_code: params["join_code"],
         player_id: params["player_id"]
@@ -21,7 +21,8 @@ defmodule Level10Web.GameLive do
 
       {:ok, assign(socket, assigns)}
     else
-      {:ok, push_redirect(socket, to: "/")}
+      _ ->
+        {:ok, push_redirect(socket, to: "/")}
     end
   end
 
