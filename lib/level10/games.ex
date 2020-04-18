@@ -56,6 +56,19 @@ defmodule Level10.Games do
     {:via, Registry, {GameRegistry, join_code}}
   end
 
+  @doc """
+  Get the hand of the specified player.
+
+  ## Examples
+
+      iex> get_hand_for_player("ABCD", "557489d0-1ef2-4763-9b0b-d2ea3c80fd99")
+      [%Card{color: :green, value: :twelve}, %Card{color: :blue, value: :nine}, ...]
+  """
+  @spec get_hand_for_player(Game.join_code(), Player.id()) :: list(Card.t())
+  def get_hand_for_player(join_code, player_id) do
+    Agent.get(via(join_code), & &1.hands[player_id])
+  end
+
   @spec get_players(Game.join_code()) :: list(Player.t())
   def get_players(join_code) do
     Agent.get(via(join_code), & &1.players)

@@ -4,6 +4,7 @@ defmodule Level10Web.GameLive do
   """
   use Phoenix.LiveView, layout: {Level10Web.LayoutView, "live.html"}
   alias Level10.Games
+  alias Level10Web.GameView
 
   def mount(params, _session, socket) do
     join_code = params["join_code"]
@@ -12,12 +13,16 @@ defmodule Level10Web.GameLive do
     with true <- Games.exists?(join_code),
          true <- Games.started?(join_code),
          true <- Games.player_exists?(join_code, player_id) do
-      assigns = [
-        join_code: params["join_code"],
-        player_id: params["player_id"]
-      ]
-
       Games.subscribe(params["join_code"])
+      players = Games.get_players(join_code)
+      hand = Games.get_hand_for_player(join_code, player_id)
+
+      assigns = [
+        hand: hand,
+        join_code: params["join_code"],
+        player_id: params["player_id"],
+        players: players
+      ]
 
       {:ok, assign(socket, assigns)}
     else
@@ -27,8 +32,6 @@ defmodule Level10Web.GameLive do
   end
 
   def render(assigns) do
-    ~L"""
-    <span>Hello</span>
-    """
+    GameView.render("game.html", assigns)
   end
 end

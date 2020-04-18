@@ -1,0 +1,7 @@
+<div class="grid grid-cols-5 gap-2">
+  <%= for card <- @hand do %>
+  <div class="<%= background_class(card.color) %> border-4 border-white rounded-md text-white">
+    <%= number(card.value) %>
+  </div>
+  <% end %>
+</div>
