@@ -13,12 +13,12 @@
   <% end %>
 </div>
 <div class="grid grid-cols-5 gap-2 px-4 mb-8">
-  <div class="col-start-2 py-2 bg-purple-400 border-4 border-white rounded-md">
+  <div phx-click="draw_card" phx-value-source="draw_pile" class="col-start-2 py-2 bg-purple-400 border-4 border-white rounded-md">
     <div class="transform rotate-90 text-center text-purple-700">
       Level 10
     </div>
   </div>
-  <div class="col-start-4 text-center text-4xl py-2 <%= background_class(@discard_top.color) %> border-4 border-white rounded-md text-white">
+  <div phx-click="draw_card" phx-value-source="discard_pile" class="col-start-4 text-center text-4xl py-2 <%= background_class(@discard_top.color) %> border-4 border-white rounded-md text-white">
     <%= number(@discard_top.value) %>
   </div>
 </div>

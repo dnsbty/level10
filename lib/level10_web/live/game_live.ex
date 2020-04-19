@@ -21,6 +21,7 @@ defmodule Level10Web.GameLive do
       levels = levels_from_scores(scores)
       player_level = levels[player_id]
       discard_top = Games.get_top_discarded_card(join_code)
+      turn = Games.get_current_turn(join_code)
 
       assigns = [
         discard_top: discard_top,
@@ -29,7 +30,8 @@ defmodule Level10Web.GameLive do
         levels: levels,
         player_id: params["player_id"],
         player_level: player_level,
-        players: players
+        players: players,
+        turn: turn
       ]
 
       {:ok, assign(socket, assigns)}
@@ -52,5 +54,23 @@ defmodule Level10Web.GameLive do
       end)
 
     Enum.into(levels_list, %{})
+  end
+
+  def handle_event("draw_card", %{"source" => source}, %{assigns: assigns} = socket) do
+    player_id = assigns.player_id
+
+    source =
+      case source do
+        "draw_pile" -> :draw_pile
+        "discard_pile" -> :discard_pile
+      end
+
+    with ^player_id <- assigns.turn.id,
+         hand when is_list(hand) <- Games.draw_card(assigns.join_code, assigns.player_id, source) do
+      {:noreply, assign(socket, :hand, hand)}
+    else
+      _ ->
+        {:noreply, socket}
+    end
   end
 end

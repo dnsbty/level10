@@ -31,6 +31,26 @@ defmodule Level10.Games do
     Agent.stop(via(join_code))
   end
 
+  @doc """
+  Draw a card from either the draw pile or discard pile and returns the
+  player's new hand
+
+  ## Examples
+
+      iex> draw_card("ABCD", "9c34b9fe-3104-44b3-b21b-28140e2e3624", :draw_pile)
+      %Card{color: :green, value: :twelve}
+
+      iex> draw_card("ABCD", "9c34b9fe-3104-44b3-b21b-28140e2e3624", :discard_pile)
+      %Card{color: :green, value: :twelve}
+  """
+  @spec draw_card(Game.join_code(), Player.id(), :discard_pile | :draw_pile) :: list(Card.t())
+  def draw_card(join_code, player_id, source) do
+    Agent.get_and_update(via(join_code), fn game ->
+      game = Game.draw_card(game, source)
+      {game.hands[player_id], game}
+    end)
+  end
+
   @spec do_create_game(Player.t(), non_neg_integer()) ::
           {:ok, Game.join_code(), Player.id()} | :error
   defp do_create_game(player, attempts_remaining)
@@ -68,6 +88,19 @@ defmodule Level10.Games do
   @spec via(Game.join_code()) :: game_name()
   defp via(join_code) do
     {:via, Registry, {GameRegistry, join_code}}
+  end
+
+  @doc """
+  Get the player whose turn it currently is.
+
+  ## Examples
+
+      iex> get_current_turn("ABCD")
+      %Player{id: "ffe6629a-faff-4053-b7b8-83c3a307400f", name: "Player 1"}
+  """
+  @spec get_current_turn(Game.join_code()) :: Player.t()
+  def get_current_turn(join_code) do
+    Agent.get(via(join_code), & &1.current_player)
   end
 
   @doc """
