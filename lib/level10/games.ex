@@ -10,6 +10,7 @@ defmodule Level10.Games do
   @typep game_name :: Agent.name()
 
   @max_attempts 10
+  @max_players 6
 
   @spec create_game(String.t()) :: {:ok, Game.join_code(), Player.id()} | :error
   def create_game(player_name) do
@@ -108,20 +109,41 @@ defmodule Level10.Games do
     end)
   end
 
+  @doc """
+  Attempts to join a game. Will return an ok tuple with the player ID for the
+  new player if joining is successful, or an atom with a reason if not.
+
+  ## Examples
+
+      iex> join_game("ABCD", "Player One")
+      {:ok, "9bbfeacb-a006-4646-8776-83cca0ad03eb"}
+
+      iex> join_game("ABCD", "Player One")
+      :already_started
+
+      iex> join_game("ABCD", "Player One")
+      :full
+
+      iex> join_game("ABCD", "Player One")
+      :not_found
+  """
   @spec join_game(Game.join_code(), String.t()) ::
-          {:ok, Player.id()} | :already_started | :not_found
+          {:ok, Player.id()} | :already_started | :full | :not_found
   def join_game(join_code, player_name) do
     player = Player.new(player_name)
 
     if exists?(join_code) do
       Agent.get_and_update(via(join_code), fn game ->
-        case Game.put_player(game, player) do
-          {:ok, game} ->
-            broadcast(game.join_code, :players_updated, game.players)
-            {{:ok, player.id}, game}
-
+        with {:ok, updated_game} <- Game.put_player(game, player),
+             true <- length(updated_game.players) <= @max_players do
+          broadcast(game.join_code, :players_updated, updated_game.players)
+          {{:ok, player.id}, updated_game}
+        else
           :already_started ->
             {:already_started, game}
+
+          _ ->
+            {:full, game}
         end
       end)
     else

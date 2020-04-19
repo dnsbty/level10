@@ -78,22 +78,32 @@ defmodule Level10Web.LobbyLive do
 
         {:noreply, assign(socket, action: :wait, player_id: player_id, players: players)}
 
-      :not_found ->
-        socket =
-          put_flash(
-            socket,
-            :error,
-            "That join code doesn't exist. Are you trying to hack us? 🤨"
-          )
-
-        {:noreply, socket}
-
       :already_started ->
         socket =
           put_flash(
             socket,
             :error,
             "The game you're trying to join has already started. Looks like you need some new friends 😬"
+          )
+
+        {:noreply, socket}
+
+      :full ->
+        socket =
+          put_flash(
+            socket,
+            :error,
+            "That game is already full. Looks like you were the slow one in the group 😩"
+          )
+
+        {:noreply, socket}
+
+      :not_found ->
+        socket =
+          put_flash(
+            socket,
+            :error,
+            "That join code doesn't exist. Are you trying to hack us? 🤨"
           )
 
         {:noreply, socket}
