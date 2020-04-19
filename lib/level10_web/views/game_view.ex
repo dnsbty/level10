@@ -29,4 +29,13 @@ defmodule Level10Web.GameView do
   def number(:twelve), do: "12"
   def number(:skip), do: "S"
   def number(:wild), do: "W"
+
+  @spec opacity(non_neg_integer(), list(non_neg_integer())) :: String.t()
+  def opacity(position, selected_positions) do
+    if MapSet.member?(selected_positions, position) do
+      "opacity-100"
+    else
+      "opacity-75"
+    end
+  end
 end

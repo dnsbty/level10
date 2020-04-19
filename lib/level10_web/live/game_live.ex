@@ -31,6 +31,7 @@ defmodule Level10Web.GameLive do
         player_id: params["player_id"],
         player_level: player_level,
         players: players,
+        selected_indexes: MapSet.new(),
         turn: turn
       ]
 
@@ -72,5 +73,27 @@ defmodule Level10Web.GameLive do
       _ ->
         {:noreply, socket}
     end
+  end
+
+  def handle_event("toggle_selected", %{"position" => position}, socket) do
+    case Integer.parse(position) do
+      {position, ""} ->
+        {:noreply, toggle_selected(socket, position)}
+
+      _ ->
+        {:noreply, socket}
+    end
+  end
+
+  @spec toggle_selected(Socket.t(), non_neg_integer()) :: Socket.t()
+  defp toggle_selected(%{assigns: %{selected_indexes: indexes}} = socket, position) do
+    selected_indexes =
+      if MapSet.member?(indexes, position) do
+        MapSet.delete(indexes, position)
+      else
+        MapSet.put(indexes, position)
+      end
+
+    assign(socket, :selected_indexes, selected_indexes)
   end
 end
