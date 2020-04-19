@@ -23,13 +23,22 @@ defmodule Level10.Games.GameTest do
       assert length(game.hands[player2.id]) == 10
     end
 
-    test "attaches a new deck with 108 cards - 20 (for 2 hands)" do
+    test "attaches a new deck with 108 cards - 21 (for 2 hands and discard pile)" do
       assert @game.draw_pile == []
 
       {:ok, game} = Game.put_player(@game, Player.new("Player 2"))
       {:ok, game} = Game.start_round(game)
 
-      assert length(game.draw_pile) == 88
+      assert length(game.draw_pile) == 87
+    end
+
+    test "puts the top card in the discard pile" do
+      assert @game.discard_pile == []
+
+      {:ok, game} = Game.put_player(@game, Player.new("Player 2"))
+      {:ok, game} = Game.start_round(game)
+
+      assert length(game.discard_pile) == 1
     end
   end
 
