@@ -20,8 +20,10 @@ defmodule Level10Web.GameLive do
       scores = Games.get_scores(join_code)
       levels = levels_from_scores(scores)
       player_level = levels[player_id]
+      discard_top = Games.get_top_discarded_card(join_code)
 
       assigns = [
+        discard_top: discard_top,
         hand: hand,
         join_code: params["join_code"],
         levels: levels,

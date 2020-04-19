@@ -90,6 +90,24 @@ defmodule Level10.Games do
     Agent.get(via(join_code), & &1.players)
   end
 
+  @doc """
+  Get the top card from the discard pile.
+
+  ## Examples
+
+      iex> get_top_discarded_card("ABCD")
+      %Card{color: :green, value: :twelve}
+  """
+  @spec get_top_discarded_card(Game.join_code()) :: Card.t() | nil
+  def get_top_discarded_card(join_code) do
+    Agent.get(via(join_code), fn game ->
+      case game.discard_pile do
+        [] -> nil
+        [top_card | _] -> top_card
+      end
+    end)
+  end
+
   @spec join_game(Game.join_code(), String.t()) ::
           {:ok, Player.id()} | :already_started | :not_found
   def join_game(join_code, player_name) do

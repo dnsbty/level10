@@ -238,6 +238,7 @@ defmodule Level10.Games.Game do
           |> increment_current_turn()
           |> put_new_deck()
           |> deal_hands()
+          |> put_new_discard()
 
         {:ok, game}
 
@@ -301,5 +302,10 @@ defmodule Level10.Games.Game do
       end)
 
     %{game | draw_pile: deck, hands: hands}
+  end
+
+  @spec put_new_discard(Game.t()) :: Game.t()
+  defp put_new_discard(game = %{draw_pile: [top_card | rest]}) do
+    %{game | discard_pile: [top_card], draw_pile: rest}
   end
 end
