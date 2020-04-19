@@ -18,6 +18,19 @@ defmodule Level10.Games do
     do_create_game(player, @max_attempts)
   end
 
+  @doc """
+  Delete a game.
+
+  ## Examples
+
+      iex> delete_game("ABCD")
+      :ok
+  """
+  @spec delete_game(Game.join_code()) :: :ok
+  def delete_game(join_code) do
+    Agent.stop(via(join_code))
+  end
+
   @spec do_create_game(Player.t(), non_neg_integer()) ::
           {:ok, Game.join_code(), Player.id()} | :error
   defp do_create_game(player, attempts_remaining)
