@@ -18,7 +18,7 @@
       Level 10
     </div>
   </div>
-  <div phx-click="draw_card" phx-value-source="discard_pile" class="col-start-4 text-center text-4xl py-2 <%= background_class(@discard_top.color) %> border-4 border-white rounded-md text-white">
+  <div <%= discard_pile_action(@turn.id == @player_id, @has_drawn_card) %>phx-value-source="discard_pile" class="col-start-4 text-center text-4xl py-2 <%= background_class(@discard_top.color) %> border-4 border-white rounded-md text-white">
     <%= number(@discard_top.value) %>
   </div>
 </div>
@@ -31,7 +31,7 @@
 </div>
 <div class="grid grid-cols-5 gap-2 px-4">
   <%= for {card, position} <- Enum.with_index(@hand) do %>
-  <div phx-click="toggle_selected" phx-value-position="<%= position %>" class="<%= opacity(position, @selected_indexes) %> cursor-pointer text-center text-4xl py-2 <%= background_class(card.color) %> border-4 border-white rounded-md text-white">
+  <div phx-click="toggle_selected" phx-value-position="<%= position %>" class="<%= card_selection(position, @selected_indexes) %> cursor-pointer text-center text-4xl py-2 <%= background_class(card.color) %> border-4 border-white rounded-md text-white">
     <%= number(card.value) %>
   </div>
   <% end %>

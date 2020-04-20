@@ -9,6 +9,20 @@ defmodule Level10Web.GameView do
   def background_class(:red), do: "bg-red-600"
   def background_class(:yellow), do: "bg-yellow-600"
 
+  @doc """
+  Returns the action to be taken when clicking on the discard pile, depending
+  on whether or not the user has drawn a card yet.
+
+  ## Examples
+
+      iex> discard_pile_action(true, true)
+  """
+  @spec discard_pile_action(boolean(), boolean()) :: String.t()
+  def discard_pile_action(is_player_turn, has_drawn_card)
+  def discard_pile_action(false, _), do: ""
+  def discard_pile_action(true, true), do: "phx-click=discard "
+  def discard_pile_action(true, false), do: "phx-click=draw_card "
+
   @spec level_group_name(Levels.level()) :: String.t()
   def level_group_name({:set, count}), do: "Set of #{count}"
   def level_group_name({:run, count}), do: "Run of #{count}"
@@ -30,8 +44,21 @@ defmodule Level10Web.GameView do
   def number(:skip), do: "S"
   def number(:wild), do: "W"
 
-  @spec opacity(non_neg_integer(), list(non_neg_integer())) :: String.t()
-  def opacity(position, selected_positions) do
+  @doc """
+  Takes in a card's position in the player's hand and a MapSet containing all
+  of the selected card positions and returns the appropriate CSS classes based
+  on whether or not the card has been selected.
+
+  ## Examples
+
+      iex> card_selection(4, MapSet.new([4]))
+      "opacity-100"
+
+      iex> card_selection(4, MapSet.new())
+      "opacity-75"
+  """
+  @spec card_selection(non_neg_integer(), list(non_neg_integer())) :: String.t()
+  def card_selection(position, selected_positions) do
     if MapSet.member?(selected_positions, position) do
       "opacity-100"
     else

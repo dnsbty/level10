@@ -23,9 +23,15 @@ defmodule Level10Web.GameLive do
       discard_top = Games.get_top_discarded_card(join_code)
       turn = Games.get_current_turn(join_code)
 
+      Games.subscribe(join_code)
+
+      has_drawn =
+        if turn.id == player_id, do: Games.current_player_has_drawn?(join_code), else: false
+
       assigns = [
         discard_top: discard_top,
         hand: hand,
+        has_drawn_card: has_drawn,
         join_code: params["join_code"],
         levels: levels,
         player_id: params["player_id"],
@@ -46,15 +52,30 @@ defmodule Level10Web.GameLive do
     GameView.render("game.html", assigns)
   end
 
-  @spec levels_from_scores(Games.scores()) :: %{optional(Player.id()) => Levels.level()}
-  defp levels_from_scores(scores) do
-    levels_list =
-      Enum.map(scores, fn {player_id, {level_number, _}} ->
-        level = Levels.by_number(level_number)
-        {player_id, level}
-      end)
+  # Handle events sent from the frontend
 
-    Enum.into(levels_list, %{})
+  def handle_event("discard", _, socket) do
+    with [position] <- MapSet.to_list(socket.assigns.selected_indexes),
+         {card, hand} = List.pop_at(socket.assigns.hand, position),
+         :ok <- Games.discard_card(socket.assigns.join_code, socket.assigns.player_id, card) do
+      {:noreply, assign(socket, hand: hand, selected_indexes: MapSet.new())}
+    else
+      [] ->
+        message = "You need to select a card in your hand before you can discard it silly 😄"
+        {:noreply, flash_error(socket, message)}
+
+      selected when is_list(selected) ->
+        message = "Nice try, but you can only discard one card at a time 🧐"
+        {:noreply, flash_error(socket, message)}
+
+      :not_your_turn ->
+        message = "What are you up to? You can't discard when it's not your turn... 🕵️‍♂️"
+        {:noreply, flash_error(socket, message)}
+
+      :need_to_draw ->
+        message = "You can't discard when you haven't drawn yet. Refresh the page and try again 🤓"
+        {:noreply, flash_error(socket, message)}
+    end
   end
 
   def handle_event("draw_card", %{"source" => source}, %{assigns: assigns} = socket) do
@@ -68,7 +89,7 @@ defmodule Level10Web.GameLive do
 
     with ^player_id <- assigns.turn.id,
          hand when is_list(hand) <- Games.draw_card(assigns.join_code, assigns.player_id, source) do
-      {:noreply, assign(socket, :hand, hand)}
+      {:noreply, assign(socket, hand: hand, has_drawn_card: true)}
     else
       _ ->
         {:noreply, socket}
@@ -83,6 +104,30 @@ defmodule Level10Web.GameLive do
       _ ->
         {:noreply, socket}
     end
+  end
+
+  # Handle incoming messages from PubSub and other things
+
+  def handle_info({:new_discard_top, card}, socket) do
+    {:noreply, assign(socket, :discard_top, card)}
+  end
+
+  # Private Functions
+
+  @spec flash_error(Socket.t(), String.t()) :: Socket.t()
+  defp flash_error(socket, message) do
+    put_flash(socket, :error, message)
+  end
+
+  @spec levels_from_scores(Games.scores()) :: %{optional(Player.id()) => Levels.level()}
+  defp levels_from_scores(scores) do
+    levels_list =
+      Enum.map(scores, fn {player_id, {level_number, _}} ->
+        level = Levels.by_number(level_number)
+        {player_id, level}
+      end)
+
+    Enum.into(levels_list, %{})
   end
 
   @spec toggle_selected(Socket.t(), non_neg_integer()) :: Socket.t()

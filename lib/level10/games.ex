@@ -19,6 +19,19 @@ defmodule Level10.Games do
   end
 
   @doc """
+  Check to see if the current player has drawn a card yet
+
+  ## Examples
+
+      iex> current_player_has_drawn?("ABCD")
+      true
+  """
+  @spec current_player_has_drawn?(Game.join_code()) :: boolean()
+  def current_player_has_drawn?(join_code) do
+    Agent.get(via(join_code), & &1.current_turn_drawn?)
+  end
+
+  @doc """
   Delete a game.
 
   ## Examples
@@ -32,7 +45,30 @@ defmodule Level10.Games do
   end
 
   @doc """
-  Draw a card from either the draw pile or discard pile and returns the
+  Discard a card from the player's hand
+
+  ## Examples
+
+      iex> discard_card("ABCD", "9c34b9fe-3104-44b3-b21b-28140e2e3624", %Card{color: :green, value: :twelve})
+      :ok
+  """
+  @spec discard_card(Game.join_code(), Player.id(), Card.t()) ::
+          :ok | :needs_to_draw | :not_your_turn
+  def discard_card(join_code, player_id, card) do
+    Agent.get_and_update(via(join_code), fn game ->
+      with ^player_id <- game.current_player.id,
+           %Game{} = game <- Game.discard(game, card) do
+        broadcast(game.join_code, :new_discard_top, card)
+        {:ok, game}
+      else
+        :needs_to_draw -> :needs_to_draw
+        _ -> :not_your_turn
+      end
+    end)
+  end
+
+  @doc """
+  Draw a card )rom either the draw pile or discard pile and returns the
   player's new hand
 
   ## Examples

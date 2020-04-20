@@ -1,6 +1,6 @@
 <main role="main" class="min-h-screen flex flex-col py-12 sm:px-6 lg:px-8">
   <%= if live_flash(@flash, :error) do %>
-  <div class="absolute py-8 px-4 sm:px-10">
+  <div class="absolute py-8 px-4 sm:px-10 z-10">
     <div role="alert" class="empty:hidden rounded-lg px-4 py-4 sm:mx-auto sm:w-full sm:max-w-md bg-red-200 text-red-800" phx-click="lv:clear-flash" phx-value-key="error">
       <%= live_flash(@flash, :error) %>
     </div>

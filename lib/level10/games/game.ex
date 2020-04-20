@@ -104,7 +104,7 @@ defmodule Level10.Games.Game do
     |> binary_part(4, 4)
   end
 
-  @spec delete_player(t(), Player.id()) :: t()
+  @spec delete_player(t(), Player.id()) :: t() | :already_started
   def delete_player(game, player_id)
 
   def delete_player(game = %{current_stage: :lobby, players: players}, player_id) do
@@ -118,11 +118,11 @@ defmodule Level10.Games.Game do
     :already_started
   end
 
-  @spec discard(t(), Card.t()) :: t()
+  @spec discard(t(), Card.t()) :: t() | :needs_to_draw
   def discard(game, card)
 
   def discard(game = %{current_turn_drawn?: false}, _card) do
-    game
+    :needs_to_draw
   end
 
   def discard(game = %{current_player: player, discard_pile: pile, hands: hands}, card) do
