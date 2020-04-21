@@ -198,6 +198,18 @@ defmodule Level10.Games do
   end
 
   @doc """
+  Gets the game with the specified join code and prints it to the terminal.
+  Used for debugging purposes.
+  """
+  @spec inspect(Game.join_code()) :: no_return()
+  def inspect(join_code) do
+    join_code
+    |> via()
+    |> Agent.get(& &1)
+    |> IO.inspect(label: "Game #{join_code}")
+  end
+
+  @doc """
   Attempts to join a game. Will return an ok tuple with the player ID for the
   new player if joining is successful, or an atom with a reason if not.
 
