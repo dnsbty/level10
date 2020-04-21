@@ -113,7 +113,7 @@ defmodule Level10Web.GameLive do
   end
 
   def handle_info({:new_turn, player}, socket) do
-    {:noreply, assign(socket, :turn, player)}
+    {:noreply, assign(socket, has_drawn: false, turn: player)}
   end
 
   # Private Functions
