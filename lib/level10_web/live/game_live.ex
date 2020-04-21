@@ -112,6 +112,10 @@ defmodule Level10Web.GameLive do
     {:noreply, assign(socket, :discard_top, card)}
   end
 
+  def handle_info({:new_turn, player}, socket) do
+    {:noreply, assign(socket, :turn, player)}
+  end
+
   # Private Functions
 
   @spec flash_error(Socket.t(), String.t()) :: Socket.t()

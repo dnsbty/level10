@@ -121,7 +121,7 @@ defmodule Level10.Games.Game do
   @spec discard(t(), Card.t()) :: t() | :needs_to_draw
   def discard(game, card)
 
-  def discard(game = %{current_turn_drawn?: false}, _card) do
+  def discard(%{current_turn_drawn?: false}, _card) do
     :needs_to_draw
   end
 
@@ -244,6 +244,26 @@ defmodule Level10.Games.Game do
 
       :game_over ->
         :game_over
+    end
+  end
+
+  @doc """
+  Returns the top card in the discard pile for the specified game. Returns nil
+  if the discard pile is currently empty.
+
+  ## Examples
+
+      iex> top_discarded_card(%Game{})
+      %Card{color: :green, value: :twelve}
+
+      iex> top_discarded_card(%Game{})
+      nil
+  """
+  @spec top_discarded_card(t()) :: Card.t() | nil
+  def top_discarded_card(game) do
+    case game.discard_pile do
+      [] -> nil
+      [top_card | _] -> top_card
     end
   end
 

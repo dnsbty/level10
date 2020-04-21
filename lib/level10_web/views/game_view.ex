@@ -23,6 +23,19 @@ defmodule Level10Web.GameView do
   def discard_pile_action(true, true), do: "phx-click=discard "
   def discard_pile_action(true, false), do: "phx-click=draw_card "
 
+  @doc """
+  Returns the list of classes that should apply to the discard pile depending
+  on its color and whether or not there is a card present
+  """
+  @spec discard_styles(Card.t() | nil) :: String.t()
+  def discard_styles(nil) do
+    "text-xs py-5 border border-purple-400 text-purple-400"
+  end
+
+  def discard_styles(%{color: color}) do
+    background_class(color) <> " text-4xl py-2 border-4 border-white text-white"
+  end
+
   @spec level_group_name(Levels.level()) :: String.t()
   def level_group_name({:set, count}), do: "Set of #{count}"
   def level_group_name({:run, count}), do: "Run of #{count}"

@@ -13,13 +13,13 @@
   <% end %>
 </div>
 <div class="grid grid-cols-5 gap-2 px-4 mb-8">
-  <div phx-click="draw_card" phx-value-source="draw_pile" class="col-start-2 py-2 bg-purple-400 border-4 border-white rounded-md">
+  <div phx-click="draw_card" phx-value-source="draw_pile" class="cursor-pointer col-start-2 py-3 bg-purple-400 border-4 border-white rounded-md">
     <div class="transform rotate-90 text-center text-purple-700">
       Level 10
     </div>
   </div>
-  <div <%= discard_pile_action(@turn.id == @player_id, @has_drawn_card) %>phx-value-source="discard_pile" class="col-start-4 text-center text-4xl py-2 <%= background_class(@discard_top.color) %> border-4 border-white rounded-md text-white">
-    <%= number(@discard_top.value) %>
+  <div <%= discard_pile_action(@turn.id == @player_id, @has_drawn_card) %>phx-value-source="discard_pile" class="cursor-pointer col-start-4 text-center <%= discard_styles(@discard_top) %> rounded-md">
+    <%= if is_nil(@discard_top), do: "Discard Pile", else: number(@discard_top.value) %>
   </div>
 </div>
 <div class="flex flex-row ml-4 mr-2 mb-4">

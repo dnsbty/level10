@@ -59,6 +59,7 @@ defmodule Level10.Games do
       with ^player_id <- game.current_player.id,
            %Game{} = game <- Game.discard(game, card) do
         broadcast(game.join_code, :new_discard_top, card)
+        broadcast(join_code, :new_turn, game.current_player)
         {:ok, game}
       else
         :needs_to_draw -> :needs_to_draw
@@ -68,7 +69,7 @@ defmodule Level10.Games do
   end
 
   @doc """
-  Draw a card )rom either the draw pile or discard pile and returns the
+  Draw a card from either the draw pile or discard pile and returns the
   player's new hand
 
   ## Examples
@@ -83,6 +84,11 @@ defmodule Level10.Games do
   def draw_card(join_code, player_id, source) do
     Agent.get_and_update(via(join_code), fn game ->
       game = Game.draw_card(game, source)
+
+      if source == :discard_pile do
+        broadcast(join_code, :new_discard_top, Game.top_discarded_card(game))
+      end
+
       {game.hands[player_id], game}
     end)
   end
@@ -180,14 +186,14 @@ defmodule Level10.Games do
 
       iex> get_top_discarded_card("ABCD")
       %Card{color: :green, value: :twelve}
+
+      iex> get_top_discarded_card("ABCD")
+      nil
   """
   @spec get_top_discarded_card(Game.join_code()) :: Card.t() | nil
   def get_top_discarded_card(join_code) do
     Agent.get(via(join_code), fn game ->
-      case game.discard_pile do
-        [] -> nil
-        [top_card | _] -> top_card
-      end
+      Game.top_discarded_card(game)
     end)
   end
 
