@@ -10,6 +10,28 @@ defmodule Level10Web.GameView do
   def background_class(:yellow), do: "bg-yellow-600"
 
   @doc """
+  Takes in a card's position in the player's hand and a MapSet containing all
+  of the selected card positions and returns the appropriate CSS classes based
+  on whether or not the card has been selected.
+
+  ## Examples
+
+      iex> card_selection(4, MapSet.new([4]))
+      "opacity-100"
+
+      iex> card_selection(4, MapSet.new())
+      "opacity-75"
+  """
+  @spec card_selection(non_neg_integer(), list(non_neg_integer())) :: String.t()
+  def card_selection(position, selected_positions) do
+    if MapSet.member?(selected_positions, position) do
+      "opacity-100"
+    else
+      "opacity-75"
+    end
+  end
+
+  @doc """
   Returns the action to be taken when clicking on the discard pile, depending
   on whether or not the user has drawn a card yet.
 
@@ -58,24 +80,18 @@ defmodule Level10Web.GameView do
   def number(:wild), do: "W"
 
   @doc """
-  Takes in a card's position in the player's hand and a MapSet containing all
-  of the selected card positions and returns the appropriate CSS classes based
-  on whether or not the card has been selected.
+  Returns the correct opacity CSS class based on whether or not it's the
+  player's turn at the moment
 
   ## Examples
 
-      iex> card_selection(4, MapSet.new([4]))
-      "opacity-100"
+      iex> player_opacity("ee0b3c7b-14ee-4c5e-9dbe-8ea54f6593f4", "0f7b6d5b-ff98-4509-8a5a-01b74ebbed3f")
+      "opacity-25"
 
-      iex> card_selection(4, MapSet.new())
-      "opacity-75"
-  """
-  @spec card_selection(non_neg_integer(), list(non_neg_integer())) :: String.t()
-  def card_selection(position, selected_positions) do
-    if MapSet.member?(selected_positions, position) do
+      iex> player_opacity("ee0b3c7b-14ee-4c5e-9dbe-8ea54f6593f4", "ee0b3c7b-14ee-4c5e-9dbe-8ea54f6593f4")
       "opacity-100"
-    else
-      "opacity-75"
-    end
-  end
+  """
+  @spec player_opacity(String.t(), String.t()) :: String.t()
+  def player_opacity(player_id, player_id), do: "opacity-100"
+  def player_opacity(_, _), do: "opacity-50"
 end
