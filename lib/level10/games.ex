@@ -4,7 +4,7 @@ defmodule Level10.Games do
   functions will take in a game struct and manipulate that struct and return
   it.
   """
-  alias Level10.Games.{Game, GameRegistry, GameSupervisor, Player}
+  alias Level10.Games.{Card, Game, GameRegistry, GameSupervisor, Player}
 
   @typep event_type :: atom()
   @typep game_name :: Agent.name()
@@ -69,8 +69,8 @@ defmodule Level10.Games do
   end
 
   @doc """
-  Draw a card from either the draw pile or discard pile and returns the
-  player's new hand
+  Take the top card from either the draw pile or discard pile and returns add
+  it to the player's hand, returning the card
 
   ## Examples
 
@@ -89,7 +89,9 @@ defmodule Level10.Games do
         broadcast(join_code, :new_discard_top, Game.top_discarded_card(game))
       end
 
-      {game.hands[player_id], game}
+      [new_card | _] = game.hands[player_id]
+
+      {new_card, game}
     end)
   end
 
@@ -270,6 +272,11 @@ defmodule Level10.Games do
     Agent.get(via(join_code), fn game ->
       Enum.any?(game.players, fn player -> player.id == player_id end)
     end)
+  end
+
+  @spec sort_cards(Game.cards()) :: Game.cards()
+  def sort_cards(cards) do
+    Enum.sort(cards, Card)
   end
 
   @spec start_round(Game.join_code()) :: :ok | :game_over

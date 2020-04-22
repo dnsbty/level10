@@ -8,6 +8,7 @@ defmodule Level10.Games.Game do
   require Logger
   alias Level10.Games.{Card, Player}
 
+  @type cards :: list(Card.t())
   @type join_code :: String.t()
   @type level :: non_neg_integer()
   @type score :: non_neg_integer()
@@ -19,13 +20,13 @@ defmodule Level10.Games.Game do
           current_stage: :finish | :lobby | :play | :score,
           current_turn: non_neg_integer(),
           current_turn_drawn?: boolean(),
-          discard_pile: [Card.t()],
-          draw_pile: [Card.t()],
-          hands: %{optional(Player.id()) => [Card.t()]},
+          discard_pile: cards(),
+          draw_pile: cards(),
+          hands: %{optional(Player.id()) => cards()},
           join_code: join_code(),
           players: [Player.t()],
           scoring: scores(),
-          table: %{optional(Player.id()) => keyword([Card.t()])}
+          table: %{optional(Player.id()) => keyword(cards())}
         }
 
   defstruct ~W[
@@ -295,7 +296,7 @@ defmodule Level10.Games.Game do
     %{game | draw_pile: new_deck()}
   end
 
-  @spec new_deck() :: [Card.t()]
+  @spec new_deck() :: cards()
   defp new_deck do
     color_cards =
       for value <- ~W[one two three four five six seven eight nine ten eleven twelve wild]a,

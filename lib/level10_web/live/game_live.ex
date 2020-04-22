@@ -4,7 +4,7 @@ defmodule Level10Web.GameLive do
   """
   use Phoenix.LiveView, layout: {Level10Web.LayoutView, "live.html"}
   alias Level10.Games
-  alias Games.Levels
+  alias Games.{Card, Levels}
   alias Level10Web.GameView
 
   def mount(params, _session, socket) do
@@ -16,7 +16,7 @@ defmodule Level10Web.GameLive do
          true <- Games.player_exists?(join_code, player_id) do
       Games.subscribe(params["join_code"])
       players = Games.get_players(join_code)
-      hand = Games.get_hand_for_player(join_code, player_id)
+      hand = join_code |> Games.get_hand_for_player(player_id) |> Games.sort_cards()
       scores = Games.get_scores(join_code)
       levels = levels_from_scores(scores)
       player_level = levels[player_id]
@@ -58,7 +58,7 @@ defmodule Level10Web.GameLive do
     with [position] <- MapSet.to_list(socket.assigns.selected_indexes),
          {card, hand} = List.pop_at(socket.assigns.hand, position),
          :ok <- Games.discard_card(socket.assigns.join_code, socket.assigns.player_id, card) do
-      {:noreply, assign(socket, hand: hand, selected_indexes: MapSet.new())}
+      {:noreply, assign(socket, hand: Games.sort_cards(hand), selected_indexes: MapSet.new())}
     else
       [] ->
         message = "You need to select a card in your hand before you can discard it silly 😄"
@@ -88,8 +88,8 @@ defmodule Level10Web.GameLive do
       end
 
     with ^player_id <- assigns.turn.id,
-         hand when is_list(hand) <- Games.draw_card(assigns.join_code, assigns.player_id, source) do
-      {:noreply, assign(socket, hand: hand, has_drawn_card: true)}
+         %Card{} = new_card <- Games.draw_card(assigns.join_code, assigns.player_id, source) do
+      {:noreply, assign(socket, hand: [new_card | assigns.hand], has_drawn_card: true)}
     else
       _ ->
         {:noreply, socket}
@@ -113,7 +113,7 @@ defmodule Level10Web.GameLive do
   end
 
   def handle_info({:new_turn, player}, socket) do
-    {:noreply, assign(socket, has_drawn: false, turn: player)}
+    {:noreply, assign(socket, has_drawn_card: false, turn: player)}
   end
 
   # Private Functions
