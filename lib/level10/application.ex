@@ -6,14 +6,11 @@ defmodule Level10.Application do
   use Application
 
   def start(_type, _args) do
-    # List all child processes to be supervised
     children = [
       {DynamicSupervisor, strategy: :one_for_one, name: Level10.Games.GameSupervisor},
       {Registry, keys: :unique, name: Level10.Games.GameRegistry},
-      # Start the endpoint when the application starts
+      Level10Web.Telemetry,
       Level10Web.Endpoint
-      # Starts a worker by calling: Level10.Worker.start_link(arg)
-      # {Level10.Worker, arg},
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

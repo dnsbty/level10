@@ -1,5 +1,11 @@
 defmodule Level10Web.Router do
   use Level10Web, :router
+  import Plug.BasicAuth
+  import Phoenix.LiveDashboard.Router
+
+  pipeline :admins_only do
+    plug :basic_auth, username: "admin", password: "dennisisthebest"
+  end
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -19,6 +25,11 @@ defmodule Level10Web.Router do
 
     live "/", LobbyLive
     live "/game/:join_code", GameLive
+  end
+
+  scope "/admin" do
+    pipe_through [:browser, :admins_only]
+    live_dashboard "/dashboard", metrics: Level10Web.Telemetry
   end
 
   # Other scopes may use custom stacks.

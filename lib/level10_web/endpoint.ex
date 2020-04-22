@@ -39,6 +39,9 @@ defmodule Level10Web.Endpoint do
     plug Phoenix.CodeReloader
   end
 
+  # Enable request logging for the LiveDashboard
+  plug Phoenix.LiveDashboard.RequestLogger, param_key: "request_logger"
+
   plug Plug.RequestId
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
 
