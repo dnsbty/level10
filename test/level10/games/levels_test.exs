@@ -9,6 +9,11 @@ defmodule Level10.Games.LevelsTest do
       assert Levels.valid_group?({:set, 3}, set)
     end
 
+    test "returns true for a valid set with wilds" do
+      set = [Card.new(:twelve, :green), Card.new(:wild, :blue), Card.new(:wild, :red)]
+      assert Levels.valid_group?({:set, 3}, set)
+    end
+
     test "returns false for an invalid set" do
       # set has 2 twelves and an eleven
       set = [Card.new(:twelve, :green), Card.new(:twelve, :blue), Card.new(:eleven, :red)]
@@ -23,6 +28,20 @@ defmodule Level10.Games.LevelsTest do
         Card.new(:nine, :red),
         Card.new(:ten, :yellow),
         Card.new(:eleven, :blue),
+        Card.new(:twelve, :green)
+      ]
+
+      assert Levels.valid_group?({:run, 7}, run)
+    end
+
+    test "returns true for a valid run with wilds" do
+      run = [
+        Card.new(:six, :green),
+        Card.new(:seven, :green),
+        Card.new(:wild, :blue),
+        Card.new(:nine, :red),
+        Card.new(:ten, :yellow),
+        Card.new(:wild, :blue),
         Card.new(:twelve, :green)
       ]
 
@@ -50,6 +69,20 @@ defmodule Level10.Games.LevelsTest do
         Card.new(:twelve, :green),
         Card.new(:eight, :green),
         Card.new(:ten, :green),
+        Card.new(:three, :green),
+        Card.new(:one, :green),
+        Card.new(:nine, :green)
+      ]
+
+      assert Levels.valid_group?({:color, 7}, color_group)
+    end
+
+    test "returns true for a valid color group with wilds" do
+      color_group = [
+        Card.new(:six, :green),
+        Card.new(:wild, :blue),
+        Card.new(:eight, :green),
+        Card.new(:wild, :red),
         Card.new(:three, :green),
         Card.new(:one, :green),
         Card.new(:nine, :green)
