@@ -12,8 +12,8 @@ config :level10, Level10Web.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT") || "4000")],
   url: [host: "localhost"],
   secret_key_base: "/zVsH2ul2vyeKjwK7OVZI8dJM7bnN8DqwXb8N8Oy3Cw+KscU88U/oB4JXeBPWM+t",
-  render_errors: [view: Level10Web.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: Level10.PubSub, adapter: Phoenix.PubSub.PG2],
+  render_errors: [view: Level10Web.ErrorView, accepts: ~w(html json), layout: false],
+  pubsub_server: Level10.PubSub,
   live_view: [signing_salt: "HjUnOT+E"]
 
 # Configures Elixir's Logger

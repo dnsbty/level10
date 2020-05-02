@@ -9,6 +9,8 @@ defmodule Level10Web.Telemetry do
   def init(_arg) do
     children = [
       {:telemetry_poller, measurements: periodic_measurements(), period: 10_000}
+      # Add reporters as children of your supervision tree.
+      # {Telemetry.Metrics.ConsoleReporter, metrics: metrics()}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
@@ -34,6 +36,10 @@ defmodule Level10Web.Telemetry do
   end
 
   defp periodic_measurements do
-    []
+    [
+      # A module, function and arguments to be invoked periodically.
+      # This function must call :telemetry.execute/3 and a metric must be added above.
+      # {SampleAppWeb, :count_users, []} 
+    ]
   end
 end
