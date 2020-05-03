@@ -97,6 +97,24 @@ defmodule Level10.Games.Card do
     Enum.sort(cards, __MODULE__)
   end
 
+  @doc """
+  Converts a card struct into a string for easy printing
+
+  ## Examples
+
+      iex> to_string(%Card{color: :green, value: :twelve})
+      "Green 12"
+
+      iex> to_string(%Card{color: :blue, value: :skip})
+      "Blue Skip"
+  """
+  @spec to_string(t()) :: String.t()
+  def to_string(%{color: color, value: value}) do
+    color = color |> Atom.to_string() |> String.capitalize()
+    value = value_string(value)
+    "#{color} #{value}"
+  end
+
   # Private
 
   @spec numeric_value(value()) :: non_neg_integer()
@@ -118,4 +136,15 @@ defmodule Level10.Games.Card do
       :skip -> 13
     end
   end
+
+  @spec value_string(value()) :: String.t()
+  defp value_string(value) when value in [:skip, :wild] do
+    value |> Atom.to_string() |> String.capitalize()
+  end
+
+  defp value_string(value), do: value |> numeric_value() |> Integer.to_string()
+end
+
+defimpl String.Chars, for: Level10.Games.Card do
+  defdelegate to_string(card), to: Level10.Games.Card
 end
