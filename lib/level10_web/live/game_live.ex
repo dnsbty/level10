@@ -16,7 +16,7 @@ defmodule Level10Web.GameLive do
          true <- Games.player_exists?(join_code, player_id) do
       Games.subscribe(params["join_code"])
       players = Games.get_players(join_code)
-      hand = join_code |> Games.get_hand_for_player(player_id) |> Games.sort_cards()
+      hand = join_code |> Games.get_hand_for_player(player_id) |> Card.sort()
       scores = Games.get_scores(join_code)
       levels = levels_from_scores(scores)
       player_level = levels[player_id]
@@ -58,7 +58,7 @@ defmodule Level10Web.GameLive do
     with [position] <- MapSet.to_list(socket.assigns.selected_indexes),
          {card, hand} = List.pop_at(socket.assigns.hand, position),
          :ok <- Games.discard_card(socket.assigns.join_code, socket.assigns.player_id, card) do
-      {:noreply, assign(socket, hand: Games.sort_cards(hand), selected_indexes: MapSet.new())}
+      {:noreply, assign(socket, hand: Card.sort(hand), selected_indexes: MapSet.new())}
     else
       [] ->
         message = "You need to select a card in your hand before you can discard it silly 😄"

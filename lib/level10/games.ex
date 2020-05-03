@@ -274,11 +274,6 @@ defmodule Level10.Games do
     end)
   end
 
-  @spec sort_cards(Game.cards()) :: Game.cards()
-  def sort_cards(cards) do
-    Enum.sort(cards, Card)
-  end
-
   @spec start_round(Game.join_code()) :: :ok | :game_over
   def start_round(join_code) do
     Agent.get_and_update(via(join_code), fn game ->

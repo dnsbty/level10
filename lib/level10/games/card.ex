@@ -73,6 +73,30 @@ defmodule Level10.Games.Card do
   def score(%{value: :skip}), do: 15
   def score(%{value: :wild}), do: 25
 
+  @doc """
+  Take a list of cards and sort it numerically from lowest to highest. Puts
+  wilds at the beginning and skips at the end.
+
+  ## Examples
+
+      iex> sort([
+      ...>   %Card{color: :green, value: :twelve},
+      ...>   %Card{color: :red, value: :eight},
+      ...>   %Card{color: :blue, value: :skip},
+      ...>   %Card{color: :yellow, value: :wild}
+      ...> ])
+      [
+        %Card{color: :yellow, value: :wild},
+        %Card{color: :red, value: :eight},
+        %Card{color: :green, value: :twelve},
+        %Card{color: blue, value: :skip}
+      ]
+  """
+  @spec sort(list(t())) :: list(t())
+  def sort(cards) do
+    Enum.sort(cards, __MODULE__)
+  end
+
   # Private
 
   @spec numeric_value(value()) :: non_neg_integer()
