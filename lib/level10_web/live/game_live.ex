@@ -22,6 +22,7 @@ defmodule Level10Web.GameLive do
       player_level = levels[player_id]
       discard_top = Games.get_top_discarded_card(join_code)
       turn = Games.get_current_turn(join_code)
+      table = for index <- 1..length(player_level), into: %{}, do: {index, nil}
 
       Games.subscribe(join_code)
 
@@ -38,6 +39,7 @@ defmodule Level10Web.GameLive do
         player_level: player_level,
         players: players,
         selected_indexes: MapSet.new(),
+        table: table,
         turn: turn
       ]
 
@@ -88,7 +90,8 @@ defmodule Level10Web.GameLive do
       end
 
     with ^player_id <- assigns.turn.id,
-         %Card{} = new_card <- Games.draw_card(assigns.join_code, assigns.player_id, source) do
+         false <- assigns.has_drawn_card,
+         %Card{} = new_card <- Games.draw_card(assigns.join_code, player_id, source) do
       {:noreply, assign(socket, hand: [new_card | assigns.hand], has_drawn_card: true)}
     else
       _ ->
@@ -96,13 +99,27 @@ defmodule Level10Web.GameLive do
     end
   end
 
-  def handle_event("toggle_selected", %{"position" => position}, socket) do
-    case Integer.parse(position) do
-      {position, ""} ->
-        {:noreply, toggle_selected(socket, position)}
+  def handle_event("table_cards", %{"position" => position}, %{assigns: assigns} = socket) do
+    selected_positions = MapSet.to_list(assigns.selected_indexes)
+    cards_to_table = Enum.map(selected_positions, &Enum.at(assigns.hand, &1))
 
-      _ ->
-        {:noreply, socket}
+    with {position, ""} <- Integer.parse(position),
+         table_group when not is_nil(table_group) <- Enum.at(assigns.player_level, position),
+         true <- Levels.valid_group?(table_group, cards_to_table) do
+      hand = assigns.hand -- cards_to_table
+      table = Map.put(assigns.table, position, cards_to_table)
+      {:noreply, assign(socket, hand: hand, selected_indexes: MapSet.new(), table: table)}
+    else
+      _ -> {:noreply, socket}
+    end
+  end
+
+  def handle_event("toggle_selected", %{"position" => position}, socket) do
+    with true <- socket.assigns.has_drawn_card,
+         {position, ""} <- Integer.parse(position) do
+      {:noreply, toggle_selected(socket, position)}
+    else
+      _ -> {:noreply, socket}
     end
   end
 

@@ -1,38 +1,51 @@
 <div class="mb-8">
   <%= for player <- @players do %>
-  <div class="flex flex-row items-center ml-4 mr-2 mb-2 <%= player_opacity(player.id, @turn.id) %>">
-    <div class="flex-1 text-white text-lg">
-      <%= if player.id == @player_id, do: "You", else: player.name %>
+    <div class="flex flex-row items-center ml-4 mr-2 mb-2 <%= player_opacity(player.id, @turn.id) %>">
+      <div class="flex-1 text-white text-lg">
+        <%= if player.id == @player_id, do: "You", else: player.name %>
+      </div>
+      <%= for group <- @levels[player.id] do %>
+      <div class="flex-1 mr-2 bg-purple-900 text-purple-700 text-center rounded-md py-2">
+        <%= level_group_name(group) %>
+      </div>
+      <% end %>
     </div>
-    <%= for group <- @levels[player.id] do %>
-    <div class="flex-1 mr-2 bg-purple-900 text-purple-700 text-center rounded-md py-2">
-      <%= level_group_name(group) %>
-    </div>
-    <% end %>
-  </div>
   <% end %>
 </div>
 <div class="grid grid-cols-5 gap-2 px-4 mb-8">
-  <div phx-click="draw_card" onclick="" phx-value-source="draw_pile" class="cursor-pointer col-start-2 py-3 bg-purple-400 border-4 border-white rounded-md">
+  <div phx-click="draw_card" onclick="" phx-value-source="draw_pile" class="<%= unless @has_drawn_card, do: "cursor-pointer " %>col-start-2 py-3 bg-purple-400 border-4 border-white rounded-md">
     <div class="transform rotate-90 text-center text-purple-700">
       Level 10
     </div>
   </div>
-  <div <%= discard_pile_action(@turn.id == @player_id, @has_drawn_card) %>onclick="" phx-value-source="discard_pile" class="cursor-pointer col-start-4 text-center <%= discard_styles(@discard_top) %> rounded-md">
+  <div <%= discard_pile_action(@turn.id == @player_id, @has_drawn_card) %>onclick="" phx-value-source="discard_pile" class="<%= unless @has_drawn_card, do: "cursor-pointer " %>col-start-4 text-center <%= discard_styles(@discard_top) %> rounded-md">
     <%= if is_nil(@discard_top), do: "Discard Pile", else: number(@discard_top.value) %>
   </div>
 </div>
 <div class="flex flex-row ml-4 mr-2 mb-4">
-  <%= for group <- @player_level do %>
-  <div class="flex-1 mr-2 bg-purple-900 text-purple-400 text-center rounded-md py-8">
-    <%= level_group_name(group) %>
-  </div>
+  <%= for {{_, count} = group, position} <- Enum.with_index(@player_level) do %>
+    <%= if is_nil(@table[position]) do %>
+      <div phx-click="table_cards" onclick="" phx-value-position="<%= position %>" class="cursor-pointer flex-1 mr-2 bg-purple-900 text-purple-400 text-center rounded-md py-8">
+        <%= level_group_name(group) %>
+      </div>
+    <% else %>
+      <div class="flex-1 mr-2 bg-purple-900 text-purple-400 text-center rounded-md p-2">
+        <p class="text-purple-400 text-center text-xs mb-2"><%= level_group_name(group) %></p>
+        <div class="grid grid-cols-<%= count %> gap-2">
+          <%= for card <- @table[position] do %>
+            <div class="text-center text-4xl py-2 <%= background_class(card.color) %> border-4 border-white rounded-md text-white">
+              <%= number(card.value) %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
   <% end %>
 </div>
 <div class="grid grid-cols-5 gap-2 px-4">
   <%= for {card, position} <- Enum.with_index(@hand) do %>
-  <div phx-click="toggle_selected" onclick="" phx-value-position="<%= position %>" class="<%= card_selection(position, @selected_indexes) %> cursor-pointer text-center text-4xl py-2 <%= background_class(card.color) %> border-4 border-white rounded-md text-white">
-    <%= number(card.value) %>
-  </div>
+    <div phx-click="toggle_selected" onclick="" phx-value-position="<%= position %>" class="<%= card_selection(position, @selected_indexes) %> <%= if @has_drawn_card, do: "cursor-pointer " %>text-center text-4xl py-2 <%= background_class(card.color) %> border-4 border-white rounded-md text-white">
+      <%= number(card.value) %>
+    </div>
   <% end %>
 </div>
