@@ -11,6 +11,7 @@ defmodule Level10.Games.Game do
   @type cards :: list(Card.t())
   @type join_code :: String.t()
   @type level :: non_neg_integer()
+  @type player_table :: %{non_neg_integer() => cards()}
   @type score :: non_neg_integer()
   @type scores :: %{optional(Player.id()) => scoring()}
   @type scoring :: {level(), score()}
@@ -26,7 +27,7 @@ defmodule Level10.Games.Game do
           join_code: join_code(),
           players: [Player.t()],
           scoring: scores(),
-          table: %{optional(Player.id()) => keyword(cards())}
+          table: %{optional(Player.id()) => player_table()}
         }
 
   defstruct ~W[
@@ -204,6 +205,21 @@ defmodule Level10.Games.Game do
   @spec reshuffle_deck(t()) :: t()
   def reshuffle_deck(game = %{discard_pile: discard_pile}) do
     %{game | discard_pile: [], draw_pile: Enum.shuffle(discard_pile)}
+  end
+
+  @spec set_player_table(t(), Player.id(), player_table()) ::
+          {:ok | :already_set | :needs_to_draw | :not_your_turn, t()}
+  def set_player_table(game, player_id, player_table) do
+    with ^player_id <- game.current_player.id,
+         true <- game.current_turn_drawn?,
+         nil <- Map.get(game.table, player_id) do
+      table = Map.put(game.table, player_id, player_table)
+      {:ok, %{game | table: table}}
+    else
+      player_id when is_binary(player_id) -> {:not_your_turn, game}
+      false -> {:needs_to_draw, game}
+      _ -> {:already_set, game}
+    end
   end
 
   @doc """

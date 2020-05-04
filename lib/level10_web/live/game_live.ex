@@ -22,7 +22,7 @@ defmodule Level10Web.GameLive do
       player_level = levels[player_id]
       discard_top = Games.get_top_discarded_card(join_code)
       turn = Games.get_current_turn(join_code)
-      table = for index <- 1..length(player_level), into: %{}, do: {index, nil}
+      table = for index <- 0..(length(player_level) - 1), into: %{}, do: {index, nil}
 
       Games.subscribe(join_code)
 
@@ -108,6 +108,11 @@ defmodule Level10Web.GameLive do
          true <- Levels.valid_group?(table_group, cards_to_table) do
       hand = assigns.hand -- cards_to_table
       table = Map.put(assigns.table, position, cards_to_table)
+
+      unless Enum.any?(table, fn {_, value} -> is_nil(value) end) do
+        Games.table_cards(assigns.join_code, assigns.player_id, table)
+      end
+
       {:noreply, assign(socket, hand: hand, selected_indexes: MapSet.new(), table: table)}
     else
       _ -> {:noreply, socket}

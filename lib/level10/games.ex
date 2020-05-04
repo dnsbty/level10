@@ -322,6 +322,17 @@ defmodule Level10.Games do
     end)
   end
 
+  @doc """
+  Set the given player's table to the given cards.
+  """
+  @spec table_cards(Game.join_code(), Player.id(), Game.player_table()) ::
+          :ok | :already_set | :needs_to_draw | :not_your_turn
+  def table_cards(join_code, player_id, player_table) do
+    Agent.get_and_update(via(join_code), fn game ->
+      Game.set_player_table(game, player_id, player_table)
+    end)
+  end
+
   @spec subscribe(String.t()) :: :ok | {:error, term()}
   def subscribe(game_code) do
     Phoenix.PubSub.subscribe(Level10.PubSub, "game:" <> game_code)
