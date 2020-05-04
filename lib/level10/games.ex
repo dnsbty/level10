@@ -135,6 +135,21 @@ defmodule Level10.Games do
   end
 
   @doc """
+  Returns the game with the specified join code.
+
+  ## Examples
+
+      iex> get("ABCD")
+      %Game{}
+  """
+  @spec get(Game.join_code()) :: Game.t()
+  def get(join_code) do
+    join_code
+    |> via()
+    |> Agent.get(& &1)
+  end
+
+  @doc """
   Get the player whose turn it currently is.
 
   ## Examples
@@ -197,18 +212,6 @@ defmodule Level10.Games do
     Agent.get(via(join_code), fn game ->
       Game.top_discarded_card(game)
     end)
-  end
-
-  @doc """
-  Gets the game with the specified join code and prints it to the terminal.
-  Used for debugging purposes.
-  """
-  @spec inspect(Game.join_code()) :: no_return()
-  def inspect(join_code) do
-    join_code
-    |> via()
-    |> Agent.get(& &1)
-    |> IO.inspect(label: "Game #{join_code}")
   end
 
   @doc """
