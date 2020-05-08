@@ -367,7 +367,10 @@ defmodule Level10.Games do
           :ok | :already_set | :needs_to_draw | :not_your_turn
   def table_cards(join_code, player_id, player_table) do
     Agent.get_and_update(via(join_code), fn game ->
-      Game.set_player_table(game, player_id, player_table)
+      with {:ok, game} <- Game.set_player_table(game, player_id, player_table) do
+        broadcast(game.join_code, :table_updated, game.table)
+        {:ok, game}
+      end
     end)
   end
 
