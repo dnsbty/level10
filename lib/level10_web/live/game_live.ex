@@ -20,9 +20,10 @@ defmodule Level10Web.GameLive do
       scores = Games.get_scores(join_code)
       levels = levels_from_scores(scores)
       player_level = levels[player_id]
+      table = Games.get_table(join_code)
+      player_table = Map.get(table, player_id, empty_player_table(player_level))
       discard_top = Games.get_top_discarded_card(join_code)
       turn = Games.get_current_turn(join_code)
-      table = for index <- 0..(length(player_level) - 1), into: %{}, do: {index, nil}
 
       Games.subscribe(join_code)
 
@@ -37,6 +38,7 @@ defmodule Level10Web.GameLive do
         levels: levels,
         player_id: params["player_id"],
         player_level: player_level,
+        player_table: player_table,
         players: players,
         selected_indexes: MapSet.new(),
         table: table,
@@ -107,13 +109,14 @@ defmodule Level10Web.GameLive do
          table_group when not is_nil(table_group) <- Enum.at(assigns.player_level, position),
          true <- Levels.valid_group?(table_group, cards_to_table) do
       hand = assigns.hand -- cards_to_table
-      table = Map.put(assigns.table, position, cards_to_table)
+      player_table = Map.put(assigns.player_table, position, cards_to_table)
 
-      unless Enum.any?(table, fn {_, value} -> is_nil(value) end) do
-        Games.table_cards(assigns.join_code, assigns.player_id, table)
+      unless Enum.any?(player_table, fn {_, value} -> is_nil(value) end) do
+        Games.table_cards(assigns.join_code, assigns.player_id, player_table)
       end
 
-      {:noreply, assign(socket, hand: hand, selected_indexes: MapSet.new(), table: table)}
+      {:noreply,
+       assign(socket, hand: hand, selected_indexes: MapSet.new(), player_table: player_table)}
     else
       _ -> {:noreply, socket}
     end
@@ -139,6 +142,11 @@ defmodule Level10Web.GameLive do
   end
 
   # Private Functions
+
+  @spec empty_player_table(Levels.level()) :: Game.player_table()
+  defp empty_player_table(level) do
+    for index <- 0..(length(level) - 1), into: %{}, do: {index, nil}
+  end
 
   @spec flash_error(Socket.t(), String.t()) :: Socket.t()
   defp flash_error(socket, message) do

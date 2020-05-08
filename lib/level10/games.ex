@@ -191,9 +191,47 @@ defmodule Level10.Games do
     Agent.get(via(join_code), & &1.scoring)
   end
 
+  @doc """
+  Get the list of players in a game.
+
+  ## Examples
+
+      iex> get_players("ABCD")
+      [
+        %Player{id: "601a07a1-b229-47e5-ad13-dbe0599c90e9", name: "Player 1"},
+        %Player{id: "a0d2ef3e-e44c-4a58-b90d-a56d88224700", name: "Player 2"}
+      ]
+  """
   @spec get_players(Game.join_code()) :: list(Player.t())
   def get_players(join_code) do
     Agent.get(via(join_code), & &1.players)
+  end
+
+  @doc """
+  Get the table: the cards that have been played to complete levels by each
+  player.
+
+  ## Examples
+
+      iex> get_table("ABCD")
+      %{
+        "12a29ba6-fe6f-4f81-8c89-46ef8aff4b82" => %{
+          0 => [
+            %Level10.Games.Card{color: :red, value: :wild},
+            %Level10.Games.Card{color: :blue, value: :twelve},
+            %Level10.Games.Card{color: :red, value: :twelve}
+          ],
+          1 => [
+            %Level10.Games.Card{color: :yellow, value: :wild},
+            %Level10.Games.Card{color: :green, value: :ten},
+            %Level10.Games.Card{color: :blue, value: :ten}
+          ]
+        }
+      }
+  """
+  @spec get_table(Game.join_code()) :: Game.table()
+  def get_table(join_code) do
+    Agent.get(via(join_code), & &1.table)
   end
 
   @doc """

@@ -15,6 +15,7 @@ defmodule Level10.Games.Game do
   @type score :: non_neg_integer()
   @type scores :: %{optional(Player.id()) => scoring()}
   @type scoring :: {level(), score()}
+  @type table :: %{optional(Player.id()) => player_table()}
   @type t :: %__MODULE__{
           current_player: Player.t(),
           current_round: non_neg_integer(),
@@ -27,7 +28,7 @@ defmodule Level10.Games.Game do
           join_code: join_code(),
           players: [Player.t()],
           scoring: scores(),
-          table: %{optional(Player.id()) => player_table()}
+          table: table()
         }
 
   defstruct ~W[

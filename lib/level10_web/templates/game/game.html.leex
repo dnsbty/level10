@@ -4,10 +4,25 @@
       <div class="flex-1 text-white text-lg">
         <%= if player.id == @player_id, do: "You", else: player.name %>
       </div>
-      <%= for group <- @levels[player.id] do %>
-      <div class="flex-1 mr-2 bg-purple-900 text-purple-700 text-center rounded-md py-2">
-        <%= level_group_name(group) %>
-      </div>
+      <%= if is_nil(@table[player.id]) do %>
+        <%= for group <- @levels[player.id] do %>
+          <div class="flex-1 mr-2 bg-purple-900 text-purple-700 text-center rounded-md py-2">
+            <%= level_group_name(group) %>
+          </div>
+        <% end %>
+      <% else %>
+        <%= for {{_, count} = group, position} <- Enum.with_index(@levels[player.id]) do %>
+          <div class="flex-1 mr-2 bg-purple-900 text-purple-400 text-center rounded-md p-1">
+            <p class="text-purple-400 text-center text-xs mb-1"><%= level_group_name(group) %></p>
+            <div class="grid grid-cols-<%= count %> gap-1">
+              <%= for card <- @table[player.id][position] do %>
+                <div class="text-center text-sm py-2 <%= background_class(card.color) %> border-2 border-white rounded-md text-white">
+                  <%= number(card.value) %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
       <% end %>
     </div>
   <% end %>
@@ -24,7 +39,7 @@
 </div>
 <div class="flex flex-row ml-4 mr-2 mb-4">
   <%= for {{_, count} = group, position} <- Enum.with_index(@player_level) do %>
-    <%= if is_nil(@table[position]) do %>
+    <%= if is_nil(@player_table[position]) do %>
       <div phx-click="table_cards" onclick="" phx-value-position="<%= position %>" class="cursor-pointer flex-1 mr-2 bg-purple-900 text-purple-400 text-center rounded-md py-8">
         <%= level_group_name(group) %>
       </div>
@@ -32,7 +47,7 @@
       <div class="flex-1 mr-2 bg-purple-900 text-purple-400 text-center rounded-md p-2">
         <p class="text-purple-400 text-center text-xs mb-2"><%= level_group_name(group) %></p>
         <div class="grid grid-cols-<%= count %> gap-2">
-          <%= for card <- @table[position] do %>
+          <%= for card <- @player_table[position] do %>
             <div class="text-center text-4xl py-2 <%= background_class(card.color) %> border-4 border-white rounded-md text-white">
               <%= number(card.value) %>
             </div>
