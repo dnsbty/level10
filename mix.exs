@@ -19,7 +19,7 @@ defmodule Level10.MixProject do
   def application do
     [
       mod: {Level10.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :os_mon]
     ]
   end
 
