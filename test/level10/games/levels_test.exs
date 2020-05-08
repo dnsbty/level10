@@ -1,7 +1,8 @@
 defmodule Level10.Games.LevelsTest do
   use ExUnit.Case, async: true
-
   alias Level10.Games.{Card, Levels}
+
+  doctest Level10.Games.Levels, import: true
 
   describe "valid_group?/2" do
     test "returns true for a valid set" do

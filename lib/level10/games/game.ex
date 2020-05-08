@@ -6,7 +6,7 @@ defmodule Level10.Games.Game do
   down to clients.
   """
   require Logger
-  alias Level10.Games.{Card, Player}
+  alias Level10.Games.{Card, Levels, Player}
 
   @type cards :: list(Card.t())
   @type join_code :: String.t()
@@ -208,16 +208,19 @@ defmodule Level10.Games.Game do
   end
 
   @spec set_player_table(t(), Player.id(), player_table()) ::
-          {:ok | :already_set | :needs_to_draw | :not_your_turn, t()}
+          {:ok | :already_set | :invalid_level | :needs_to_draw | :not_your_turn, t()}
   def set_player_table(game, player_id, player_table) do
     with ^player_id <- game.current_player.id,
-         true <- game.current_turn_drawn?,
-         nil <- Map.get(game.table, player_id) do
+         {:drawn, true} <- {:drawn, game.current_turn_drawn?},
+         nil <- Map.get(game.table, player_id),
+         {level_number, _} <- game.scoring[player_id],
+         true <- Levels.valid_level?(level_number, player_table) do
       table = Map.put(game.table, player_id, player_table)
       {:ok, %{game | table: table}}
     else
       player_id when is_binary(player_id) -> {:not_your_turn, game}
-      false -> {:needs_to_draw, game}
+      false -> {:invalid_level, game}
+      {:drawn, false} -> {:needs_to_draw, game}
       _ -> {:already_set, game}
     end
   end

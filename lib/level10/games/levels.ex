@@ -42,7 +42,7 @@ defmodule Level10.Games.Levels do
 
   ## Examples
 
-      iex> valid_group({:set, 3}, [
+      iex> valid_group?({:set, 3}, [
       ...>   %Card{value: :three, color: :green},
       ...>   %Card{value: :three, color: :red},
       ...>   %Card{value: :three, color: :blue}
@@ -58,6 +58,37 @@ defmodule Level10.Games.Levels do
   def valid_group?({type, _}, cards) do
     {wild_count, cards} = pop_wilds(cards)
     valid_group?(type, cards, wild_count)
+  end
+
+  @doc """
+  Returns whether the "table" given is valid for the level provided
+
+  ## Examples
+
+      iex> valid_level?(2, %{
+      ...>   0 => [
+      ...>     %Card{value: :twelve, color: :green},
+      ...>     %Card{value: :twelve, color: :blue},
+      ...>     %Card{value: :twelve, color: :yellow}
+      ...>   ],
+      ...>   1 => [
+      ...>     %Card{value: :wild, color: :red},
+      ...>     %Card{value: :four, color: :green},
+      ...>     %Card{value: :five, color: :blue},
+      ...>     %Card{value: :seven, color: :yello}
+      ...>   ]
+      ...> })
+      true
+
+      iex> valid_level?(1, %{0 => [%Card{value: :twelve, color: :green}]})
+      false
+  """
+  @spec valid_level?(non_neg_integer(), Game.table()) :: boolean()
+  def valid_level?(level_number, table) do
+    level_number
+    |> by_number()
+    |> Enum.with_index()
+    |> Enum.all?(fn {group, position} -> valid_group?(group, table[position]) end)
   end
 
   # Private
