@@ -217,7 +217,10 @@ defmodule Level10.Games.Game do
          {level_number, _} <- game.scoring[player_id],
          true <- Levels.valid_level?(level_number, player_table) do
       table = Map.put(game.table, player_id, player_table)
-      {:ok, %{game | table: table}}
+      cards_used = Enum.reduce(player_table, [], fn {_, cards}, acc -> acc ++ cards end)
+      player_hand = game.hands[player_id] -- cards_used
+      hands = Map.put(game.hands, player_id, player_hand)
+      {:ok, %{game | hands: hands, table: table}}
     else
       player_id when is_binary(player_id) -> {:not_your_turn, game}
       false -> {:invalid_level, game}
