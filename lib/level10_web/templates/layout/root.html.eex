@@ -9,7 +9,7 @@
     <%= csrf_meta_tag() %>
     <script type="text/javascript" src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
   </head>
-  <body class="bg-purple-800">
+  <body class="bg-purple-800 <%= if assigns[:overflow_hidden], do: "overflow-hidden" %>">
     <%= @inner_content %>
   </body>
 </html>

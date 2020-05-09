@@ -22,6 +22,10 @@ defmodule Level10.Games do
       with {:ok, game} <-
              Game.add_to_table(game, current_player_id, group_player_id, position, cards_to_add) do
         broadcast(game.join_code, :table_updated, game.table)
+
+        if Game.round_finished?(game, current_player_id),
+          do: broadcast(game.join_code, :round_finished, game.current_player)
+
         {:ok, game}
       end
     end)
@@ -74,7 +78,13 @@ defmodule Level10.Games do
       with ^player_id <- game.current_player.id,
            %Game{} = game <- Game.discard(game, card) do
         broadcast(game.join_code, :new_discard_top, card)
-        broadcast(join_code, :new_turn, game.current_player)
+
+        if Game.round_finished?(game, player_id) do
+          broadcast(join_code, :round_finished, game.current_player)
+        else
+          broadcast(join_code, :new_turn, game.current_player)
+        end
+
         {:ok, game}
       else
         :needs_to_draw -> :needs_to_draw
@@ -330,6 +340,13 @@ defmodule Level10.Games do
     end)
   end
 
+  @spec round_winner(Game.join_code()) :: Player.t() | nil
+  def round_winner(join_code) do
+    Agent.get(via(join_code), fn game ->
+      Game.round_winner(game)
+    end)
+  end
+
   @spec start_round(Game.join_code()) :: :ok | :game_over
   def start_round(join_code) do
     Agent.get_and_update(via(join_code), fn game ->
@@ -384,6 +401,10 @@ defmodule Level10.Games do
     Agent.get_and_update(via(join_code), fn game ->
       with {:ok, game} <- Game.set_player_table(game, player_id, player_table) do
         broadcast(game.join_code, :table_updated, game.table)
+
+        if Game.round_finished?(game, player_id),
+          do: broadcast(game.join_code, :round_finished, game.current_player)
+
         {:ok, game}
       end
     end)

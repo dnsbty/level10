@@ -1,7 +1,10 @@
 defmodule Level10Web.GameView do
   use Level10Web, :view
 
-  alias Level10.Game.Levels
+  alias Level10.Games.{Game, Levels, Player}
+
+  @happy_emoji ~w(🎉 😄 😎 🤩 🤑 🔥)
+  @sad_emoji ~w(💥 💩 😈 🥴 😧 😑 😡 🤬 😵 😩 😢 😭 😒 😔)
 
   @spec background_class(atom()) :: String.t()
   def background_class(:blue), do: "bg-blue-600"
@@ -28,6 +31,23 @@ defmodule Level10Web.GameView do
       "opacity-100"
     else
       "opacity-75"
+    end
+  end
+
+  @doc """
+  Returns the emoji to be displayed upon completion of a round. Returns happy
+  if the player successfully completed their level, and sad if they didn't.
+
+  ## Examples
+
+      iex> complete_emoji(%{}, [])
+      "🎉"
+  """
+  @spec complete_emoji(Game.table(), Player.id()) :: String.t()
+  def complete_emoji(table, player_id) do
+    case table[player_id] do
+      nil -> Enum.random(@sad_emoji)
+      _ -> Enum.random(@happy_emoji)
     end
   end
 
@@ -94,4 +114,11 @@ defmodule Level10Web.GameView do
   @spec player_opacity(String.t(), String.t()) :: String.t()
   def player_opacity(player_id, player_id), do: "opacity-100"
   def player_opacity(_, _), do: "opacity-50"
+
+  @doc """
+  Returns the name of the player given, or "You" if the player matches the ID given.
+  """
+  @spec round_winner(Player.t(), Player.id()) :: String.t()
+  def round_winner(%{id: player_id}, player_id), do: "You"
+  def round_winner(%{name: name}, _), do: name
 end

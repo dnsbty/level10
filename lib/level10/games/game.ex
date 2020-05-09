@@ -246,6 +246,9 @@ defmodule Level10.Games.Game do
     game
   end
 
+  @spec get_player(t(), Player.id()) :: Player.t()
+  def get_player(game, player_id), do: Enum.find(game, &(&1.id == player_id))
+
   @spec put_player(t(), Player.t()) :: {:ok, t()} | :already_started
   def put_player(game, player)
 
@@ -261,11 +264,35 @@ defmodule Level10.Games.Game do
   Shuffles the discard pile to make a new draw pile. This should happen when
   the current draw pile is empty.
 
-  Another one to make private, this time when one attempts to draw a card from an empty draw pile.
+  Another one to make private, this time when one attempts to draw a card from
+  an empty draw pile.
   """
   @spec reshuffle_deck(t()) :: t()
   def reshuffle_deck(game = %{discard_pile: discard_pile}) do
     %{game | discard_pile: [], draw_pile: Enum.shuffle(discard_pile)}
+  end
+
+  @doc """
+  Check whether the current round was just finished by the specified player.
+
+  ## Examples
+
+      iex> round_finished?(%Game{}, "aa08dd0d-5486-4b9d-a15c-98445c13dffd")
+      true
+  """
+  @spec round_finished?(t(), Player.id()) :: boolean()
+  def round_finished?(game, player_id), do: game.hands[player_id] == []
+
+  @doc """
+  Returns the player who won the current round. Returns `nil` if the round
+  isn't over yet.
+  """
+  @spec round_winner(t()) :: Player.t() | nil
+  def round_winner(game) do
+    case Enum.find(game.hands, fn {_, hand} -> hand == [] end) do
+      {player_id, _} -> Enum.find(game.players, fn %{id: id} -> id == player_id end)
+      _ -> nil
+    end
   end
 
   @spec set_player_table(t(), Player.id(), player_table()) ::

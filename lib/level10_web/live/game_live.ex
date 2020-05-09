@@ -24,6 +24,7 @@ defmodule Level10Web.GameLive do
       player_table = Map.get(table, player_id, empty_player_table(player_level))
       discard_top = Games.get_top_discarded_card(join_code)
       turn = Games.get_current_turn(join_code)
+      round_winner = Games.round_winner(join_code)
 
       Games.subscribe(join_code)
 
@@ -40,6 +41,8 @@ defmodule Level10Web.GameLive do
         player_level: player_level,
         player_table: player_table,
         players: players,
+        round_winner: round_winner,
+        overflow_hidden: !is_nil(round_winner),
         selected_indexes: MapSet.new(),
         table: table,
         turn: turn
@@ -65,7 +68,7 @@ defmodule Level10Web.GameLive do
          [_ | _] = cards_to_add <- selected_cards(socket),
          :ok <- Games.add_to_table(join_code, player_id, table_id, position, cards_to_add) do
       hand = socket.assigns.hand -- cards_to_add
-      {:noreply, assign(socket, hand: hand)}
+      {:noreply, assign(socket, hand: hand, selected_indexes: MapSet.new())}
     else
       [] ->
         {:noreply, socket}
@@ -164,6 +167,10 @@ defmodule Level10Web.GameLive do
 
   def handle_info({:new_turn, player}, socket) do
     {:noreply, assign(socket, has_drawn_card: false, turn: player)}
+  end
+
+  def handle_info({:round_finished, winner}, socket) do
+    {:noreply, assign(socket, round_winner: winner)}
   end
 
   def handle_info({:table_updated, table}, socket) do
