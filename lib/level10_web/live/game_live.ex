@@ -58,6 +58,32 @@ defmodule Level10Web.GameLive do
 
   # Handle events sent from the frontend
 
+  def handle_event("add_to_table", %{"player_id" => table_id, "position" => position}, socket) do
+    %{join_code: join_code, player_id: player_id} = socket.assigns
+
+    with {position, ""} <- Integer.parse(position),
+         [_ | _] = cards_to_add <- selected_cards(socket),
+         :ok <- Games.add_to_table(join_code, player_id, table_id, position, cards_to_add) do
+      hand = socket.assigns.hand -- cards_to_add
+      {:noreply, assign(socket, hand: hand)}
+    else
+      [] ->
+        {:noreply, socket}
+
+      error ->
+        message =
+          case error do
+            :invalid_group -> "Those cards don't match the group silly 😋"
+            :level_incomplete -> "Finish up your own level before you worry about others 🤓"
+            :needs_to_draw -> "You need to draw before you can do that 😂"
+            :not_your_turn -> "Watch it bud! It's not your turn yet 😠"
+            _ -> "I'm not sure what you just did, but I don't like it 🤨"
+          end
+
+        {:noreply, flash_error(socket, message)}
+    end
+  end
+
   def handle_event("discard", _, socket) do
     with [position] <- MapSet.to_list(socket.assigns.selected_indexes),
          {card, hand} = List.pop_at(socket.assigns.hand, position),
@@ -102,8 +128,7 @@ defmodule Level10Web.GameLive do
   end
 
   def handle_event("table_cards", %{"position" => position}, %{assigns: assigns} = socket) do
-    selected_positions = MapSet.to_list(assigns.selected_indexes)
-    cards_to_table = Enum.map(selected_positions, &Enum.at(assigns.hand, &1))
+    cards_to_table = selected_cards(socket)
 
     with {position, ""} <- Integer.parse(position),
          table_group when not is_nil(table_group) <- Enum.at(assigns.player_level, position),
@@ -142,7 +167,8 @@ defmodule Level10Web.GameLive do
   end
 
   def handle_info({:table_updated, table}, socket) do
-    {:noreply, assign(socket, table: table)}
+    player_table = Map.get(table, socket.assigns.player_id, socket.assigns.player_table)
+    {:noreply, assign(socket, player_table: player_table, table: table)}
   end
 
   # Private Functions
@@ -166,6 +192,13 @@ defmodule Level10Web.GameLive do
       end)
 
     Enum.into(levels_list, %{})
+  end
+
+  @spec selected_cards(Socket.t()) :: Game.cards()
+  defp selected_cards(%{assigns: %{hand: hand, selected_indexes: indexes}}) do
+    indexes
+    |> MapSet.to_list()
+    |> Enum.map(&Enum.at(hand, &1))
   end
 
   @spec toggle_selected(Socket.t(), non_neg_integer()) :: Socket.t()

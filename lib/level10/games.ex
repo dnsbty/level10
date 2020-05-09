@@ -12,6 +12,21 @@ defmodule Level10.Games do
   @max_attempts 10
   @max_players 6
 
+  @doc """
+  Add one or more cards to a group that is already on the table
+  """
+  @spec add_to_table(Game.join_code(), Player.id(), Player.id(), non_neg_integer(), Game.cards()) ::
+          :ok | :invalid_group | :level_incomplete | :needs_to_draw | :not_your_turn
+  def add_to_table(join_code, current_player_id, group_player_id, position, cards_to_add) do
+    Agent.get_and_update(via(join_code), fn game ->
+      with {:ok, game} <-
+             Game.add_to_table(game, current_player_id, group_player_id, position, cards_to_add) do
+        broadcast(game.join_code, :table_updated, game.table)
+        {:ok, game}
+      end
+    end)
+  end
+
   @spec create_game(String.t()) :: {:ok, Game.join_code(), Player.id()} | :error
   def create_game(player_name) do
     player = Player.new(player_name)

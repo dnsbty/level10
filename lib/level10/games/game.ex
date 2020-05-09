@@ -47,6 +47,66 @@ defmodule Level10.Games.Game do
   ]a
 
   @doc """
+  Add cards from one player's hand onto the table group of another player.
+
+  ## Examples
+
+      iex> add_to_table(%Game{}, "1cb7cd3d-a385-4c4e-a9cf-c5477cf52ecd", "5a4ef76d-a260-4a17-8b54-bc1fa7159607", 1, [%Card{}])
+      {:ok, %Game{}}
+  """
+  @spec add_to_table(t(), Player.id(), Player.id(), non_neg_integer(), Game.cards()) ::
+          {:ok | :invalid_group | :level_incomplete | :needs_to_draw | :not_your_turn, t()}
+  def add_to_table(game, current_player_id, group_player_id, position, cards_to_add) do
+    # get the level requirement for the specified group
+    requirement = group_requirement(game, group_player_id, position)
+
+    # make sure the player is doing this when they should and using valid cards
+    with ^current_player_id <- game.current_player.id,
+         {:current_turn_drawn?, true} <- {:current_turn_drawn?, game.current_turn_drawn?},
+         {:level_complete?, true} <- {:level_complete?, level_complete?(game, current_player_id)},
+         group when is_list(group) <- get_group(game.table, group_player_id, position),
+         new_group = group ++ cards_to_add,
+         true <- Levels.valid_group?(requirement, new_group) do
+      # update the table to include the new cards and remove them from the player's hand
+      table = put_in(game.table, [group_player_id, position], new_group)
+      hands = %{game.hands | current_player_id => game.hands[current_player_id] -- cards_to_add}
+      {:ok, %{game | hands: hands, table: table}}
+    else
+      nil ->
+        {:invalid_group, game}
+
+      false ->
+        {:invalid_group, game}
+
+      {:current_turn_drawn?, _} ->
+        {:needs_to_draw, game}
+
+      {:level_complete?, _} ->
+        {:level_incomplete, game}
+
+      player_id when is_binary(player_id) ->
+        {:not_your_turn, game}
+    end
+  end
+
+  @spec get_group(table(), Player.id(), non_neg_integer()) :: Game.cards() | nil
+  defp get_group(table, player_id, position) do
+    get_in(table, [player_id, position])
+  end
+
+  @spec group_requirement(t(), Player.id(), non_neg_integer()) :: Levels.group()
+  defp group_requirement(game, player_id, position) do
+    {level, _} = game.scoring[player_id]
+
+    level
+    |> Levels.by_number()
+    |> Enum.at(position)
+  end
+
+  @spec level_complete?(t(), Player.id()) :: boolean()
+  defp level_complete?(game, player_id), do: !is_nil(game.table[player_id])
+
+  @doc """
   At the end of a round, the game struct should be passed into this function.
   It will update player scoring and levels, check if the game has been
   complete, and reset the state for the next round.
