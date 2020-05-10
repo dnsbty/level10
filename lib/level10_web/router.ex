@@ -25,15 +25,11 @@ defmodule Level10Web.Router do
 
     live "/", LobbyLive
     live "/game/:join_code", GameLive
+    live "/scores/:join_code", ScoringLive
   end
 
   scope "/admin" do
     pipe_through [:browser, :admins_only]
     live_dashboard "/dashboard", metrics: Level10Web.Telemetry
   end
-
-  # Other scopes may use custom stacks.
-  # scope "/api", Level10Web do
-  #   pipe_through :api
-  # end
 end

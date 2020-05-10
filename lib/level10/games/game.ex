@@ -110,15 +110,12 @@ defmodule Level10.Games.Game do
   At the end of a round, the game struct should be passed into this function.
   It will update player scoring and levels, check if the game has been
   complete, and reset the state for the next round.
-
-  Make private later.
   """
   @spec complete_round(t()) :: t()
   def complete_round(game) do
     game
     |> update_scoring_and_levels()
     |> check_complete()
-    |> clear_round()
   end
 
   @spec update_scoring_and_levels(t()) :: t()
@@ -153,11 +150,6 @@ defmodule Level10.Games.Game do
     else
       game
     end
-  end
-
-  @spec clear_round(t()) :: t()
-  defp clear_round(game) do
-    %{game | draw_pile: [], discard_pile: [], table: %{}, hands: %{}}
   end
 
   @spec generate_join_code() :: join_code()

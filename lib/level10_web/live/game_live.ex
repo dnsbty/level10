@@ -3,9 +3,11 @@ defmodule Level10Web.GameLive do
   Live view for gameplay
   """
   use Phoenix.LiveView, layout: {Level10Web.LayoutView, "live.html"}
+
   alias Level10.Games
   alias Games.{Card, Levels}
-  alias Level10Web.GameView
+  alias Level10Web.{Endpoint, GameView, ScoringLive}
+  alias Level10Web.Router.Helpers, as: Routes
 
   def mount(params, _session, socket) do
     join_code = params["join_code"]
@@ -85,6 +87,15 @@ defmodule Level10Web.GameLive do
 
         {:noreply, flash_error(socket, message)}
     end
+  end
+
+  def handle_event("show_scores", _params, socket) do
+    join_code = socket.assigns.join_code
+    player_id = socket.assigns.player_id
+
+    path = Routes.live_path(Endpoint, ScoringLive, join_code, player_id: player_id)
+
+    {:noreply, push_redirect(socket, to: path)}
   end
 
   def handle_event("discard", _, socket) do

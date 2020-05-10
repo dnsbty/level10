@@ -22,9 +22,7 @@ defmodule Level10.Games do
       with {:ok, game} <-
              Game.add_to_table(game, current_player_id, group_player_id, position, cards_to_add) do
         broadcast(game.join_code, :table_updated, game.table)
-
-        if Game.round_finished?(game, current_player_id),
-          do: broadcast(game.join_code, :round_finished, game.current_player)
+        if Game.round_finished?(game, current_player_id), do: complete_round(game)
 
         {:ok, game}
       end
@@ -80,7 +78,7 @@ defmodule Level10.Games do
         broadcast(game.join_code, :new_discard_top, card)
 
         if Game.round_finished?(game, player_id) do
-          broadcast(join_code, :round_finished, game.current_player)
+          complete_round(game)
         else
           broadcast(join_code, :new_turn, game.current_player)
         end
@@ -401,9 +399,7 @@ defmodule Level10.Games do
     Agent.get_and_update(via(join_code), fn game ->
       with {:ok, game} <- Game.set_player_table(game, player_id, player_table) do
         broadcast(game.join_code, :table_updated, game.table)
-
-        if Game.round_finished?(game, player_id),
-          do: broadcast(game.join_code, :round_finished, game.current_player)
+        if Game.round_finished?(game, player_id), do: complete_round(game)
 
         {:ok, game}
       end
@@ -423,5 +419,13 @@ defmodule Level10.Games do
   @spec broadcast(Game.join_code(), event_type(), term()) :: :ok | {:error, term()}
   defp broadcast(join_code, event_type, event) do
     Phoenix.PubSub.broadcast(Level10.PubSub, "game:" <> join_code, {event_type, event})
+  end
+
+  # Private
+
+  @spec complete_round(Game.t()) :: Game.t()
+  defp complete_round(game) do
+    broadcast(game.join_code, :round_finished, game.current_player)
+    Game.complete_round(game)
   end
 end
