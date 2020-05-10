@@ -27,6 +27,7 @@ defmodule Level10.Games.Game do
           hands: %{optional(Player.id()) => cards()},
           join_code: join_code(),
           players: [Player.t()],
+          players_ready: MapSet.t(),
           scoring: scores(),
           table: table()
         }
@@ -42,6 +43,7 @@ defmodule Level10.Games.Game do
     hands
     join_code
     players
+    players_ready
     scoring
     table
   ]a
@@ -140,7 +142,7 @@ defmodule Level10.Games.Game do
         end
       end)
 
-    %{game | scoring: scoring}
+    %{game | current_stage: :scoring, scoring: scoring}
   end
 
   @spec check_complete(t()) :: t()
@@ -339,6 +341,7 @@ defmodule Level10.Games.Game do
         game =
           game
           |> increment_current_turn()
+          |> clear_table()
           |> put_new_deck()
           |> deal_hands()
           |> put_new_discard()
@@ -369,6 +372,9 @@ defmodule Level10.Games.Game do
       [top_card | _] -> top_card
     end
   end
+
+  @spec clear_table(t()) :: t()
+  defp clear_table(game), do: %{game | table: %{}}
 
   @spec increment_current_turn(t()) :: t()
   defp increment_current_turn(game = %{current_turn: current_turn, players: players}) do
