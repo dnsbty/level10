@@ -186,7 +186,7 @@ defmodule Level10.Games.Game do
     hands = Map.update!(hands, player.id, &List.delete(&1, card))
     pile = [card | pile]
     game = %{game | discard_pile: pile, hands: hands}
-    increment_current_turn(game)
+    increment_current_turn(game, card.value == :skip)
   end
 
   @spec draw_card(t(), :draw_pile | :discard_pile) :: t()
@@ -340,13 +340,14 @@ defmodule Level10.Games.Game do
       {:ok, game} ->
         game =
           game
-          |> increment_current_turn()
           |> clear_table()
           |> put_new_deck()
           |> deal_hands()
           |> put_new_discard()
 
-        {:ok, game}
+        [%{value: value}] = game.discard_pile
+
+        {:ok, increment_current_turn(game, value == :skip)}
 
       :game_over ->
         :game_over
@@ -376,12 +377,16 @@ defmodule Level10.Games.Game do
   @spec clear_table(t()) :: t()
   defp clear_table(game), do: %{game | table: %{}}
 
-  @spec increment_current_turn(t()) :: t()
-  defp increment_current_turn(game = %{current_turn: current_turn, players: players}) do
+  @spec increment_current_turn(t(), boolean()) :: t()
+  defp increment_current_turn(game, skip) do
+    %{current_turn: current_turn, players: players} = game
+    increment = if skip, do: 2, else: 1
     total_players = length(players)
-    player_index = rem(current_turn + 1, total_players)
+    player_index = rem(current_turn + increment, total_players)
     player = Enum.at(players, player_index)
-    %{game | current_turn: current_turn + 1, current_turn_drawn?: false, current_player: player}
+    turn = current_turn + increment
+
+    %{game | current_turn: turn, current_turn_drawn?: false, current_player: player}
   end
 
   @spec increment_current_round(t()) :: t()

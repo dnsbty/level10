@@ -97,7 +97,8 @@ defmodule Seeds do
           %Card{color: :red, value: :three}
         ],
         "98ba6988-15ab-4e83-82b1-00330fbcfec8" => [
-          %Card{color: :red, value: :wild}
+          %Card{color: :red, value: :wild},
+          %Card{color: :blue, value: :skip}
         ]
       },
       join_code: "ABCD",
