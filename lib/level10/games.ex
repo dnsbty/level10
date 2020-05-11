@@ -348,6 +348,7 @@ defmodule Level10.Games do
     Agent.get_and_update(via(join_code), fn game ->
       case Game.start_round(game) do
         {:ok, game} ->
+          broadcast(join_code, :round_started, nil)
           {:ok, game}
 
         :game_over ->

@@ -6,7 +6,8 @@ defmodule Level10Web.ScoringLive do
   use Phoenix.LiveView, layout: {Level10Web.LayoutView, "live.html"}
 
   alias Level10.Games
-  alias Level10Web.ScoringView
+  alias Level10Web.{Endpoint, GameLive, ScoringView}
+  alias Level10Web.Router.Helpers, as: Routes
 
   def mount(params, _session, socket) do
     join_code = params["join_code"]
@@ -15,14 +16,28 @@ defmodule Level10Web.ScoringLive do
     with true <- Games.exists?(join_code),
          true <- Games.started?(join_code),
          true <- Games.player_exists?(join_code, player_id) do
+      Games.subscribe(join_code)
       scores = Games.get_scores(join_code)
       players = join_code |> Games.get_players() |> sort_players(scores)
-      {:ok, assign(socket, players: players, player_id: player_id, scores: scores)}
+      assigns = %{join_code: join_code, players: players, player_id: player_id, scores: scores}
+      {:ok, assign(socket, assigns)}
     end
   end
 
   def render(assigns) do
     ScoringView.render("index.html", assigns)
+  end
+
+  def handle_event("mark_ready", _params, socket) do
+    Games.start_round(socket.assigns.join_code)
+    {:noreply, socket}
+  end
+
+  def handle_info({:round_started, _}, socket) do
+    %{join_code: join_code, player_id: player_id} = socket.assigns
+    path = Routes.live_path(Endpoint, GameLive, join_code, player_id: player_id)
+
+    {:noreply, push_redirect(socket, to: path)}
   end
 
   # Private
