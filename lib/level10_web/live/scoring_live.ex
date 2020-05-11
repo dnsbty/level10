@@ -29,7 +29,8 @@ defmodule Level10Web.ScoringLive do
   end
 
   def handle_event("mark_ready", _params, socket) do
-    Games.start_round(socket.assigns.join_code)
+    %{join_code: join_code, player_id: player_id} = socket.assigns
+    Games.mark_player_ready(join_code, player_id)
     {:noreply, socket}
   end
 

@@ -118,6 +118,7 @@ defmodule Level10.Games.Game do
     game
     |> update_scoring_and_levels()
     |> check_complete()
+    |> clear_ready()
   end
 
   @spec update_scoring_and_levels(t()) :: t()
@@ -219,6 +220,28 @@ defmodule Level10.Games.Game do
     %{game | current_turn_drawn?: true, discard_pile: pile, hands: hands}
   end
 
+  @doc """
+  Marks a player as being ready for the next round. If the player is the final
+  player to mark themself as ready, this will return an `:all_ready` atom as
+  the first element in the tuple to show that all players are now ready for the
+  next round to begin.
+
+  ## Examples
+
+      iex> mark_player_ready(%Game{}, "2ebbee1f-cb54-4446-94d6-3a01e4afe8ef")
+      {:ok, %Game{}}
+
+      iex> mark_player_ready(%Game{}, "0f2dd2ab-11f8-4c55-aaa2-499f695f1327")
+      {:all_ready, %Game{}}
+  """
+  @spec mark_player_ready(t(), Player.id()) :: {:ok | :all_ready, t()}
+  def mark_player_ready(game, player_id) do
+    players_ready = MapSet.put(game.players_ready, player_id)
+    total_players = length(game.players)
+    status = if MapSet.size(players_ready) == total_players, do: :all_ready, else: :ok
+    {status, %{game | players_ready: players_ready}}
+  end
+
   @spec new(join_code(), Player.t()) :: t()
   def new(join_code, player) do
     game = %__MODULE__{
@@ -232,6 +255,7 @@ defmodule Level10.Games.Game do
       hands: %{},
       join_code: join_code,
       players: [],
+      players_ready: MapSet.new(),
       scoring: %{},
       table: %{}
     }
@@ -373,6 +397,9 @@ defmodule Level10.Games.Game do
       [top_card | _] -> top_card
     end
   end
+
+  @spec clear_ready(t()) :: t()
+  defp clear_ready(game), do: %{game | players_ready: MapSet.new()}
 
   @spec clear_table(t()) :: t()
   defp clear_table(game), do: %{game | table: %{}}
