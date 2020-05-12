@@ -12,6 +12,7 @@
         <div class="flex">
           <div class="flex-1">
             <%= player.name %>
+            <%= if MapSet.member?(@players_ready, player.id), do: " ✓" %>
           </div>
           <div>
             <%= score(@scores, player.id) %> (<%= level(@scores, player.id) %>)
@@ -24,7 +25,7 @@
 </div>
 <div class="sm:mx-auto sm:w-full sm:max-w-md">
   <div class="py-8 px-4 sm:rounded-lg sm:px-10">
-    <div class="mt-6">
+    <div class="mt-6 text-center text-lg text-gray-300">
       <%= if MapSet.member?(@players_ready, @player_id) do %>
         Waiting for others...
       <% else %>
