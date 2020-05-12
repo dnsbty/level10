@@ -21,7 +21,8 @@ defmodule Level10.Games do
     Agent.get_and_update(via(join_code), fn game ->
       with {:ok, game} <-
              Game.add_to_table(game, player_id, table_id, position, cards_to_add) do
-        broadcast(game.join_code, :table_updated, game.table)
+        broadcast(join_code, :hand_counts_updated, Game.hand_counts(game))
+        broadcast(join_code, :table_updated, game.table)
 
         {:ok, maybe_complete_round(game, player_id)}
       end
@@ -74,7 +75,8 @@ defmodule Level10.Games do
     Agent.get_and_update(via(join_code), fn game ->
       with ^player_id <- game.current_player.id,
            %Game{} = game <- Game.discard(game, card) do
-        broadcast(game.join_code, :new_discard_top, card)
+        broadcast(join_code, :hand_counts_updated, Game.hand_counts(game))
+        broadcast(join_code, :new_discard_top, card)
 
         if Game.round_finished?(game, player_id) do
           {:ok, maybe_complete_round(game, player_id)}
@@ -109,6 +111,8 @@ defmodule Level10.Games do
       if source == :discard_pile do
         broadcast(join_code, :new_discard_top, Game.top_discarded_card(game))
       end
+
+      broadcast(join_code, :hand_counts_updated, Game.hand_counts(game))
 
       [new_card | _] = game.hands[player_id]
 
@@ -181,6 +185,19 @@ defmodule Level10.Games do
   @spec get_current_turn(Game.join_code()) :: Player.t()
   def get_current_turn(join_code) do
     Agent.get(via(join_code), & &1.current_player)
+  end
+
+  @doc """
+  Get the count of cards in each player's hand.
+
+  ## Examples
+
+      iex> get_hand_counts("ABCD")
+      %{"179539f0-661e-4b56-ac67-fec916214223" => 10, "000cc69a-bb7d-4d3e-ae9f-e42e3dcac23e" => 3}
+  """
+  @spec get_hand_counts(Game.join_code()) :: %{optional(Player.id()) => non_neg_integer()}
+  def get_hand_counts(join_code) do
+    Agent.get(via(join_code), &Game.hand_counts/1)
   end
 
   @doc """
@@ -423,7 +440,8 @@ defmodule Level10.Games do
   def table_cards(join_code, player_id, player_table) do
     Agent.get_and_update(via(join_code), fn game ->
       with {:ok, game} <- Game.set_player_table(game, player_id, player_table) do
-        broadcast(game.join_code, :table_updated, game.table)
+        broadcast(join_code, :hand_counts_updated, Game.hand_counts(game))
+        broadcast(join_code, :table_updated, game.table)
 
         {:ok, maybe_complete_round(game, player_id)}
       end

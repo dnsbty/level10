@@ -27,6 +27,7 @@ defmodule Level10Web.GameLive do
       discard_top = Games.get_top_discarded_card(join_code)
       turn = Games.get_current_turn(join_code)
       round_winner = Games.round_winner(join_code)
+      hand_counts = Games.get_hand_counts(join_code)
 
       Games.subscribe(join_code)
 
@@ -36,6 +37,7 @@ defmodule Level10Web.GameLive do
       assigns = [
         discard_top: discard_top,
         hand: hand,
+        hand_counts: hand_counts,
         has_drawn_card: has_drawn,
         join_code: params["join_code"],
         levels: levels,
@@ -172,6 +174,10 @@ defmodule Level10Web.GameLive do
 
   # Handle incoming messages from PubSub and other things
 
+  def handle_info({:hand_counts_updated, hand_counts}, socket) do
+    {:noreply, assign(socket, :hand_counts, hand_counts)}
+  end
+
   def handle_info({:new_discard_top, card}, socket) do
     {:noreply, assign(socket, :discard_top, card)}
   end
@@ -188,6 +194,8 @@ defmodule Level10Web.GameLive do
     player_table = Map.get(table, socket.assigns.player_id, socket.assigns.player_table)
     {:noreply, assign(socket, player_table: player_table, table: table)}
   end
+
+  def handle_info(_, socket), do: {:noreply, socket}
 
   # Private Functions
 

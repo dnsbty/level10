@@ -221,6 +221,21 @@ defmodule Level10.Games.Game do
   end
 
   @doc """
+  Get the number of cards in each player's hand.
+
+  ## Examples
+
+      iex> hand_counts(%Game{})
+      %{"c07a54ff-08c1-4a25-98a2-3694e42855ed" => 10, "ccdd4cba-3fcf-4e5d-a41f-a7f9511f1461" => 3}
+  """
+  @spec hand_counts(t()) :: %{optional(Player.id()) => non_neg_integer()}
+  def hand_counts(game) do
+    game.hands
+    |> Enum.map(fn {player_id, hand} -> {player_id, length(hand)} end)
+    |> Enum.into(%{})
+  end
+
+  @doc """
   Marks a player as being ready for the next round. If the player is the final
   player to mark themself as ready, this will return an `:all_ready` atom as
   the first element in the tuple to show that all players are now ready for the

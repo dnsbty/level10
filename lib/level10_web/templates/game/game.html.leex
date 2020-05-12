@@ -4,6 +4,8 @@
       <div class="flex-1 text-white text-lg">
         <%= if player.id == @player_id, do: "You", else: player.name %>
       </div>
+      <div class="flex text-white text-sm mr-1 mb-1">&#x1F02B;</div>
+      <div class="flex text-white text-sm mr-2"><%= @hand_counts[player.id] %></div>
       <%= if is_nil(@table[player.id]) do %>
         <%= for group <- @levels[player.id] do %>
           <div class="flex-1 mr-2 bg-purple-900 text-purple-700 text-center rounded-md py-2">
