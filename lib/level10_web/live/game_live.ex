@@ -133,11 +133,21 @@ defmodule Level10Web.GameLive do
         "discard_pile" -> :discard_pile
       end
 
-    with ^player_id <- assigns.turn.id,
-         false <- assigns.has_drawn_card,
-         %Card{} = new_card <- Games.draw_card(assigns.join_code, player_id, source) do
+    with %Card{} = new_card <- Games.draw_card(assigns.join_code, player_id, source) do
       {:noreply, assign(socket, hand: [new_card | assigns.hand], has_drawn_card: true)}
     else
+      error ->
+        message =
+          case error do
+            :already_drawn -> "You can't draw twice in the same turn silly 😋"
+            :empty_discard_pile -> "What are you trying to draw? The discard pile is empty... 🕵️‍♂️"
+            :skip -> "You can't draw a skip that has already been discarded 😂"
+            :not_your_turn -> "Watch it bud! It's not your turn yet 😠"
+            _ -> "I'm not sure what you just did, but I don't like it 🤨"
+          end
+
+        {:noreply, flash_error(socket, message)}
+
       _ ->
         {:noreply, socket}
     end

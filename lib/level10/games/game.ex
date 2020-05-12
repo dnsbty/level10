@@ -190,34 +190,44 @@ defmodule Level10.Games.Game do
     increment_current_turn(game, card.value == :skip)
   end
 
-  @spec draw_card(t(), :draw_pile | :discard_pile) :: t()
-  def draw_card(game, pile)
+  @spec draw_card(t(), Player.id(), :draw_pile | :discard_pile) ::
+          {:ok | :already_drawn | :empty_discard_pile | :not_your_turn | :skip, t()}
+  def draw_card(game, player_id, pile)
 
-  def draw_card(game = %{current_turn_drawn?: true}, _pile) do
-    game
+  def draw_card(game = %{current_player: %{id: current_id}}, player_id, _)
+      when current_id != player_id do
+    {:not_your_turn, game}
   end
 
-  def draw_card(game = %{current_player: player, draw_pile: pile, hands: hands}, :draw_pile) do
+  def draw_card(game = %{current_turn_drawn?: true}, _player_id, _pile) do
+    {:already_drawn, game}
+  end
+
+  def draw_card(game = %{draw_pile: pile, hands: hands}, player_id, :draw_pile) do
     case pile do
       [card | pile] ->
-        hands = Map.update!(hands, player.id, &[card | &1])
-        %{game | current_turn_drawn?: true, draw_pile: pile, hands: hands}
+        hands = Map.update!(hands, player_id, &[card | &1])
+        {:ok, %{game | current_turn_drawn?: true, draw_pile: pile, hands: hands}}
 
       [] ->
         game
         |> reshuffle_deck()
-        |> draw_card(:draw_pile)
+        |> draw_card(player_id, :draw_pile)
     end
   end
 
-  def draw_card(game = %{discard_pile: []}, :discard_pile) do
-    game
+  def draw_card(game = %{discard_pile: []}, _player_id, :discard_pile) do
+    {:empty_discard_pile, game}
   end
 
-  def draw_card(game, :discard_pile) do
-    %{current_player: player, discard_pile: [card | pile], hands: hands} = game
-    hands = Map.update!(hands, player.id, &[card | &1])
-    %{game | current_turn_drawn?: true, discard_pile: pile, hands: hands}
+  def draw_card(game = %{discard_pile: [%{value: :skip} | _]}, _player_id, :discard_pile) do
+    {:skip, game}
+  end
+
+  def draw_card(game, player_id, :discard_pile) do
+    %{discard_pile: [card | pile], hands: hands} = game
+    hands = Map.update!(hands, player_id, &[card | &1])
+    {:ok, %{game | current_turn_drawn?: true, discard_pile: pile, hands: hands}}
   end
 
   @doc """

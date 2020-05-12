@@ -103,20 +103,20 @@ defmodule Level10.Games do
       iex> draw_card("ABCD", "9c34b9fe-3104-44b3-b21b-28140e2e3624", :discard_pile)
       %Card{color: :green, value: :twelve}
   """
-  @spec draw_card(Game.join_code(), Player.id(), :discard_pile | :draw_pile) :: list(Card.t())
+  @spec draw_card(Game.join_code(), Player.id(), :discard_pile | :draw_pile) ::
+          Card.t() | :already_drawn | :empty_discard_pile | :not_your_turn | :skip
   def draw_card(join_code, player_id, source) do
     Agent.get_and_update(via(join_code), fn game ->
-      game = Game.draw_card(game, source)
+      with {:ok, game} <- Game.draw_card(game, player_id, source) do
+        if source == :discard_pile do
+          broadcast(join_code, :new_discard_top, Game.top_discarded_card(game))
+        end
 
-      if source == :discard_pile do
-        broadcast(join_code, :new_discard_top, Game.top_discarded_card(game))
+        broadcast(join_code, :hand_counts_updated, Game.hand_counts(game))
+        [new_card | _] = game.hands[player_id]
+
+        {new_card, game}
       end
-
-      broadcast(join_code, :hand_counts_updated, Game.hand_counts(game))
-
-      [new_card | _] = game.hands[player_id]
-
-      {new_card, game}
     end)
   end
 
