@@ -7,14 +7,16 @@ defmodule Seeds do
   def game do
     %Game{
       current_player: %Player{
-        id: "98ba6988-15ab-4e83-82b1-00330fbcfec8",
-        name: "Dennis"
+        id: "7ffd576b-28cd-4e4e-822c-fed41619483b",
+        name: "Brett"
       },
       current_round: 1,
-      current_stage: :play,
-      current_turn: 35,
+      current_stage: :scoring,
+      current_turn: 38,
       current_turn_drawn?: false,
       discard_pile: [
+        %Card{color: :blue, value: :ten},
+        %Card{color: :blue, value: :skip},
         %Card{color: :green, value: :three},
         %Card{color: :blue, value: :three},
         %Card{color: :red, value: :one},
@@ -49,8 +51,6 @@ defmodule Seeds do
         %Card{color: :red, value: :nine}
       ],
       draw_pile: [
-        %Card{color: :blue, value: :ten},
-        %Card{color: :red, value: :six},
         %Card{color: :red, value: :seven},
         %Card{color: :yellow, value: :two},
         %Card{color: :green, value: :six},
@@ -96,10 +96,7 @@ defmodule Seeds do
           %Card{color: :blue, value: :two},
           %Card{color: :red, value: :three}
         ],
-        "98ba6988-15ab-4e83-82b1-00330fbcfec8" => [
-          %Card{color: :red, value: :wild},
-          %Card{color: :blue, value: :skip}
-        ]
+        "98ba6988-15ab-4e83-82b1-00330fbcfec8" => []
       },
       join_code: "ABCD",
       players: [
@@ -112,9 +109,10 @@ defmodule Seeds do
           name: "Dennis"
         }
       ],
+      players_ready: MapSet.new(),
       scoring: %{
-        "7ffd576b-28cd-4e4e-822c-fed41619483b" => {1, 0},
-        "98ba6988-15ab-4e83-82b1-00330fbcfec8" => {1, 0}
+        "7ffd576b-28cd-4e4e-822c-fed41619483b" => {2, 20},
+        "98ba6988-15ab-4e83-82b1-00330fbcfec8" => {2, 0}
       },
       table: %{
         "7ffd576b-28cd-4e4e-822c-fed41619483b" => %{
@@ -127,14 +125,16 @@ defmodule Seeds do
           1 => [
             %Card{color: :green, value: :wild},
             %Card{color: :green, value: :six},
-            %Card{color: :yellow, value: :six}
+            %Card{color: :yellow, value: :six},
+            %Card{color: :red, value: :six}
           ]
         },
         "98ba6988-15ab-4e83-82b1-00330fbcfec8" => %{
           0 => [
             %Card{color: :yellow, value: :eleven},
             %Card{color: :blue, value: :eleven},
-            %Card{color: :green, value: :eleven}
+            %Card{color: :green, value: :eleven},
+            %Card{color: :red, value: :wild}
           ],
           1 => [
             %Card{color: :green, value: :wild},

@@ -25,11 +25,15 @@
 <div class="sm:mx-auto sm:w-full sm:max-w-md">
   <div class="py-8 px-4 sm:rounded-lg sm:px-10">
     <div class="mt-6">
-      <span class="block w-full rounded-md shadow-sm">
-        <button type="submit" phx-click="mark_ready" class="w-full flex justify-center py-2 px-4 border border-transparent text-xl font-bold rounded-md text-white bg-red-600 hover:bg-red-500 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-700 transition duration-150 ease-in-out">
-          <%= if assigns[:starting], do: "Starting...", else: "Next Round" %>
-        </button>
-      </span>
+      <%= if MapSet.member?(@players_ready, @player_id) do %>
+        Waiting for others...
+      <% else %>
+        <span class="block w-full rounded-md shadow-sm">
+          <button type="submit" phx-click="mark_ready" class="w-full flex justify-center py-2 px-4 border border-transparent text-xl font-bold rounded-md text-white bg-red-600 hover:bg-red-500 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-700 transition duration-150 ease-in-out">
+            <%= if assigns[:starting], do: "Starting...", else: "Next Round" %>
+          </button>
+        </span>
+      <% end %>
     </div>
   </div>
 </div>

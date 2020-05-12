@@ -19,7 +19,15 @@ defmodule Level10Web.ScoringLive do
       Games.subscribe(join_code)
       scores = Games.get_scores(join_code)
       players = join_code |> Games.get_players() |> sort_players(scores)
-      assigns = %{join_code: join_code, players: players, player_id: player_id, scores: scores}
+
+      assigns = %{
+        join_code: join_code,
+        players: players,
+        player_id: player_id,
+        players_ready: Games.get_players_ready(join_code),
+        scores: scores
+      }
+
       {:ok, assign(socket, assigns)}
     end
   end
@@ -32,6 +40,10 @@ defmodule Level10Web.ScoringLive do
     %{join_code: join_code, player_id: player_id} = socket.assigns
     Games.mark_player_ready(join_code, player_id)
     {:noreply, socket}
+  end
+
+  def handle_info({:players_ready, players_ready}, socket) do
+    {:noreply, assign(socket, players_ready: players_ready)}
   end
 
   def handle_info({:round_started, _}, socket) do

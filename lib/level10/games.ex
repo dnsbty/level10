@@ -197,22 +197,6 @@ defmodule Level10.Games do
   end
 
   @doc """
-  Get the scores for all players in a game.
-
-  ## Examples
-
-      iex> get_scores("ABCD")
-      %{
-        "e486056e-4a01-4239-9f00-6f7f57ca8d54" => {3, 55},
-        "38379e46-4d29-4a22-a245-aa7013ec3c33" => {2, 120}
-      }
-  """
-  @spec get_scores(Game.join_code()) :: Game.scores()
-  def get_scores(join_code) do
-    Agent.get(via(join_code), & &1.scoring)
-  end
-
-  @doc """
   Get the list of players in a game.
 
   ## Examples
@@ -226,6 +210,30 @@ defmodule Level10.Games do
   @spec get_players(Game.join_code()) :: list(Player.t())
   def get_players(join_code) do
     Agent.get(via(join_code), & &1.players)
+  end
+
+  @doc """
+  Gets the set of IDs of players who are ready for the next round to begin.
+  """
+  @spec get_players_ready(Game.join_code()) :: MapSet.t(Player.id())
+  def get_players_ready(join_code) do
+    Agent.get(via(join_code), & &1.players_ready)
+  end
+
+  @doc """
+  Get the scores for all players in a game.
+
+  ## Examples
+
+      iex> get_scores("ABCD")
+      %{
+        "e486056e-4a01-4239-9f00-6f7f57ca8d54" => {3, 55},
+        "38379e46-4d29-4a22-a245-aa7013ec3c33" => {2, 120}
+      }
+  """
+  @spec get_scores(Game.join_code()) :: Game.scores()
+  def get_scores(join_code) do
+    Agent.get(via(join_code), & &1.scoring)
   end
 
   @doc """
@@ -337,8 +345,12 @@ defmodule Level10.Games do
         broadcast(join_code, :round_started, nil)
         {:ok, game}
       else
-        :game_over -> {:game_over, game}
-        {:ok, game} -> {:ok, game}
+        :game_over ->
+          {:game_over, game}
+
+        {:ok, game} ->
+          broadcast(join_code, :players_ready, game.players_ready)
+          {:ok, game}
       end
     end)
   end
