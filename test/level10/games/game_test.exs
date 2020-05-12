@@ -90,21 +90,6 @@ defmodule Level10.Games.GameTest do
       assert game.scoring["Player 2"] == {2, 85}
     end
 
-    test "clears the round artifacts" do
-      scoring = %{"Player 1" => {2, 45}, "Player 2" => {2, 0}}
-      hands = %{"Player 1" => [], "Player 2" => @hand_nothing}
-      table = %{"Player 1" => @level3}
-
-      game = %{@game | current_round: 2, hands: hands, scoring: scoring, table: table}
-
-      game = Game.complete_round(game)
-
-      assert game.discard_pile == []
-      assert game.draw_pile == []
-      assert game.hands == %{}
-      assert game.table == %{}
-    end
-
     test "determines whether the game was completed" do
       scoring = %{"Player 1" => {10, 45}, "Player 2" => {9, 0}}
       hands = %{"Player 1" => [], "Player 2" => @hand_nothing}
