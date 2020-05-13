@@ -1,3 +1,4 @@
+<!-- Player Display -->
 <div class="mb-8">
   <%= for player <- @players do %>
     <div class="flex flex-row items-center ml-4 mr-2 mb-2 <%= player_opacity(player.id, @turn.id) %>">
@@ -18,9 +19,7 @@
             <p class="text-purple-400 text-center text-xs mb-1"><%= level_group_name(group) %></p>
             <div class="grid grid-cols-<%= count %> gap-1">
               <%= for card <- @table[player.id][position] do %>
-                <div class="text-center text-sm py-2 <%= background_class(card.color) %> border-2 border-white rounded-md text-white">
-                  <%= number(card.value) %>
-                </div>
+                <%= render_card(card) %>
               <% end %>
             </div>
           </div>
@@ -29,20 +28,22 @@
     </div>
   <% end %>
 </div>
+
+<!-- Draw and Discard Piles -->
 <div class="grid grid-cols-5 gap-2 px-4 mb-8">
-  <div phx-click="draw_card" onclick="" phx-value-source="draw_pile" class="<%= unless @has_drawn_card, do: "cursor-pointer " %>col-start-2 py-3 bg-purple-400 border-4 border-white rounded-md">
-    <div class="transform rotate-90 text-center text-purple-700">
-      Level 10
-    </div>
+  <div phx-click="draw_card" onclick="" phx-value-source="draw_pile" class="<%= unless @has_drawn_card, do: "cursor-pointer " %>col-start-2">
+    <%= render("card_back.html") %>
   </div>
-  <div <%= discard_pile_action(@turn.id == @player_id, @has_drawn_card) %>onclick="" phx-value-source="discard_pile" class="<%= unless @has_drawn_card, do: "cursor-pointer " %>col-start-4 text-center <%= discard_styles(@discard_top) %> rounded-md">
-    <%= if is_nil(@discard_top), do: "Discard Pile", else: number(@discard_top.value) %>
+  <div <%= discard_pile_action(@turn.id == @player_id, @has_drawn_card) %>onclick="" phx-value-source="discard_pile" class="<%= if MapSet.size(@selected_indexes) > 0 || !@has_drawn_card, do: "cursor-pointer " %>col-start-4 text-center <%= discard_styles(@discard_top) %> rounded-md">
+    <%= if is_nil(@discard_top), do: "Discard Pile", else: render_card(@discard_top) %>
   </div>
 </div>
+
+<!-- Player Table -->
 <div class="flex flex-row ml-4 mr-2 mb-4">
   <%= for {{_, count} = group, position} <- Enum.with_index(@player_level) do %>
     <%= if is_nil(@player_table[position]) do %>
-      <div phx-click="table_cards" onclick="" phx-value-position="<%= position %>" class="cursor-pointer flex-1 mr-2 bg-purple-900 text-purple-400 text-center rounded-md py-8">
+      <div phx-click="table_cards" onclick="" phx-value-position="<%= position %>" class="<%= if MapSet.size(@selected_indexes) > 0, do: "cursor-pointer " %>flex-1 mr-2 bg-purple-900 text-purple-400 text-center rounded-md py-8">
         <%= level_group_name(group) %>
       </div>
     <% else %>
@@ -50,24 +51,25 @@
         <p class="text-purple-400 text-center text-xs mb-2"><%= level_group_name(group) %></p>
         <div class="grid grid-cols-<%= count %> gap-2">
           <%= for card <- @player_table[position] do %>
-            <div class="text-center text-4xl py-2 <%= background_class(card.color) %> border-4 border-white rounded-md text-white">
-              <%= number(card.value) %>
-            </div>
+            <%= render_card(card) %>
           <% end %>
         </div>
       </div>
     <% end %>
   <% end %>
 </div>
+
+<!-- Player Hand -->
 <div class="grid grid-cols-5 gap-2 px-4">
   <%= for {card, position} <- Enum.with_index(@hand) do %>
-    <div phx-click="toggle_selected" onclick="" phx-value-position="<%= position %>" class="<%= card_selection(position, @selected_indexes) %> <%= if @has_drawn_card, do: "cursor-pointer " %>text-center text-4xl py-2 <%= background_class(card.color) %> border-4 border-white rounded-md text-white">
-      <%= number(card.value) %>
+    <div phx-click="toggle_selected" onclick="" phx-value-position="<%= position %>" class="<%= if @has_drawn_card, do: "cursor-pointer " %>">
+      <%= render_card(card, MapSet.member?(@selected_indexes, position)) %>
     </div>
   <% end %>
 </div>
 
 <%= if !is_nil(@round_winner) do %>
+<!-- Round Finished Modal -->
 <div class="fixed bottom-0 inset-x-0 px-4 pb-6 sm:inset-0 sm:p-0 sm:flex sm:items-center sm:justify-center">
   <div class="fixed inset-0 transition-opacity">
     <div class="absolute inset-0 bg-white opacity-75"></div>
