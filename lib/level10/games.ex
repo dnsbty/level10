@@ -460,9 +460,13 @@ defmodule Level10.Games do
     end
   end
 
-  @spec unsubscribe(String.t()) :: :ok | {:error, term()}
-  def unsubscribe(game_code) do
-    Phoenix.PubSub.unsubscribe(Level10.PubSub, "game:" <> game_code)
+  @spec unsubscribe(String.t(), Player.id()) :: :ok | {:error, term()}
+  def unsubscribe(game_code, player_id) do
+    topic = "game:" <> game_code
+
+    with :ok <- Phoenix.PubSub.unsubscribe(Level10.PubSub, topic) do
+      Presence.untrack(self(), topic, player_id)
+    end
   end
 
   @spec broadcast(Game.join_code(), event_type(), term()) :: :ok | {:error, term()}

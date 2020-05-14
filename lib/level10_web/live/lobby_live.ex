@@ -109,10 +109,12 @@ defmodule Level10Web.LobbyLive do
   end
 
   def handle_event("leave", _params, socket) do
-    case Games.leave_game(socket.assigns.join_code, socket.assigns.player_id) do
+    %{join_code: join_code, player_id: player_id} = socket.assigns
+
+    case Games.leave_game(join_code, player_id) do
       :ok ->
-        Logger.info(["Left game ", socket.assigns.join_code])
-        Games.unsubscribe(socket.assigns.join_code)
+        Logger.info(["Left game ", join_code])
+        Games.unsubscribe(join_code, player_id)
         {:noreply, assign(socket, action: :none, join_code: "", name: "")}
 
       :already_started ->
