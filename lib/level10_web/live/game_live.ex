@@ -16,7 +16,6 @@ defmodule Level10Web.GameLive do
     with true <- Games.exists?(join_code),
          true <- Games.started?(join_code),
          true <- Games.player_exists?(join_code, player_id) do
-      Games.subscribe(params["join_code"])
       players = Games.get_players(join_code)
       hand = join_code |> Games.get_hand_for_player(player_id) |> Card.sort()
       scores = Games.get_scores(join_code)
@@ -28,8 +27,9 @@ defmodule Level10Web.GameLive do
       turn = Games.get_current_turn(join_code)
       round_winner = Games.round_winner(join_code)
       hand_counts = Games.get_hand_counts(join_code)
+      presence = Games.list_presence(join_code)
 
-      Games.subscribe(join_code)
+      Games.subscribe(join_code, player_id)
 
       has_drawn =
         if turn.id == player_id, do: Games.current_player_has_drawn?(join_code), else: false
@@ -45,6 +45,7 @@ defmodule Level10Web.GameLive do
         player_level: player_level,
         player_table: player_table,
         players: players,
+        presence: presence,
         round_winner: round_winner,
         overflow_hidden: !is_nil(round_winner),
         selected_indexes: MapSet.new(),
@@ -203,6 +204,17 @@ defmodule Level10Web.GameLive do
   def handle_info({:table_updated, table}, socket) do
     player_table = Map.get(table, socket.assigns.player_id, socket.assigns.player_table)
     {:noreply, assign(socket, player_table: player_table, table: table)}
+  end
+
+  def handle_info(%{event: "presence_diff", payload: payload}, socket) do
+    leaves = Enum.map(payload.leaves, fn {player_id, _} -> player_id end)
+
+    presence =
+      socket.assigns.presence
+      |> Map.drop(leaves)
+      |> Map.merge(payload.joins)
+
+    {:noreply, assign(socket, presence: presence)}
   end
 
   def handle_info(_, socket), do: {:noreply, socket}

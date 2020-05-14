@@ -4,7 +4,9 @@ defmodule Level10.Games do
   functions will take in a game struct and manipulate that struct and return
   it.
   """
+
   alias Level10.Games.{Card, Game, GameRegistry, GameSupervisor, Player}
+  alias Level10.Presence
 
   @typep event_type :: atom()
   @typep game_name :: Agent.name()
@@ -448,9 +450,14 @@ defmodule Level10.Games do
     end)
   end
 
-  @spec subscribe(String.t()) :: :ok | {:error, term()}
-  def subscribe(game_code) do
-    Phoenix.PubSub.subscribe(Level10.PubSub, "game:" <> game_code)
+  @spec subscribe(String.t(), Player.id()) :: :ok | {:error, term()}
+  def subscribe(game_code, player_id) do
+    topic = "game:" <> game_code
+
+    with :ok <- Phoenix.PubSub.subscribe(Level10.PubSub, topic),
+         {:ok, _} <- Presence.track(self(), topic, player_id, %{}) do
+      :ok
+    end
   end
 
   @spec unsubscribe(String.t()) :: :ok | {:error, term()}
@@ -461,6 +468,11 @@ defmodule Level10.Games do
   @spec broadcast(Game.join_code(), event_type(), term()) :: :ok | {:error, term()}
   def broadcast(join_code, event_type, event) do
     Phoenix.PubSub.broadcast(Level10.PubSub, "game:" <> join_code, {event_type, event})
+  end
+
+  @spec list_presence(Game.join_code()) :: %{optional(Player.id()) => map()}
+  def list_presence(join_code) do
+    Presence.list("game:" <> join_code)
   end
 
   # Private

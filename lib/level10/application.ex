@@ -1,6 +1,4 @@
 defmodule Level10.Application do
-  # See https://hexdocs.pm/elixir/Application.html
-  # for more information on OTP Applications
   @moduledoc false
 
   use Application
@@ -11,11 +9,10 @@ defmodule Level10.Application do
       {Registry, keys: :unique, name: Level10.Games.GameRegistry},
       Level10Web.Telemetry,
       {Phoenix.PubSub, name: Level10.PubSub},
+      Level10.Presence,
       Level10Web.Endpoint
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Level10.Supervisor]
     Supervisor.start_link(children, opts)
   end

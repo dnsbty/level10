@@ -16,15 +16,18 @@ defmodule Level10Web.ScoringLive do
     with true <- Games.exists?(join_code),
          true <- Games.started?(join_code),
          true <- Games.player_exists?(join_code, player_id) do
-      Games.subscribe(join_code)
       scores = Games.get_scores(join_code)
       players = join_code |> Games.get_players() |> sort_players(scores)
+      presence = Games.list_presence(join_code)
+
+      Games.subscribe(join_code, player_id)
 
       assigns = %{
         join_code: join_code,
         players: players,
         player_id: player_id,
         players_ready: Games.get_players_ready(join_code),
+        presence: presence,
         scores: scores
       }
 
@@ -51,6 +54,17 @@ defmodule Level10Web.ScoringLive do
     path = Routes.live_path(Endpoint, GameLive, join_code, player_id: player_id)
 
     {:noreply, push_redirect(socket, to: path)}
+  end
+
+  def handle_info(%{event: "presence_diff", payload: payload}, socket) do
+    leaves = Enum.map(payload.leaves, fn {player_id, _} -> player_id end)
+
+    presence =
+      socket.assigns.presence
+      |> Map.drop(leaves)
+      |> Map.merge(payload.joins)
+
+    {:noreply, assign(socket, presence: presence)}
   end
 
   # Private

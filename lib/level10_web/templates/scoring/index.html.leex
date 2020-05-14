@@ -9,7 +9,7 @@
     <ol class="pl-12 list-decimal">
       <%= for player <- @players do %>
       <li class="px-4 py-2 font-bold tracking-wide text-2xl text-gray-100">
-        <div class="flex">
+        <div class="flex items-center">
           <div class="flex-1">
             <%= player.name %>
             <%= if MapSet.member?(@players_ready, player.id), do: " ✓" %>
@@ -17,6 +17,15 @@
           <div>
             <%= score(@scores, player.id) %> (<%= level(@scores, player.id) %>)
           </div>
+          <%= if player.id in Map.keys(@presence) do %>
+            <div class="text-sm text-green-500 ml-2 cursor-default" title="online">
+              ●
+            </div>
+            <% else %>
+            <div class="text-sm text-purple-500 ml-2 cursor-default" title="offline">
+              ○
+            </div>
+          <% end %>
         </div>
       </li>
       <% end %>

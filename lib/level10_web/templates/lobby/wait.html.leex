@@ -9,10 +9,19 @@
     <h2 class="text-center text-sm text-gray-100 font-bold tracking-widest uppercase">
       Players
     </h2>
-    <ol class="mt-6 px-12 list-decimal">
+    <ul class="mt-6 px-4 list-decimal">
       <%= for player <- @players do %>
-      <li class="px-4 py-2 font-bold tracking-wide text-2xl text-gray-100">
-        <%= player.name %>
+      <li class="flex px-4 py-2 font-bold tracking-wide text-2xl text-gray-100 items-center">
+        <%= if player.id in Map.keys(@presence) do %>
+          <div class="text-sm text-green-500 mr-2 cursor-default" title="online">
+            ●
+          </div>
+          <% else %>
+          <div class="text-sm text-purple-500 mr-2 cursor-default" title="offline">
+            ○
+          </div>
+        <% end %>
+        <div><%= player.name %></div>
       </li>
       <% end %>
     </ol>

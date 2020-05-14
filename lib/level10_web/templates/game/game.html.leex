@@ -2,6 +2,16 @@
 <div class="mb-8">
   <%= for player <- @players do %>
     <div class="flex flex-row items-center ml-4 mr-2 mb-2 <%= player_opacity(player.id, @turn.id) %>">
+      <%= if player.id in Map.keys(@presence) do %>
+        <div class="text-sm text-green-500 mr-2 cursor-default" title="online">
+          ●
+        </div>
+        <% else %>
+        <div class="text-sm text-purple-500 mr-2 cursor-default" title="offline">
+          ○
+        </div>
+      <% end %>
+
       <div class="flex-1 text-white text-lg">
         <%= if player.id == @player_id, do: "You", else: player.name %>
       </div>

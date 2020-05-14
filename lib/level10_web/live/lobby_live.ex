@@ -6,9 +6,9 @@ defmodule Level10Web.LobbyLive do
   use Phoenix.LiveView, layout: {Level10Web.LayoutView, "live.html"}
   require Logger
 
+  alias Level10.Games
   alias Level10Web.Router.Helpers, as: Routes
   alias Level10Web.LobbyView
-  alias Level10.Games
 
   def mount(_params, _session, socket) do
     initial_assigns = [
@@ -39,19 +39,21 @@ defmodule Level10Web.LobbyLive do
     case Games.create_game(socket.assigns.name) do
       {:ok, join_code, player_id} ->
         Logger.info(["Created game ", join_code])
-        Games.subscribe(join_code)
+
         players = Games.get_players(join_code)
+        presence = Games.list_presence(join_code)
+        Games.subscribe(join_code, player_id)
 
-        socket =
-          assign(socket,
-            action: :wait,
-            is_creator: true,
-            join_code: join_code,
-            player_id: player_id,
-            players: players
-          )
+        assigns = %{
+          action: :wait,
+          is_creator: true,
+          join_code: join_code,
+          player_id: player_id,
+          players: players,
+          presence: presence
+        }
 
-        {:noreply, socket}
+        {:noreply, assign(socket, assigns)}
 
       :error ->
         socket =
@@ -70,43 +72,39 @@ defmodule Level10Web.LobbyLive do
   end
 
   def handle_event("join_game", _params, socket) do
-    case Games.join_game(socket.assigns.join_code, socket.assigns.name) do
+    %{join_code: join_code, name: name} = socket.assigns
+
+    case Games.join_game(join_code, name) do
       {:ok, player_id} ->
-        Logger.info(["Joined game ", socket.assigns.join_code])
-        Games.subscribe(socket.assigns.join_code)
-        players = Games.get_players(socket.assigns.join_code)
+        Logger.info(["Joined game ", join_code])
 
-        {:noreply, assign(socket, action: :wait, player_id: player_id, players: players)}
+        players = Games.get_players(join_code)
+        presence = Games.list_presence(join_code)
+        Games.subscribe(join_code, player_id)
 
-      :already_started ->
-        socket =
-          put_flash(
-            socket,
-            :error,
-            "The game you're trying to join has already started. Looks like you need some new friends 😬"
-          )
+        assigns = %{
+          action: :wait,
+          player_id: player_id,
+          players: players,
+          presence: presence
+        }
 
-        {:noreply, socket}
+        {:noreply, assign(socket, assigns)}
 
-      :full ->
-        socket =
-          put_flash(
-            socket,
-            :error,
-            "That game is already full. Looks like you were the slow one in the group 😩"
-          )
+      error ->
+        message =
+          case error do
+            :already_started ->
+              "The game you're trying to join has already started. Looks like you need some new friends 😬"
 
-        {:noreply, socket}
+            :full ->
+              "That game is already full. Looks like you were the slow one in the group 😩"
 
-      :not_found ->
-        socket =
-          put_flash(
-            socket,
-            :error,
-            "That join code doesn't exist. Are you trying to hack us? 🤨"
-          )
+            :not_found ->
+              "That join code doesn't exist. Are you trying to hack us? 🤨"
+          end
 
-        {:noreply, socket}
+        {:noreply, put_flash(socket, :error, message)}
     end
   end
 
@@ -171,5 +169,16 @@ defmodule Level10Web.LobbyLive do
 
   def handle_info({:players_updated, players}, socket) do
     {:noreply, assign(socket, :players, players)}
+  end
+
+  def handle_info(%{event: "presence_diff", payload: payload}, socket) do
+    leaves = Enum.map(payload.leaves, fn {player_id, _} -> player_id end)
+
+    presence =
+      socket.assigns.presence
+      |> Map.drop(leaves)
+      |> Map.merge(payload.joins)
+
+    {:noreply, assign(socket, presence: presence)}
   end
 end
