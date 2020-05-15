@@ -1,6 +1,7 @@
-defmodule Level10Web.Telemetry do
+defmodule Level10.Telemetry do
   use Supervisor
   import Telemetry.Metrics
+  alias Level10.Telemetry.Measurements
 
   def start_link(arg) do
     Supervisor.start_link(__MODULE__, arg, name: __MODULE__)
@@ -18,6 +19,9 @@ defmodule Level10Web.Telemetry do
 
   def metrics do
     [
+      # Game Metrics
+      summary("level10.games.count"),
+
       # Phoenix Metrics
       summary("phoenix.endpoint.stop.duration",
         unit: {:native, :millisecond}
@@ -37,9 +41,7 @@ defmodule Level10Web.Telemetry do
 
   defp periodic_measurements do
     [
-      # A module, function and arguments to be invoked periodically.
-      # This function must call :telemetry.execute/3 and a metric must be added above.
-      # {SampleAppWeb, :count_users, []} 
+      {Measurements, :dispatch_game_count, []}
     ]
   end
 end

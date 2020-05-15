@@ -30,6 +30,6 @@ defmodule Level10Web.Router do
 
   scope "/admin" do
     pipe_through [:browser, :admins_only]
-    live_dashboard "/dashboard", metrics: Level10Web.Telemetry
+    live_dashboard "/dashboard", metrics: Level10.Telemetry
   end
 end

@@ -31,6 +31,15 @@ defmodule Level10.Games do
     end)
   end
 
+  @doc """
+  Get the current count of active games in play.
+  """
+  @spec count() :: non_neg_integer()
+  def count() do
+    %{active: count} = Supervisor.count_children(GameSupervisor)
+    count
+  end
+
   @spec create_game(String.t()) :: {:ok, Game.join_code(), Player.id()} | :error
   def create_game(player_name) do
     player = Player.new(player_name)

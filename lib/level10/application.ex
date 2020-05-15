@@ -7,7 +7,7 @@ defmodule Level10.Application do
     children = [
       {DynamicSupervisor, strategy: :one_for_one, name: Level10.Games.GameSupervisor},
       {Registry, keys: :unique, name: Level10.Games.GameRegistry},
-      Level10Web.Telemetry,
+      Level10.Telemetry,
       {Phoenix.PubSub, name: Level10.PubSub},
       Level10.Presence,
       Level10Web.Endpoint
