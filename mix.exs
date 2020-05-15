@@ -42,7 +42,7 @@ defmodule Level10.MixProject do
       {:phoenix_live_view, "~> 0.12"},
       {:phoenix_pubsub, "~> 2.0"},
       {:plug_cowboy, "~> 2.2"},
-      {:telemetry_metrics, "~> 0.4"},
+      {:telemetry_metrics, "~> 0.5"},
       {:telemetry_poller, "~> 0.5"}
     ]
   end
