@@ -21,6 +21,7 @@ defmodule Level10.Telemetry do
     [
       # Game Metrics
       summary("level10.games.count"),
+      summary("level10.users.count"),
 
       # Phoenix Metrics
       summary("phoenix.endpoint.stop.duration",
@@ -41,7 +42,8 @@ defmodule Level10.Telemetry do
 
   defp periodic_measurements do
     [
-      {Measurements, :dispatch_game_count, []}
+      {Measurements, :dispatch_game_count, []},
+      {Measurements, :dispatch_user_count, []}
     ]
   end
 end

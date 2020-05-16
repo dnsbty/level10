@@ -464,7 +464,8 @@ defmodule Level10.Games do
     topic = "game:" <> game_code
 
     with :ok <- Phoenix.PubSub.subscribe(Level10.PubSub, topic),
-         {:ok, _} <- Presence.track(self(), topic, player_id, %{}) do
+         {:ok, _} <- Presence.track_player(game_code, player_id) do
+      Presence.track_user(player_id, game_code)
       :ok
     end
   end
