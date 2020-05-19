@@ -36,6 +36,7 @@ defmodule Level10Web.GameLive do
 
       assigns = [
         discard_top: discard_top,
+        game_over: false,
         hand: hand,
         hand_counts: hand_counts,
         has_drawn_card: has_drawn,
@@ -93,9 +94,7 @@ defmodule Level10Web.GameLive do
   end
 
   def handle_event("show_scores", _params, socket) do
-    join_code = socket.assigns.join_code
-    player_id = socket.assigns.player_id
-
+    %{join_code: join_code, player_id: player_id} = socket.assigns
     path = Routes.live_path(Endpoint, ScoringLive, join_code, player_id: player_id)
 
     {:noreply, push_redirect(socket, to: path)}
@@ -184,6 +183,10 @@ defmodule Level10Web.GameLive do
   end
 
   # Handle incoming messages from PubSub and other things
+
+  def handle_info({:game_finished, winner}, socket) do
+    {:noreply, assign(socket, game_over: true, round_winner: winner)}
+  end
 
   def handle_info({:hand_counts_updated, hand_counts}, socket) do
     {:noreply, assign(socket, :hand_counts, hand_counts)}

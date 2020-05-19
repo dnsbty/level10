@@ -170,6 +170,11 @@ defmodule Level10.Games do
     {:via, Registry, {GameRegistry, join_code}}
   end
 
+  @spec finished?(Game.join_code()) :: boolean()
+  def finished?(join_code) do
+    Agent.get(via(join_code), &(&1.current_stage == :finish))
+  end
+
   @doc """
   Returns the game with the specified join code.
 
@@ -246,6 +251,11 @@ defmodule Level10.Games do
   @spec get_players_ready(Game.join_code()) :: MapSet.t(Player.id())
   def get_players_ready(join_code) do
     Agent.get(via(join_code), & &1.players_ready)
+  end
+
+  @spec get_round_number(Game.join_code()) :: non_neg_integer()
+  def get_round_number(join_code) do
+    Agent.get(via(join_code), & &1.current_round)
   end
 
   @doc """
@@ -493,17 +503,29 @@ defmodule Level10.Games do
 
   @spec maybe_complete_round(Game.t(), Player.id()) :: Game.t()
   defp maybe_complete_round(game, player_id) do
-    if Game.round_finished?(game, player_id) do
-      complete_round(game, player_id)
-    else
+    with true <- Game.round_finished?(game, player_id),
+         %{current_stage: :finish} = game <- Game.complete_round(game) do
+      broadcast_game_complete(game, player_id)
       game
+    else
+      false ->
+        game
+
+      game ->
+        broadcast_round_complete(game, player_id)
+        game
     end
   end
 
-  @spec complete_round(Game.t(), Player.id()) :: Game.t()
-  defp complete_round(game, player_id) do
+  @spec broadcast_game_complete(Game.t(), Player.id()) :: :ok | {:error, term()}
+  defp broadcast_game_complete(game, player_id) do
+    player = Enum.find(game.players, &(&1.id == player_id))
+    broadcast(game.join_code, :game_finished, player)
+  end
+
+  @spec broadcast_round_complete(Game.t(), Player.id()) :: Game.t()
+  defp broadcast_round_complete(game, player_id) do
     player = Enum.find(game.players, &(&1.id == player_id))
     broadcast(game.join_code, :round_finished, player)
-    Game.complete_round(game)
   end
 end

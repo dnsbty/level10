@@ -1,9 +1,9 @@
 <div class="flex-1 mt-10 sm:mx-auto sm:w-full sm:max-w-md">
   <h3 class="text-center text-sm text-gray-100 font-bold tracking-widest uppercase">
-    Scores After
+    <%= if @finished, do: "Game Over", else: "Scores After" %>
   </h3>
-  <h2 class="text-center text-4xl leading-9 font-extrabold text-gray-100">
-    ROUND 1
+  <h2 class="text-center text-4xl leading-9 font-extrabold text-gray-100 uppercase">
+    <%= if @finished, do: winner_text(@leader, @player_id), else: "Round #{@round_number}" %>
   </h2>
   <div class="mt-12 sm:mx-auto sm:w-full sm:max-w-md">
     <ol class="pl-12 list-decimal">
@@ -12,7 +12,7 @@
         <div class="flex items-center">
           <div class="flex-1">
             <%= player.name %>
-            <%= if MapSet.member?(@players_ready, player.id), do: " ✓" %>
+            <%= if !@finished && MapSet.member?(@players_ready, player.id), do: " ✓" %>
           </div>
           <div>
             <%= score(@scores, player.id) %> (<%= level(@scores, player.id) %>)
@@ -40,7 +40,7 @@
       <% else %>
         <span class="block w-full rounded-md shadow-sm">
           <button type="submit" phx-click="mark_ready" class="w-full flex justify-center py-2 px-4 border border-transparent text-xl font-bold rounded-md text-white bg-red-600 hover:bg-red-500 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-700 transition duration-150 ease-in-out">
-            <%= if assigns[:starting], do: "Starting...", else: "Next Round" %>
+            <%= button_text(assigns) %>
           </button>
         </span>
       <% end %>

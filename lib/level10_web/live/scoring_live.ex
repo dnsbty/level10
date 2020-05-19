@@ -18,16 +18,20 @@ defmodule Level10Web.ScoringLive do
          true <- Games.player_exists?(join_code, player_id) do
       scores = Games.get_scores(join_code)
       players = join_code |> Games.get_players() |> sort_players(scores)
+      [leader | _] = players
       presence = Games.list_presence(join_code)
 
       Games.subscribe(join_code, player_id)
 
       assigns = %{
+        finished: Games.finished?(join_code),
         join_code: join_code,
+        leader: leader,
         players: players,
         player_id: player_id,
         players_ready: Games.get_players_ready(join_code),
         presence: presence,
+        round_number: Games.get_round_number(join_code),
         scores: scores
       }
 
@@ -37,6 +41,12 @@ defmodule Level10Web.ScoringLive do
 
   def render(assigns) do
     ScoringView.render("index.html", assigns)
+  end
+
+  def handle_event("mark_ready", _params, %{assigns: %{finished: true}} = socket) do
+    %{join_code: join_code, player_id: player_id} = socket.assigns
+    Games.mark_player_ready(join_code, player_id)
+    {:noreply, push_redirect(socket, to: "/")}
   end
 
   def handle_event("mark_ready", _params, socket) do
