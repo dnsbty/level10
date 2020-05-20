@@ -23,16 +23,47 @@ defmodule Level10Web.LobbyLive do
     {:ok, assign(socket, initial_assigns)}
   end
 
+  def handle_params(params = %{"action" => "wait"}, _url, socket) do
+    with %{"join_code" => join_code, "player_id" => player_id} <- params do
+      players = Games.get_players(join_code)
+      presence = Games.list_presence(join_code)
+      Games.subscribe(join_code, player_id)
+      is_creator = Games.creator(join_code).id == player_id
+
+      assigns = %{
+        action: :wait,
+        is_creator: is_creator,
+        join_code: join_code,
+        player_id: player_id,
+        players: players,
+        presence: presence
+      }
+
+      {:noreply, assign(socket, assigns)}
+    end
+  end
+
+  def handle_params(params, _url, socket) do
+    assigns = %{
+      action: action(params["action"]),
+      join_code: params["join_code"] || socket.assigns.join_code,
+      player_id: params["player_id"] || socket.assigns.player_id
+    }
+
+    {:noreply, assign(socket, assigns)}
+  end
+
   def render(assigns) do
     LobbyView.render("#{assigns.action}.html", assigns)
   end
 
   def handle_event("cancel", _params, socket) do
-    {:noreply, assign(socket, action: :none)}
-  end
+    socket =
+      socket
+      |> assign(action: :none, join_code: "")
+      |> push_patch(to: Routes.live_path(socket, __MODULE__, ""))
 
-  def handle_event("create_game", _params, %{assigns: %{action: :none}} = socket) do
-    {:noreply, assign(socket, action: :create)}
+    {:noreply, socket}
   end
 
   def handle_event("create_game", _params, socket) do
@@ -43,6 +74,7 @@ defmodule Level10Web.LobbyLive do
         players = Games.get_players(join_code)
         presence = Games.list_presence(join_code)
         Games.subscribe(join_code, player_id)
+        new_url = Routes.live_path(socket, __MODULE__, "wait", join_code, player_id: player_id)
 
         assigns = %{
           action: :wait,
@@ -53,7 +85,7 @@ defmodule Level10Web.LobbyLive do
           presence: presence
         }
 
-        {:noreply, assign(socket, assigns)}
+        {:noreply, socket |> assign(assigns) |> push_patch(to: new_url)}
 
       :error ->
         socket =
@@ -67,10 +99,6 @@ defmodule Level10Web.LobbyLive do
     end
   end
 
-  def handle_event("join_game", _params, %{assigns: %{action: :none}} = socket) do
-    {:noreply, assign(socket, action: :join)}
-  end
-
   def handle_event("join_game", _params, socket) do
     %{join_code: join_code, name: name} = socket.assigns
 
@@ -81,6 +109,7 @@ defmodule Level10Web.LobbyLive do
         players = Games.get_players(join_code)
         presence = Games.list_presence(join_code)
         Games.subscribe(join_code, player_id)
+        new_url = Routes.live_path(socket, __MODULE__, "wait", join_code, player_id: player_id)
 
         assigns = %{
           action: :wait,
@@ -89,7 +118,7 @@ defmodule Level10Web.LobbyLive do
           presence: presence
         }
 
-        {:noreply, assign(socket, assigns)}
+        {:noreply, socket |> assign(assigns) |> push_patch(to: new_url)}
 
       error ->
         message =
@@ -183,4 +212,12 @@ defmodule Level10Web.LobbyLive do
 
     {:noreply, assign(socket, presence: presence)}
   end
+
+  # Private
+
+  @spec action(String.t() | nil) :: :create | :join | :none | :wait
+  defp action("create"), do: :create
+  defp action("join"), do: :join
+  defp action("wait"), do: :wait
+  defp action(_), do: :none
 end

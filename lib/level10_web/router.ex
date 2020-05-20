@@ -23,9 +23,12 @@ defmodule Level10Web.Router do
   scope "/", Level10Web do
     pipe_through :browser
 
-    live "/", LobbyLive
     live "/game/:join_code", GameLive
     live "/scores/:join_code", ScoringLive
+
+    live "/", LobbyLive
+    live "/:action", LobbyLive
+    live "/:action/:join_code", LobbyLive
   end
 
   scope "/admin" do

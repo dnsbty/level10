@@ -7,9 +7,11 @@
   <div class="py-8 px-4 sm:rounded-lg sm:px-10">
     <div class="mt-6">
       <span class="block w-full rounded-md shadow-sm">
-        <button type="submit" phx-click="create_game" class="w-full flex justify-center py-2 px-4 border border-transparent text-lg font-medium rounded-md text-white bg-purple-600 hover:bg-purple-500 focus:outline-none focus:border-purple-700 focus:shadow-outline-purple active:bg-purple-700 transition duration-150 ease-in-out">
-          Create Game
-        </button>
+        <%= live_patch to: Routes.live_path(@socket, Level10Web.LobbyLive, :create), replace: true do %>
+          <button class="w-full flex justify-center py-2 px-4 border border-transparent text-lg font-medium rounded-md text-white bg-purple-600 hover:bg-purple-500 focus:outline-none focus:border-purple-700 focus:shadow-outline-purple active:bg-purple-700 transition duration-150 ease-in-out">
+            Create Game
+          </button>
+        <% end %>
       </span>
     </div>
     <div class="mt-6">
@@ -26,9 +28,11 @@
     </div>
     <div class="mt-6">
       <span class="block w-full rounded-md shadow-sm">
-        <button type="submit" phx-click="join_game" class="w-full flex justify-center py-2 px-4 border border-transparent text-xl font-bold rounded-md text-white bg-red-600 hover:bg-red-500 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-700 transition duration-150 ease-in-out">
-          Join Game
-        </button>
+        <%= live_patch to: Routes.live_path(@socket, Level10Web.LobbyLive, :join), replace: true do %>
+          <button class="w-full flex justify-center py-2 px-4 border border-transparent text-xl font-bold rounded-md text-white bg-red-600 hover:bg-red-500 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-700 transition duration-150 ease-in-out">
+            Join Game
+          </button>
+        <% end %>
       </span>
     </div>
   </div>

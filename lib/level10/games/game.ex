@@ -155,6 +155,19 @@ defmodule Level10.Games.Game do
     end
   end
 
+  @doc """
+  Return the creator of the game
+
+  ## Examples
+
+      iex> creator(%Game{})
+      %Player{}
+  """
+  @spec creator(t()) :: Player.t()
+  def creator(game) do
+    List.last(game.players)
+  end
+
   @spec generate_join_code() :: join_code()
   def generate_join_code do
     <<:rand.uniform(1_048_576)::40>>

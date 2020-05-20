@@ -46,6 +46,11 @@ defmodule Level10.Games do
     do_create_game(player, @max_attempts)
   end
 
+  @spec creator(Game.join_code()) :: Player.t()
+  def creator(join_code) do
+    Agent.get(via(join_code), &Game.creator/1)
+  end
+
   @doc """
   Check to see if the current player has drawn a card yet
 
