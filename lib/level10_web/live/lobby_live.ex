@@ -144,7 +144,13 @@ defmodule Level10Web.LobbyLive do
       :ok ->
         Logger.info(["Left game ", join_code])
         Games.unsubscribe(join_code, player_id)
-        {:noreply, assign(socket, action: :none, join_code: "", name: "")}
+
+        socket =
+          socket
+          |> assign(action: :none, join_code: "")
+          |> push_patch(to: Routes.live_path(socket, __MODULE__, ""))
+
+        {:noreply, socket}
 
       :already_started ->
         socket =
@@ -199,7 +205,9 @@ defmodule Level10Web.LobbyLive do
   end
 
   def handle_info({:players_updated, players}, socket) do
-    {:noreply, assign(socket, :players, players)}
+    creator = List.last(players)
+    is_creator = creator.id == socket.assigns.player_id
+    {:noreply, assign(socket, is_creator: is_creator, players: players)}
   end
 
   def handle_info(%{event: "presence_diff", payload: payload}, socket) do
