@@ -22,6 +22,7 @@ defmodule Level10Web.GameLive do
       levels = levels_from_scores(scores)
       player_level = levels[player_id]
       table = Games.get_table(join_code)
+      has_completed_level = !is_nil(table[player_id])
       player_table = Map.get(table, player_id, empty_player_table(player_level))
       discard_top = Games.get_top_discarded_card(join_code)
       turn = Games.get_current_turn(join_code)
@@ -39,6 +40,7 @@ defmodule Level10Web.GameLive do
         game_over: false,
         hand: hand,
         hand_counts: hand_counts,
+        has_completed_level: has_completed_level,
         has_drawn_card: has_drawn,
         join_code: params["join_code"],
         levels: levels,
@@ -162,12 +164,22 @@ defmodule Level10Web.GameLive do
       hand = assigns.hand -- cards_to_table
       player_table = Map.put(assigns.player_table, position, cards_to_table)
 
-      unless Enum.any?(player_table, fn {_, value} -> is_nil(value) end) do
-        Games.table_cards(assigns.join_code, assigns.player_id, player_table)
-      end
+      has_completed_level =
+        unless Enum.any?(player_table, fn {_, value} -> is_nil(value) end) do
+          Games.table_cards(assigns.join_code, assigns.player_id, player_table)
+          true
+        else
+          false
+        end
 
-      {:noreply,
-       assign(socket, hand: hand, selected_indexes: MapSet.new(), player_table: player_table)}
+      assigns = %{
+        hand: hand,
+        has_completed_level: has_completed_level,
+        selected_indexes: MapSet.new(),
+        player_table: player_table
+      }
+
+      {:noreply, assign(socket, assigns)}
     else
       _ -> {:noreply, socket}
     end

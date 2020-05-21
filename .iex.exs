@@ -155,6 +155,10 @@ defmodule Seeds do
   def reset do
     Agent.update({:via, Registry, {GameRegistry, "ABCD"}}, fn _ -> game() end)
   end
+
+  def set(join_code \\ "ABCD", game) do
+    Agent.update({:via, Registry, {GameRegistry, join_code}}, fn _ -> game end)
+  end
 end
 
 game = %{
