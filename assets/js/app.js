@@ -4,6 +4,24 @@ import 'phoenix_html';
 import {Socket} from 'phoenix';
 import LiveSocket from 'phoenix_live_view';
 
+// Functions for inviting friends via sms
+var isIosDevice = () => {
+  var ua = navigator.userAgent.toLowerCase();
+  return ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1;
+};
+
+var smsLink = message => {
+  var msg = encodeURIComponent(message),
+    href;
+  return isIosDevice ? 'sms:&body=' + msg : 'sms:?body=' + msg;
+};
+
+window.openSmsInvite = joinCode => {
+  var message = `Come play Level 10 with me!\nhttps://level10.games/join/${joinCode}`;
+  location.href = smsLink(message);
+};
+
+// Set up the LiveView
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute('content');
