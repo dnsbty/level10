@@ -39,7 +39,7 @@ defmodule Level10.MixProject do
       {:phoenix_html, "~> 2.11"},
       {:phoenix_live_dashboard, "~> 0.2"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 0.12"},
+      {:phoenix_live_view, "~> 0.13"},
       {:phoenix_pubsub, "~> 2.0"},
       {:plug_cowboy, "~> 2.2"},
       {:telemetry_metrics, "~> 0.5"},
