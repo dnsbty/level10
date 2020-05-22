@@ -36,6 +36,7 @@ defmodule Level10.MixProject do
       {:gettext, "~> 0.11"},
       {:horde, "~> 0.8.0-rc.1"},
       {:jason, "~> 1.0"},
+      {:libcluster, "~> 3.2"},
       {:phoenix, "~> 1.5"},
       {:phoenix_html, "~> 2.11"},
       {:phoenix_live_dashboard, "~> 0.2"},
