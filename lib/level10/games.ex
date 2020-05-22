@@ -388,20 +388,23 @@ defmodule Level10.Games do
 
   @spec mark_player_ready(Game.join_code(), Player.id()) :: :ok
   def mark_player_ready(join_code, player_id) do
-    Agent.get_and_update(via(join_code), fn game ->
-      with {:all_ready, game} <- Game.mark_player_ready(game, player_id),
-           {:ok, game} <- Game.start_round(game) do
-        broadcast(join_code, :round_started, nil)
-        {:ok, game}
-      else
-        :game_over ->
-          {:game_over, game}
-
-        {:ok, game} ->
-          broadcast(join_code, :players_ready, game.players_ready)
+    result =
+      Agent.get_and_update(via(join_code), fn game ->
+        with {:all_ready, game} <- Game.mark_player_ready(game, player_id),
+             {:ok, game} <- Game.start_round(game) do
+          broadcast(join_code, :round_started, nil)
           {:ok, game}
-      end
-    end)
+        else
+          :game_over ->
+            {:game_over, game}
+
+          {:ok, game} ->
+            broadcast(join_code, :players_ready, game.players_ready)
+            {:ok, game}
+        end
+      end)
+
+    with :game_over <- result, do: delete_game(join_code)
   end
 
   @spec player_exists?(Game.join_code(), Player.id()) :: boolean()
