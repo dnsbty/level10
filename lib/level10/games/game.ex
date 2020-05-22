@@ -175,11 +175,12 @@ defmodule Level10.Games.Game do
     |> binary_part(4, 4)
   end
 
-  @spec delete_player(t(), Player.id()) :: t() | :already_started
+  @spec delete_player(t(), Player.id()) :: {:ok, t()} | :already_started
   def delete_player(game, player_id)
 
   def delete_player(game = %{current_stage: :lobby, players: players}, player_id) do
-    {:ok, %{game | players: Enum.filter(players, &(&1.id != player_id))}}
+    game = %{game | players: Enum.filter(players, &(&1.id != player_id))}
+    if game.players == [], do: :empty_game, else: {:ok, game}
   end
 
   def delete_player(game, player_id) do

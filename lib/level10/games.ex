@@ -366,18 +366,24 @@ defmodule Level10.Games do
     end
   end
 
-  @spec leave_game(Game.join_code(), Player.id()) :: :ok | :already_started
+  @spec leave_game(Game.join_code(), Player.id()) :: :ok | :already_started | :deleted
   def leave_game(join_code, player_id) do
-    Agent.get_and_update(via(join_code), fn game ->
-      case Game.delete_player(game, player_id) do
-        {:ok, game} ->
-          broadcast(game.join_code, :players_updated, game.players)
-          {:ok, game}
+    result =
+      Agent.get_and_update(via(join_code), fn game ->
+        case Game.delete_player(game, player_id) do
+          {:ok, game} ->
+            broadcast(game.join_code, :players_updated, game.players)
+            {:ok, game}
 
-        :already_started ->
-          {:already_started, game}
-      end
-    end)
+          :already_started ->
+            {:already_started, game}
+
+          :empty_game ->
+            {:empty_game, game}
+        end
+      end)
+
+    with :empty_game <- result, do: delete_game(join_code)
   end
 
   @spec mark_player_ready(Game.join_code(), Player.id()) :: :ok
