@@ -164,7 +164,7 @@ defmodule Level10.Games do
 
   @spec exists?(Game.join_code()) :: boolean()
   def exists?(join_code) do
-    case Registry.lookup(GameRegistry, join_code) do
+    case Horde.Registry.lookup(GameRegistry, join_code) do
       [] -> false
       _ -> true
     end
@@ -172,7 +172,7 @@ defmodule Level10.Games do
 
   @spec via(Game.join_code()) :: game_name()
   defp via(join_code) do
-    {:via, Registry, {GameRegistry, join_code}}
+    {:via, Horde.Registry, {GameRegistry, join_code}}
   end
 
   @spec finished?(Game.join_code()) :: boolean()

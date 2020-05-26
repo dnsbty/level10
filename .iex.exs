@@ -164,11 +164,14 @@ defmodule Seeds do
   end
 end
 
-game = %{
-  id: join_code,
-  start:
-    {Agent, :start_link, [Seeds, :game, [], [name: {:via, Registry, {GameRegistry, join_code}}]]},
-  restart: :temporary
-}
+Node.connect(:"node2@127.0.0.1")
 
-DynamicSupervisor.start_child(GameSupervisor, game)
+# game = %{
+#   id: join_code,
+#   start:
+#     {Agent, :start_link,
+#      [Seeds, :game, [], [name: {:via, Horde.Registry, {GameRegistry, join_code}}]]},
+#   restart: :temporary
+# }
+
+# Horde.DynamicSupervisor.start_child(GameSupervisor, game)

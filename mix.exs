@@ -34,6 +34,7 @@ defmodule Level10.MixProject do
     [
       {:ecto, "~> 3.4"},
       {:gettext, "~> 0.11"},
+      {:horde, "~> 0.7"},
       {:jason, "~> 1.0"},
       {:phoenix, "~> 1.5"},
       {:phoenix_html, "~> 2.11"},
@@ -43,7 +44,7 @@ defmodule Level10.MixProject do
       {:phoenix_pubsub, "~> 2.0"},
       {:plug_cowboy, "~> 2.2"},
       {:telemetry_metrics, "~> 0.5"},
-      {:telemetry_poller, "~> 0.5"}
+      {:telemetry_poller, "~> 0.5", override: true}
     ]
   end
 end
