@@ -25,7 +25,7 @@
         <% end %>
       <% else %>
         <%= for {{_, count} = group, position} <- Enum.with_index(@levels[player.id]) do %>
-          <div phx-click="add_to_table" phx-value-player_id="<%= player.id %>" phx-value-position="<%= position %>" class="<%= if @has_completed_level && MapSet.size(@selected_indexes) > 0, do: "cursor-pointer " %>flex-1 mr-2 bg-purple-900 text-purple-400 text-center rounded-md p-1">
+          <div phx-click="add_to_table" onclick="" phx-value-player_id="<%= player.id %>" phx-value-position="<%= position %>" class="<%= if @has_completed_level && MapSet.size(@selected_indexes) > 0, do: "cursor-pointer " %>flex-1 mr-2 bg-purple-900 text-purple-400 text-center rounded-md p-1">
             <p class="text-purple-400 text-center text-xs mb-1"><%= level_group_name(group) %></p>
             <div class="grid grid-cols-<%= count %> gap-1">
               <%= for card <- @table[player.id][position] do %>
