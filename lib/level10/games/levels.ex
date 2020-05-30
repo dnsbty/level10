@@ -131,7 +131,7 @@ defmodule Level10.Games.Levels do
   defp valid_group?(:color, [%{color: color} | rest], _), do: valid_color?(color, rest)
 
   defp valid_group?(:run, cards, wild_count) do
-    [%{value: value} | rest] = Enum.sort(cards, Card)
+    [%{value: value} | rest] = Card.sort(cards)
     valid_run?(value, rest, wild_count)
   end
 
