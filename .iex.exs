@@ -4,6 +4,8 @@ alias Games.{Card, Game, GameRegistry, GameSupervisor, Levels, Player}
 join_code = "ABCD"
 
 defmodule Seeds do
+  def chrome, do: __MODULE__.open(["-a", "Google Chrome"])
+
   def game do
     %Game{
       current_player: %Player{
@@ -142,19 +144,20 @@ defmodule Seeds do
     }
   end
 
-  def open do
-    System.cmd("open", [
-      "http://localhost:4000/game/ABCD?player_id=98ba6988-15ab-4e83-82b1-00330fbcfec8"
-    ])
+  def open(app_args \\ []) do
+    dennis_id = "98ba6988-15ab-4e83-82b1-00330fbcfec8"
+    brett_id = "7ffd576b-28cd-4e4e-822c-fed41619483b"
+    url = "http://localhost:4000/game/ABCD?player_id="
 
-    System.cmd("open", [
-      "http://localhost:4000/game/ABCD?player_id=7ffd576b-28cd-4e4e-822c-fed41619483b"
-    ])
+    System.cmd("open", app_args ++ [url <> dennis_id])
+    System.cmd("open", app_args ++ [url <> brett_id])
   end
 
   def reset do
     Agent.update({:via, Registry, {GameRegistry, "ABCD"}}, fn _ -> game() end)
   end
+
+  def safari, do: __MODULE__.open(["-a", "Safari"])
 
   def set(join_code \\ "ABCD", game) do
     Agent.update({:via, Registry, {GameRegistry, join_code}}, fn _ -> game end)
