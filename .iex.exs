@@ -18,7 +18,7 @@ defmodule Seeds do
       current_turn_drawn?: false,
       discard_pile: [
         %Card{color: :blue, value: :ten},
-        %Card{color: :blue, value: :skip},
+        %Card{color: :black, value: :skip},
         %Card{color: :green, value: :three},
         %Card{color: :blue, value: :three},
         %Card{color: :red, value: :one},
@@ -58,14 +58,14 @@ defmodule Seeds do
         %Card{color: :green, value: :six},
         %Card{color: :yellow, value: :seven},
         %Card{color: :red, value: :two},
-        %Card{color: :blue, value: :wild},
+        %Card{color: :black, value: :wild},
         %Card{color: :green, value: :twelve},
         %Card{color: :yellow, value: :one},
         %Card{color: :blue, value: :two},
         %Card{color: :red, value: :nine},
         %Card{color: :red, value: :five},
         %Card{color: :yellow, value: :nine},
-        %Card{color: :blue, value: :skip},
+        %Card{color: :black, value: :skip},
         %Card{color: :blue, value: :twelve},
         %Card{color: :green, value: :four},
         %Card{color: :red, value: :two},
@@ -75,15 +75,15 @@ defmodule Seeds do
         %Card{color: :green, value: :five},
         %Card{color: :blue, value: :four},
         %Card{color: :red, value: :six},
-        %Card{color: :blue, value: :skip},
+        %Card{color: :black, value: :skip},
         %Card{color: :green, value: :twelve},
-        %Card{color: :blue, value: :skip},
+        %Card{color: :black, value: :skip},
         %Card{color: :blue, value: :seven},
         %Card{color: :blue, value: :twelve},
         %Card{color: :blue, value: :seven},
         %Card{color: :red, value: :eleven},
         %Card{color: :yellow, value: :twelve},
-        %Card{color: :yellow, value: :wild},
+        %Card{color: :black, value: :wild},
         %Card{color: :green, value: :five},
         %Card{color: :blue, value: :six},
         %Card{color: :blue, value: :eleven},
@@ -96,16 +96,16 @@ defmodule Seeds do
           %Card{color: :yellow, value: :eleven},
           %Card{color: :blue, value: :eleven},
           %Card{color: :green, value: :eleven},
-          %Card{color: :red, value: :wild},
-          %Card{color: :green, value: :wild},
-          %Card{color: :blue, value: :wild},
+          %Card{color: :black, value: :wild},
+          %Card{color: :black, value: :wild},
+          %Card{color: :black, value: :wild},
           %Card{color: :green, value: :two},
           %Card{color: :blue, value: :three},
           %Card{color: :blue, value: :two},
           %Card{color: :red, value: :three}
         ],
         "98ba6988-15ab-4e83-82b1-00330fbcfec8" => [
-          %Card{color: :red, value: :wild}
+          %Card{color: :black, value: :wild}
         ]
       },
       join_code: "ABCD",
@@ -131,10 +131,10 @@ defmodule Seeds do
             %Card{color: :yellow, value: :four},
             %Card{color: :blue, value: :four},
             %Card{color: :yellow, value: :four},
-            %Card{color: :green, value: :wild}
+            %Card{color: :black, value: :wild}
           ],
           1 => [
-            %Card{color: :green, value: :wild},
+            %Card{color: :black, value: :wild},
             %Card{color: :green, value: :six},
             %Card{color: :yellow, value: :six},
             %Card{color: :red, value: :six}

@@ -54,8 +54,8 @@ defmodule Level10.Games.GameTest do
       %Card{color: :green, value: :eight},
       %Card{color: :green, value: :eight},
       %Card{color: :yellow, value: :ten},
-      %Card{color: :green, value: :wild},
-      %Card{color: :blue, value: :skip}
+      %Card{color: :black, value: :wild},
+      %Card{color: :black, value: :skip}
     ]
 
     set = [

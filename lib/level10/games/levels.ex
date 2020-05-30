@@ -72,7 +72,7 @@ defmodule Level10.Games.Levels do
       ...>     %Card{value: :twelve, color: :yellow}
       ...>   ],
       ...>   1 => [
-      ...>     %Card{value: :wild, color: :red},
+      ...>     %Card{value: :wild, color: :black},
       ...>     %Card{value: :four, color: :green},
       ...>     %Card{value: :five, color: :blue},
       ...>     %Card{value: :seven, color: :yello}

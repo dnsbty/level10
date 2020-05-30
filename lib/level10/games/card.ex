@@ -4,7 +4,7 @@ defmodule Level10.Games.Card do
   """
 
   @type t :: %__MODULE__{}
-  @type color :: :blue | :green | :red | :yellow
+  @type color :: :black | :blue | :green | :red | :yellow
   @type value ::
           :one
           | :two
@@ -38,7 +38,7 @@ defmodule Level10.Games.Card do
       iex> compare(%Card{color: :green, value: :twelve}, %Card{color: :red, value: :twelve})
       :eq
 
-      iex> compare(%Card{color: :green, value: :twelve}, %Card{color: :blue, value: :skip})
+      iex> compare(%Card{color: :green, value: :twelve}, %Card{color: :black, value: :skip})
       :lt
   """
   @spec compare(t(), t()) :: :lt | :eq | :gt
@@ -49,6 +49,20 @@ defmodule Level10.Games.Card do
       _ -> :eq
     end
   end
+
+  @doc """
+  Convenience function for creating a new Wild or Skip card struct
+
+  ## Examples
+
+      iex> new(:wild)
+      %Card{color: :black, value: :wild}
+
+      iex> new(:skip)
+      %Card{color: :black, value: :skip}
+  """
+  @spec new(:skip | :wild) :: t()
+  def new(value) when value in [:skip, :wild], do: %__MODULE__{color: :black, value: value}
 
   @doc """
   Convenience function for creating a new Card struct
@@ -82,14 +96,14 @@ defmodule Level10.Games.Card do
       iex> sort([
       ...>   %Card{color: :green, value: :twelve},
       ...>   %Card{color: :red, value: :eight},
-      ...>   %Card{color: :blue, value: :skip},
-      ...>   %Card{color: :yellow, value: :wild}
+      ...>   %Card{color: :black, value: :skip},
+      ...>   %Card{color: :black, value: :wild}
       ...> ])
       [
-        %Card{color: :yellow, value: :wild},
+        %Card{color: :black, value: :wild},
         %Card{color: :red, value: :eight},
         %Card{color: :green, value: :twelve},
-        %Card{color: blue, value: :skip}
+        %Card{color: :black, value: :skip}
       ]
   """
   @spec sort(list(t())) :: list(t())
@@ -105,10 +119,17 @@ defmodule Level10.Games.Card do
       iex> to_string(%Card{color: :green, value: :twelve})
       "Green 12"
 
-      iex> to_string(%Card{color: :blue, value: :skip})
-      "Blue Skip"
+      iex> to_string(%Card{color: :black, value: :skip})
+      "Skip"
+
+      iex> to_string(%Card{color: :black, value: :wild})
+      "Wild"
   """
   @spec to_string(t()) :: String.t()
+  def to_string(%{color: :black, value: value}) do
+    value_string(value)
+  end
+
   def to_string(%{color: color, value: value}) do
     color = color |> Atom.to_string() |> String.capitalize()
     value = value_string(value)

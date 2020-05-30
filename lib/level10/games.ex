@@ -289,12 +289,12 @@ defmodule Level10.Games do
       %{
         "12a29ba6-fe6f-4f81-8c89-46ef8aff4b82" => %{
           0 => [
-            %Level10.Games.Card{color: :red, value: :wild},
+            %Level10.Games.Card{color: :black, value: :wild},
             %Level10.Games.Card{color: :blue, value: :twelve},
             %Level10.Games.Card{color: :red, value: :twelve}
           ],
           1 => [
-            %Level10.Games.Card{color: :yellow, value: :wild},
+            %Level10.Games.Card{color: :black, value: :wild},
             %Level10.Games.Card{color: :green, value: :ten},
             %Level10.Games.Card{color: :blue, value: :ten}
           ]

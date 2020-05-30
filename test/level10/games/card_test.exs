@@ -45,13 +45,13 @@ defmodule Level10.Games.CardTest do
     end
 
     test "skips score 15 points" do
-      skip = Card.new(:skip, :blue)
+      skip = Card.new(:skip)
 
       assert Card.score(skip) == 15
     end
 
     test "wilds score 25 points" do
-      wild = Card.new(:wild, :green)
+      wild = Card.new(:wild)
 
       assert Card.score(wild) == 25
     end

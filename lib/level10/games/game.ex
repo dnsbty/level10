@@ -478,17 +478,19 @@ defmodule Level10.Games.Game do
   @spec new_deck() :: cards()
   defp new_deck do
     color_cards =
-      for value <- ~W[one two three four five six seven eight nine ten eleven twelve wild]a,
+      for value <- ~W[one two three four five six seven eight nine ten eleven twelve]a,
           color <- ~W[blue green red yellow]a,
           card = Card.new(value, color),
           _repeat <- 1..2 do
         card
       end
 
-    skips = for _repeat <- 1..4, do: Card.new(:skip, :blue)
+    skips = for _repeat <- 1..4, do: Card.new(:skip)
+    wilds = for _repeat <- 1..8, do: Card.new(:wild)
 
     color_cards
     |> Stream.concat(skips)
+    |> Stream.concat(wilds)
     |> Enum.shuffle()
   end
 
