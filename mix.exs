@@ -34,7 +34,7 @@ defmodule Level10.MixProject do
     [
       {:ecto, "~> 3.4"},
       {:gettext, "~> 0.11"},
-      {:horde, "~> 0.7"},
+      {:horde, "~> 0.8.0-rc.1"},
       {:jason, "~> 1.0"},
       {:phoenix, "~> 1.5"},
       {:phoenix_html, "~> 2.11"},

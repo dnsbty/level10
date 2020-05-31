@@ -153,7 +153,7 @@ defmodule Level10.Games do
       restart: :temporary
     }
 
-    case DynamicSupervisor.start_child(GameSupervisor, game) do
+    case Horde.DynamicSupervisor.start_child(GameSupervisor, game) do
       {:ok, _pid} ->
         {:ok, join_code, player.id}
 
