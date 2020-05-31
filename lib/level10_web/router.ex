@@ -20,6 +20,11 @@ defmodule Level10Web.Router do
     plug :accepts, ["json"]
   end
 
+  scope "/admin" do
+    pipe_through [:browser, :admins_only]
+    live_dashboard "/dashboard", metrics: Level10.Telemetry
+  end
+
   scope "/", Level10Web do
     pipe_through :browser
 
@@ -29,10 +34,5 @@ defmodule Level10Web.Router do
     live "/", LobbyLive
     live "/:action", LobbyLive
     live "/:action/:join_code", LobbyLive
-  end
-
-  scope "/admin" do
-    pipe_through [:browser, :admins_only]
-    live_dashboard "/dashboard", metrics: Level10.Telemetry
   end
 end
