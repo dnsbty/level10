@@ -4,16 +4,7 @@ defmodule Level10.Application do
   use Application
 
   def start(_type, _args) do
-    topologies = [
-      level10: [
-        strategy: Cluster.Strategy.Kubernetes,
-        config: [
-          kubernetes_selector: System.get_env("LIBCLUSTER_KUBERNETES_SELECTOR", "level10"),
-          kubernetes_node_basename:
-            System.get_env("LIBCLUSTER_KUBERNETES_NODE_BASENAME", "level10")
-        ]
-      ]
-    ]
+    topologies = Application.get_env(:level10, :cluster_topologies, [])
 
     children = [
       {Horde.Registry, name: Level10.Games.GameRegistry, keys: :unique, members: :auto},

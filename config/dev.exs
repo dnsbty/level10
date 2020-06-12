@@ -64,3 +64,19 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
+
+# Attach to the cluster of any other nodes running on this host
+topologies =
+  case Node.self() do
+    :nonode@nohost ->
+      []
+
+    _ ->
+      [
+        level10: [
+          strategy: Cluster.Strategy.Gossip
+        ]
+      ]
+  end
+
+config :level10, cluster_topologies: topologies
