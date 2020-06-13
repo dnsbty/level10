@@ -5,11 +5,11 @@ defmodule Level10.Games do
   it.
   """
 
-  alias Level10.Games.{Card, Game, GameRegistry, GameSupervisor, Player}
+  alias Level10.Games.{Card, Game, GameRegistry, GameServer, GameSupervisor, Player}
   alias Level10.Presence
 
   @typep event_type :: atom()
-  @typep game_name :: Agent.name()
+  @typep game_name :: {:via, module, term}
 
   @max_attempts 10
   @max_players 6
@@ -20,7 +20,7 @@ defmodule Level10.Games do
   @spec add_to_table(Game.join_code(), Player.id(), Player.id(), non_neg_integer(), Game.cards()) ::
           :ok | :invalid_group | :level_incomplete | :needs_to_draw | :not_your_turn
   def add_to_table(join_code, player_id, table_id, position, cards_to_add) do
-    Agent.get_and_update(via(join_code), fn game ->
+    GameServer.get_and_update(via(join_code), fn game ->
       with {:ok, game} <-
              Game.add_to_table(game, player_id, table_id, position, cards_to_add) do
         broadcast(join_code, :hand_counts_updated, Game.hand_counts(game))
@@ -48,7 +48,7 @@ defmodule Level10.Games do
 
   @spec creator(Game.join_code()) :: Player.t()
   def creator(join_code) do
-    Agent.get(via(join_code), &Game.creator/1)
+    GameServer.get(via(join_code), &Game.creator/1)
   end
 
   @doc """
@@ -61,7 +61,7 @@ defmodule Level10.Games do
   """
   @spec current_player_has_drawn?(Game.join_code()) :: boolean()
   def current_player_has_drawn?(join_code) do
-    Agent.get(via(join_code), & &1.current_turn_drawn?)
+    GameServer.get(via(join_code), & &1.current_turn_drawn?)
   end
 
   @doc """
@@ -74,7 +74,7 @@ defmodule Level10.Games do
   """
   @spec delete_game(Game.join_code()) :: :ok
   def delete_game(join_code) do
-    Agent.stop(via(join_code))
+    GameServer.stop(via(join_code))
   end
 
   @doc """
@@ -88,7 +88,7 @@ defmodule Level10.Games do
   @spec discard_card(Game.join_code(), Player.id(), Card.t()) ::
           :ok | :needs_to_draw | :not_your_turn
   def discard_card(join_code, player_id, card) do
-    Agent.get_and_update(via(join_code), fn game ->
+    GameServer.get_and_update(via(join_code), fn game ->
       with ^player_id <- game.current_player.id,
            %Game{} = game <- Game.discard(game, card) do
         broadcast(join_code, :hand_counts_updated, Game.hand_counts(game))
@@ -122,7 +122,7 @@ defmodule Level10.Games do
   @spec draw_card(Game.join_code(), Player.id(), :discard_pile | :draw_pile) ::
           Card.t() | :already_drawn | :empty_discard_pile | :not_your_turn | :skip
   def draw_card(join_code, player_id, source) do
-    Agent.get_and_update(via(join_code), fn game ->
+    GameServer.get_and_update(via(join_code), fn game ->
       with {:ok, game} <- Game.draw_card(game, player_id, source) do
         if source == :discard_pile do
           broadcast(join_code, :new_discard_top, Game.top_discarded_card(game))
@@ -149,7 +149,7 @@ defmodule Level10.Games do
 
     game = %{
       id: join_code,
-      start: {Agent, :start_link, [Game, :new, [join_code, player], [name: via(join_code)]]},
+      start: {GameServer, :start_link, [Game, :new, [join_code, player], [name: via(join_code)]]},
       restart: :temporary
     }
 
@@ -177,7 +177,7 @@ defmodule Level10.Games do
 
   @spec finished?(Game.join_code()) :: boolean()
   def finished?(join_code) do
-    Agent.get(via(join_code), &(&1.current_stage == :finish))
+    GameServer.get(via(join_code), &(&1.current_stage == :finish))
   end
 
   @doc """
@@ -192,7 +192,7 @@ defmodule Level10.Games do
   def get(join_code) do
     join_code
     |> via()
-    |> Agent.get(& &1)
+    |> GameServer.get(& &1)
   end
 
   @doc """
@@ -205,7 +205,7 @@ defmodule Level10.Games do
   """
   @spec get_current_turn(Game.join_code()) :: Player.t()
   def get_current_turn(join_code) do
-    Agent.get(via(join_code), & &1.current_player)
+    GameServer.get(via(join_code), & &1.current_player)
   end
 
   @doc """
@@ -218,7 +218,7 @@ defmodule Level10.Games do
   """
   @spec get_hand_counts(Game.join_code()) :: %{optional(Player.id()) => non_neg_integer()}
   def get_hand_counts(join_code) do
-    Agent.get(via(join_code), &Game.hand_counts/1)
+    GameServer.get(via(join_code), &Game.hand_counts/1)
   end
 
   @doc """
@@ -231,7 +231,7 @@ defmodule Level10.Games do
   """
   @spec get_hand_for_player(Game.join_code(), Player.id()) :: list(Card.t())
   def get_hand_for_player(join_code, player_id) do
-    Agent.get(via(join_code), & &1.hands[player_id])
+    GameServer.get(via(join_code), & &1.hands[player_id])
   end
 
   @doc """
@@ -247,7 +247,7 @@ defmodule Level10.Games do
   """
   @spec get_players(Game.join_code()) :: list(Player.t())
   def get_players(join_code) do
-    Agent.get(via(join_code), & &1.players)
+    GameServer.get(via(join_code), & &1.players)
   end
 
   @doc """
@@ -255,12 +255,12 @@ defmodule Level10.Games do
   """
   @spec get_players_ready(Game.join_code()) :: MapSet.t(Player.id())
   def get_players_ready(join_code) do
-    Agent.get(via(join_code), & &1.players_ready)
+    GameServer.get(via(join_code), & &1.players_ready)
   end
 
   @spec get_round_number(Game.join_code()) :: non_neg_integer()
   def get_round_number(join_code) do
-    Agent.get(via(join_code), & &1.current_round)
+    GameServer.get(via(join_code), & &1.current_round)
   end
 
   @doc """
@@ -276,7 +276,7 @@ defmodule Level10.Games do
   """
   @spec get_scores(Game.join_code()) :: Game.scores()
   def get_scores(join_code) do
-    Agent.get(via(join_code), & &1.scoring)
+    GameServer.get(via(join_code), & &1.scoring)
   end
 
   @doc """
@@ -303,7 +303,7 @@ defmodule Level10.Games do
   """
   @spec get_table(Game.join_code()) :: Game.table()
   def get_table(join_code) do
-    Agent.get(via(join_code), & &1.table)
+    GameServer.get(via(join_code), & &1.table)
   end
 
   @doc """
@@ -319,7 +319,7 @@ defmodule Level10.Games do
   """
   @spec get_top_discarded_card(Game.join_code()) :: Card.t() | nil
   def get_top_discarded_card(join_code) do
-    Agent.get(via(join_code), fn game ->
+    GameServer.get(via(join_code), fn game ->
       Game.top_discarded_card(game)
     end)
   end
@@ -348,7 +348,7 @@ defmodule Level10.Games do
     player = Player.new(player_name)
 
     if exists?(join_code) do
-      Agent.get_and_update(via(join_code), fn game ->
+      GameServer.get_and_update(via(join_code), fn game ->
         with {:ok, updated_game} <- Game.put_player(game, player),
              true <- length(updated_game.players) <= @max_players do
           broadcast(game.join_code, :players_updated, updated_game.players)
@@ -369,7 +369,7 @@ defmodule Level10.Games do
   @spec leave_game(Game.join_code(), Player.id()) :: :ok | :already_started | :deleted
   def leave_game(join_code, player_id) do
     result =
-      Agent.get_and_update(via(join_code), fn game ->
+      GameServer.get_and_update(via(join_code), fn game ->
         case Game.delete_player(game, player_id) do
           {:ok, game} ->
             broadcast(game.join_code, :players_updated, game.players)
@@ -389,7 +389,7 @@ defmodule Level10.Games do
   @spec mark_player_ready(Game.join_code(), Player.id()) :: :ok
   def mark_player_ready(join_code, player_id) do
     result =
-      Agent.get_and_update(via(join_code), fn game ->
+      GameServer.get_and_update(via(join_code), fn game ->
         with {:all_ready, game} <- Game.mark_player_ready(game, player_id),
              {:ok, game} <- Game.start_round(game) do
           broadcast(join_code, :round_started, nil)
@@ -409,21 +409,21 @@ defmodule Level10.Games do
 
   @spec player_exists?(Game.join_code(), Player.id()) :: boolean()
   def player_exists?(join_code, player_id) do
-    Agent.get(via(join_code), fn game ->
+    GameServer.get(via(join_code), fn game ->
       Enum.any?(game.players, fn player -> player.id == player_id end)
     end)
   end
 
   @spec round_winner(Game.join_code()) :: Player.t() | nil
   def round_winner(join_code) do
-    Agent.get(via(join_code), fn game ->
+    GameServer.get(via(join_code), fn game ->
       Game.round_winner(game)
     end)
   end
 
   @spec start_round(Game.join_code()) :: :ok | :game_over
   def start_round(join_code) do
-    Agent.get_and_update(via(join_code), fn game ->
+    GameServer.get_and_update(via(join_code), fn game ->
       case Game.start_round(game) do
         {:ok, game} ->
           broadcast(join_code, :round_started, nil)
@@ -437,7 +437,7 @@ defmodule Level10.Games do
 
   @spec start_game(Game.join_code()) :: :ok | :single_player
   def start_game(join_code) do
-    Agent.get_and_update(via(join_code), fn game ->
+    GameServer.get_and_update(via(join_code), fn game ->
       case Game.start_game(game) do
         {:ok, game} ->
           broadcast(game.join_code, :game_started, nil)
@@ -462,7 +462,7 @@ defmodule Level10.Games do
   """
   @spec started?(Game.join_code()) :: boolean()
   def started?(join_code) do
-    Agent.get(via(join_code), fn game ->
+    GameServer.get(via(join_code), fn game ->
       game.current_stage != :lobby
     end)
   end
@@ -473,7 +473,7 @@ defmodule Level10.Games do
   @spec table_cards(Game.join_code(), Player.id(), Game.player_table()) ::
           :ok | :already_set | :needs_to_draw | :not_your_turn
   def table_cards(join_code, player_id, player_table) do
-    Agent.get_and_update(via(join_code), fn game ->
+    GameServer.get_and_update(via(join_code), fn game ->
       with {:ok, game} <- Game.set_player_table(game, player_id, player_table) do
         broadcast(join_code, :hand_counts_updated, Game.hand_counts(game))
         broadcast(join_code, :table_updated, game.table)
