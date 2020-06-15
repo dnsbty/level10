@@ -4,6 +4,9 @@ defmodule Level10.Games.GameServer do
   """
 
   use GenServer
+  alias Level10.StateHandoff
+  alias Level10.Games.{Game, Player}
+  require Logger
 
   @typedoc "The agent reference"
   @type agent :: pid | {atom, node} | name
@@ -19,9 +22,9 @@ defmodule Level10.Games.GameServer do
 
   # Client Functions
 
-  @spec start_link(module, atom, [any], GenServer.options()) :: on_start
-  def start_link(module, fun, args, options \\ []) do
-    GenServer.start_link(Agent.Server, {module, fun, args}, options)
+  @spec start_link({Game.join_code(), Player.t()}, GenServer.options()) :: on_start
+  def start_link({join_code, player}, options \\ []) do
+    GenServer.start_link(__MODULE__, {join_code, player}, options)
   end
 
   @spec get(agent, (state -> a), timeout) :: a when a: var
@@ -61,9 +64,17 @@ defmodule Level10.Games.GameServer do
 
   # Server Functions (Internal Use Only)
 
-  def init(fun) do
-    _ = initial_call(fun)
-    {:ok, run(fun, [])}
+  def init({join_code, player}) do
+    Process.flag(:trap_exit, true)
+    Process.put(:"$initial_call", {Game, :new, 2})
+
+    game =
+      case StateHandoff.pickup(join_code) do
+        nil -> Game.new(join_code, player)
+        game -> game
+      end
+
+    {:ok, game}
   end
 
   def handle_call({:get, fun}, _from, state) do
@@ -89,21 +100,15 @@ defmodule Level10.Games.GameServer do
     {:ok, run(fun, [state])}
   end
 
-  defp initial_call(mfa) do
-    _ = Process.put(:"$initial_call", get_initial_call(mfa))
+  defp run({m, f, a}, extra), do: apply(m, f, extra ++ a)
+  defp run(fun, extra), do: apply(fun, extra)
+
+  # Called when a SIGTERM is received to begin the handoff process for moving
+  # game state to other nodes
+  def terminate(:shutdown, %{join_code: join_code} = game) do
+    StateHandoff.handoff(join_code, game)
     :ok
   end
 
-  defp get_initial_call(fun) when is_function(fun, 0) do
-    {:module, module} = Function.info(fun, :module)
-    {:name, name} = Function.info(fun, :name)
-    {module, name, 0}
-  end
-
-  defp get_initial_call({mod, fun, args}) do
-    {mod, fun, length(args)}
-  end
-
-  defp run({m, f, a}, extra), do: apply(m, f, extra ++ a)
-  defp run(fun, extra), do: apply(fun, extra)
+  def terminate(_, _), do: :ok
 end

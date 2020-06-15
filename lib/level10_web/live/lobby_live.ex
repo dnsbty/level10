@@ -7,6 +7,7 @@ defmodule Level10Web.LobbyLive do
   require Logger
 
   alias Level10.Games
+  alias Games.Player
   alias Level10Web.Router.Helpers, as: Routes
   alias Level10Web.LobbyView
 
@@ -16,8 +17,8 @@ defmodule Level10Web.LobbyLive do
       join_code: "",
       name: "",
       player_id: nil,
-      players: [],
-      is_creator: false
+      players: nil,
+      is_creator: nil
     ]
 
     {:ok, assign(socket, initial_assigns)}
@@ -25,18 +26,15 @@ defmodule Level10Web.LobbyLive do
 
   def handle_params(params = %{"action" => "wait"}, _url, socket) do
     with %{"join_code" => join_code, "player_id" => player_id} <- params do
-      players = Games.get_players(join_code)
-      presence = Games.list_presence(join_code)
       Games.subscribe(join_code, player_id)
-      is_creator = Games.creator(join_code).id == player_id
 
       assigns = %{
         action: :wait,
-        is_creator: is_creator,
+        is_creator: socket.assigns.is_creator || Games.creator(join_code).id == player_id,
         join_code: join_code,
         player_id: player_id,
-        players: players,
-        presence: presence
+        players: socket.assigns.players || Games.get_players(join_code),
+        presence: socket.assigns.presence || Games.list_presence(join_code)
       }
 
       {:noreply, assign(socket, assigns)}
@@ -69,9 +67,7 @@ defmodule Level10Web.LobbyLive do
   def handle_event("create_game", _params, socket) do
     case Games.create_game(socket.assigns.name) do
       {:ok, join_code, player_id} ->
-        Logger.info(["Created game ", join_code])
-
-        players = Games.get_players(join_code)
+        players = [%Player{id: player_id, name: socket.assigns.name}]
         presence = Games.list_presence(join_code)
         Games.subscribe(join_code, player_id)
         new_url = Routes.live_path(socket, __MODULE__, "wait", join_code, player_id: player_id)

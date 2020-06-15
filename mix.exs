@@ -32,6 +32,7 @@ defmodule Level10.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:delta_crdt, "~> 0.5"},
       {:ecto, "~> 3.4"},
       {:gettext, "~> 0.11"},
       {:horde, "~> 0.8.0-rc.1"},

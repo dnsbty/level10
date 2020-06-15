@@ -7,6 +7,7 @@ defmodule Level10.Games do
 
   alias Level10.Games.{Card, Game, GameRegistry, GameServer, GameSupervisor, Player}
   alias Level10.Presence
+  require Logger
 
   @typep event_type :: atom()
   @typep game_name :: {:via, module, term}
@@ -149,12 +150,13 @@ defmodule Level10.Games do
 
     game = %{
       id: join_code,
-      start: {GameServer, :start_link, [Game, :new, [join_code, player], [name: via(join_code)]]},
+      start: {GameServer, :start_link, [{join_code, player}, [name: via(join_code)]]},
       restart: :temporary
     }
 
     case Horde.DynamicSupervisor.start_child(GameSupervisor, game) do
       {:ok, _pid} ->
+        Logger.info(["Created game ", join_code])
         {:ok, join_code, player.id}
 
       {:error, {:already_started, _pid}} ->
