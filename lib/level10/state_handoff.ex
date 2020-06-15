@@ -42,7 +42,7 @@ defmodule Level10.StateHandoff do
 
     # connect to the CRDTs on the other nodes
     nodes = Node.list()
-    Logger.debug("[StateHandoff] Connecting to nodes #{inspect(nodes)}")
+    Logger.debug(fn -> "[StateHandoff] Connecting to nodes #{inspect(nodes)}" end)
     update_neighbours(crdt)
     for node <- nodes, do: GenServer.call({__MODULE__, node}, :update_neighbours)
 
