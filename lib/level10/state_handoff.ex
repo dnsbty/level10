@@ -76,8 +76,15 @@ defmodule Level10.StateHandoff do
   end
 
   def handle_call({:handoff, join_code, game}, _from, crdt) do
-    DeltaCrdt.mutate(crdt, :add, [join_code, game])
-    Logger.debug(fn -> "[StateHandoff] Added game #{join_code} to CRDT" end)
+    case DeltaCrdt.read(crdt) do
+      %{^join_code => _game} ->
+        Logger.debug(fn -> "[StateHandoff] Game #{join_code} already exists in the CRDT" end)
+
+      _ ->
+        DeltaCrdt.mutate(crdt, :add, [join_code, game])
+        Logger.debug(fn -> "[StateHandoff] Added game #{join_code} to CRDT" end)
+    end
+
     {:reply, :ok, crdt}
   end
 
