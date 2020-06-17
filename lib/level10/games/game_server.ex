@@ -123,6 +123,7 @@ defmodule Level10.Games.GameServer do
   # game state to other nodes
   def terminate(_reason, %{join_code: join_code} = game) do
     StateHandoff.handoff(join_code, game)
+    Process.sleep(10)
     :ok
   end
 end
