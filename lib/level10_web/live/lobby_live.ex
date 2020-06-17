@@ -14,11 +14,12 @@ defmodule Level10Web.LobbyLive do
   def mount(_params, _session, socket) do
     initial_assigns = [
       action: :none,
+      is_creator: nil,
       join_code: "",
       name: "",
       player_id: nil,
       players: nil,
-      is_creator: nil
+      presence: nil
     ]
 
     {:ok, assign(socket, initial_assigns)}
