@@ -15,6 +15,13 @@ defmodule Level10.StateHandoff do
   end
 
   @doc """
+  Reset the current state of the CRDT
+  """
+  def clear do
+    GenServer.call(__MODULE__, :clear)
+  end
+
+  @doc """
   Get the current state of the CRDT. Used mostly for debugging purposes.
   """
   def get do
@@ -37,7 +44,7 @@ defmodule Level10.StateHandoff do
 
   @doc false
   def init(_) do
-    opts = [name: @crdt_name, sync_interval: 10]
+    opts = [name: @crdt_name, sync_interval: 3]
     {:ok, crdt} = DeltaCrdt.start_link(DeltaCrdt.AWLWWMap, opts)
 
     # connect to the CRDTs on the other nodes
@@ -50,6 +57,14 @@ defmodule Level10.StateHandoff do
   end
 
   @doc false
+  def handle_call(:clear, _from, crdt) do
+    for {key, _} <- DeltaCrdt.read(crdt) do
+      DeltaCrdt.mutate(crdt, :remove, [key])
+    end
+
+    {:reply, :ok, crdt}
+  end
+
   def handle_call(:get, _from, crdt) do
     state = DeltaCrdt.read(crdt)
     {:reply, state, crdt}
