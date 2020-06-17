@@ -103,7 +103,7 @@ defmodule Level10.Games.GameServer do
   defp run({m, f, a}, extra), do: apply(m, f, extra ++ a)
   defp run(fun, extra), do: apply(fun, extra)
 
-  def handle_info({:EXIT, _pid, {:name_conflict, _}}, game), do: {:stop, :shutdown, game}
+  def handle_info({:EXIT, _pid, {:name_conflict, _, _, _}}, game), do: {:stop, :shutdown, game}
 
   def handle_info(message, %{join_code: join_code} = game) do
     Logger.warn("Game server #{join_code} received unexpected message: #{inspect(message)}")
