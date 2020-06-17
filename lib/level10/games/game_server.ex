@@ -70,8 +70,13 @@ defmodule Level10.Games.GameServer do
 
     game =
       case StateHandoff.pickup(join_code) do
-        nil -> Game.new(join_code, player)
-        game -> game
+        nil ->
+          Logger.info("Creating new game #{join_code}")
+          Game.new(join_code, player)
+
+        game ->
+          Logger.info("Creating game from state handoff #{join_code}")
+          game
       end
 
     {:ok, game}
