@@ -47,11 +47,11 @@ defmodule Level10.StateHandoff do
     opts = [name: @crdt_name, sync_interval: 3]
     {:ok, crdt} = DeltaCrdt.start_link(DeltaCrdt.AWLWWMap, opts)
 
+    # Register to receive messages when nodes enter and leave the cluster
+    :net_kernel.monitor_nodes(true, node_type: :visible)
+
     # connect to the CRDTs on the other nodes
-    nodes = Node.list()
-    Logger.debug(fn -> "[StateHandoff] Connecting to nodes #{inspect(nodes)}" end)
     update_neighbours(crdt)
-    for node <- nodes, do: GenServer.call({__MODULE__, node}, :update_neighbours)
 
     {:ok, crdt}
   end
@@ -68,11 +68,6 @@ defmodule Level10.StateHandoff do
   def handle_call(:get, _from, crdt) do
     state = DeltaCrdt.read(crdt)
     {:reply, state, crdt}
-  end
-
-  def handle_call(:update_neighbours, _from, crdt) do
-    update_neighbours(crdt)
-    {:reply, :ok, crdt}
   end
 
   def handle_call({:handoff, join_code, game}, _from, crdt) do
@@ -100,6 +95,18 @@ defmodule Level10.StateHandoff do
     end
 
     {:reply, game, crdt}
+  end
+
+  # Handle the message received when a new node joins the cluster
+  def handle_info({:nodeup, _node, _node_type}, crdt) do
+    update_neighbours(crdt)
+    {:noreply, crdt}
+  end
+
+  # Handle the message received when a node leaves the cluster
+  def handle_info({:nodedown, _node, _node_type}, crdt) do
+    update_neighbours(crdt)
+    {:noreply, crdt}
   end
 
   defp update_neighbours(crdt) do
