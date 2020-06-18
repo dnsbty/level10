@@ -8,13 +8,14 @@ defmodule Level10.Application do
 
     children = [
       {Level10.StateHandoff, []},
-      {Horde.Registry, name: Level10.Games.GameRegistry, keys: :unique, members: :auto},
       {Horde.DynamicSupervisor,
        [name: Level10.Games.GameSupervisor, strategy: :one_for_one, members: :auto]},
+      {Horde.Registry, name: Level10.Games.GameRegistry, keys: :unique, members: :auto},
       {Cluster.Supervisor, [topologies, [name: Level10.ClusterSupervisor]]},
       {Phoenix.PubSub, name: Level10.PubSub},
       Level10.Presence,
       Level10.Telemetry,
+      {Level10.TerminationMonitor, []},
       Level10Web.Endpoint
     ]
 

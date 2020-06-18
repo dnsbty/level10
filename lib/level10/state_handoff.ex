@@ -8,11 +8,13 @@ defmodule Level10.StateHandoff do
   use GenServer
   require Logger
 
-  @crdt_name Level10.StateHandoff.Crdt
+  alias Level10.StateHandoff.Crdt
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
+
+  # Client (Public)
 
   @doc """
   Reset the current state of the CRDT
@@ -42,76 +44,97 @@ defmodule Level10.StateHandoff do
     GenServer.call(__MODULE__, {:pickup, join_code})
   end
 
+  @doc """
+  Notify the CRDT that shutdown is imminent, and that new processes should no
+  longer be picked up.
+  """
+  def prepare_for_shutdown do
+    GenServer.cast(__MODULE__, :prepare_for_shutdown)
+  end
+
+  # Server (Private)
+
   @doc false
   def init(_) do
-    opts = [name: @crdt_name, sync_interval: 3]
-    {:ok, crdt} = DeltaCrdt.start_link(DeltaCrdt.AWLWWMap, opts)
+    opts = [name: Crdt, sync_interval: 3]
+    DeltaCrdt.start_link(DeltaCrdt.AWLWWMap, opts)
 
     # Register to receive messages when nodes enter and leave the cluster
     :net_kernel.monitor_nodes(true, node_type: :visible)
 
     # connect to the CRDTs on the other nodes
-    update_neighbours(crdt)
+    update_neighbours()
 
-    {:ok, crdt}
+    {:ok, :running}
   end
 
   @doc false
-  def handle_call(:clear, _from, crdt) do
-    for {key, _} <- DeltaCrdt.read(crdt) do
-      DeltaCrdt.mutate(crdt, :remove, [key])
+  def handle_call(:clear, _from, state) do
+    for {key, _} <- DeltaCrdt.read(Crdt) do
+      DeltaCrdt.mutate(Crdt, :remove, [key])
     end
 
-    {:reply, :ok, crdt}
+    {:reply, :ok, state}
   end
 
-  def handle_call(:get, _from, crdt) do
-    state = DeltaCrdt.read(crdt)
-    {:reply, state, crdt}
+  def handle_call(:get, _from, state) do
+    crdt = DeltaCrdt.read(Crdt)
+    {:reply, crdt, state}
   end
 
-  def handle_call({:handoff, join_code, game}, _from, crdt) do
-    case DeltaCrdt.read(crdt) do
+  def handle_call({:handoff, join_code, game}, _from, state) do
+    case DeltaCrdt.read(Crdt) do
       %{^join_code => _game} ->
         Logger.debug(fn -> "[StateHandoff] Game #{join_code} already exists in the CRDT" end)
 
       _ ->
-        DeltaCrdt.mutate(crdt, :add, [join_code, game])
+        DeltaCrdt.mutate(Crdt, :add, [join_code, game])
         Logger.debug(fn -> "[StateHandoff] Added game #{join_code} to CRDT" end)
     end
 
-    {:reply, :ok, crdt}
+    {:reply, :ok, state}
   end
 
-  def handle_call({:pickup, join_code}, _from, crdt) do
+  def handle_call({:pickup, join_code}, _from, state) do
     game =
-      crdt
+      Crdt
       |> DeltaCrdt.read()
       |> Map.get(join_code, nil)
 
-    if !is_nil(game) do
-      Logger.debug(fn -> "[StateHandoff] Picked up game #{join_code}" end)
-      DeltaCrdt.mutate(crdt, :remove, [join_code])
+    cond do
+      is_nil(game) ->
+        nil
+
+      state == :terminating ->
+        Logger.debug(fn -> "[StateHandoff] Temporarily picked up game #{join_code}" end)
+
+      true ->
+        Logger.debug(fn -> "[StateHandoff] Picked up game #{join_code}" end)
+        DeltaCrdt.mutate(Crdt, :remove, [join_code])
     end
 
-    {:reply, game, crdt}
+    {:reply, game, state}
+  end
+
+  def handle_cast(:prepare_for_shutdown, _state) do
+    {:noreply, :terminating}
   end
 
   # Handle the message received when a new node joins the cluster
-  def handle_info({:nodeup, _node, _node_type}, crdt) do
-    update_neighbours(crdt)
-    {:noreply, crdt}
+  def handle_info({:nodeup, _node, _node_type}, state) do
+    update_neighbours()
+    {:noreply, state}
   end
 
   # Handle the message received when a node leaves the cluster
-  def handle_info({:nodedown, _node, _node_type}, crdt) do
-    update_neighbours(crdt)
-    {:noreply, crdt}
+  def handle_info({:nodedown, _node, _node_type}, state) do
+    update_neighbours()
+    {:noreply, state}
   end
 
-  defp update_neighbours(crdt) do
-    neighbours = for node <- Node.list(), do: {@crdt_name, node}
+  defp update_neighbours do
+    neighbours = for node <- Node.list(), do: {Crdt, node}
     Logger.debug(fn -> "[StateHandoff] Setting neighbours to #{inspect(neighbours)}" end)
-    DeltaCrdt.set_neighbours(crdt, neighbours)
+    DeltaCrdt.set_neighbours(Crdt, neighbours)
   end
 end
