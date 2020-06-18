@@ -7,7 +7,6 @@ defmodule Level10.TerminationMonitor do
   use GenServer
   require Logger
   alias Level10.StateHandoff
-  alias Level10.Games.{GameServer, GameSupervisor}
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
