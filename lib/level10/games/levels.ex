@@ -32,7 +32,7 @@ defmodule Level10.Games.Levels do
       iex> by_number(1)
       [set: 3, set: 3]
   """
-  @spec by_number(integer()) :: Keyword.t()
+  @spec by_number(integer()) :: level()
   def by_number(level_number) do
     Map.get(@levels, level_number)
   end

@@ -11,6 +11,7 @@ defmodule Level10.Games.Game do
   @type cards :: list(Card.t())
   @type join_code :: String.t()
   @type level :: non_neg_integer()
+  @type levels :: %{optional(Player.id()) => level()}
   @type player_table :: %{non_neg_integer() => cards()}
   @type score :: non_neg_integer()
   @type scores :: %{optional(Player.id()) => scoring()}
@@ -26,6 +27,7 @@ defmodule Level10.Games.Game do
           draw_pile: cards(),
           hands: %{optional(Player.id()) => cards()},
           join_code: join_code(),
+          levels: levels(),
           players: [Player.t()],
           players_ready: MapSet.t(),
           scoring: scores(),
@@ -42,6 +44,7 @@ defmodule Level10.Games.Game do
     draw_pile
     hands
     join_code
+    levels
     players
     players_ready
     scoring
@@ -99,9 +102,8 @@ defmodule Level10.Games.Game do
 
   @spec group_requirement(t(), Player.id(), non_neg_integer()) :: Levels.group()
   defp group_requirement(game, player_id, position) do
-    {level, _} = game.scoring[player_id]
-
-    level
+    game.levels
+    |> Map.get(player_id)
     |> Levels.by_number()
     |> Enum.at(position)
   end
@@ -294,6 +296,7 @@ defmodule Level10.Games.Game do
       draw_pile: [],
       hands: %{},
       join_code: join_code,
+      levels: %{},
       players: [],
       players_ready: MapSet.new(),
       scoring: %{},
@@ -414,6 +417,7 @@ defmodule Level10.Games.Game do
           |> clear_table()
           |> put_new_deck()
           |> deal_hands()
+          |> update_levels()
           |> put_new_discard()
 
         [%{value: value}] = game.discard_pile
@@ -512,6 +516,12 @@ defmodule Level10.Games.Game do
       end)
 
     %{game | draw_pile: deck, hands: hands}
+  end
+
+  @spec update_levels(t()) :: t()
+  defp update_levels(game = %{scoring: scores}) do
+    levels = for {player_id, {level, _}} <- scores, do: {player_id, level}, into: %{}
+    %{game | levels: levels}
   end
 
   @spec put_new_discard(Game.t()) :: Game.t()

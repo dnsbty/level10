@@ -1,5 +1,5 @@
 alias Level10.{Games, StateHandoff}
-alias Games.{Card, Game, GameRegistry, GameSupervisor, Levels, Player}
+alias Games.{Card, Game, GameRegistry, GameServer, GameSupervisor, Levels, Player}
 
 join_code = "ABCD"
 

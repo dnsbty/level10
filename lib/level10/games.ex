@@ -5,7 +5,7 @@ defmodule Level10.Games do
   it.
   """
 
-  alias Level10.Games.{Card, Game, GameRegistry, GameServer, GameSupervisor, Player}
+  alias Level10.Games.{Card, Game, GameRegistry, GameServer, GameSupervisor, Levels, Player}
   alias Level10.Presence
   require Logger
 
@@ -234,6 +234,26 @@ defmodule Level10.Games do
   @spec get_hand_for_player(Game.join_code(), Player.id()) :: list(Card.t())
   def get_hand_for_player(join_code, player_id) do
     GameServer.get(via(join_code), & &1.hands[player_id])
+  end
+
+  @doc """
+  Get the level information for each player in the game.
+
+  ## Examples
+
+      iex> get_levels("ABCD")
+      %{
+        "04ba446e-0b2a-49f2-8dbf-7d9742548842" => [set: 4, run: 4],
+        "86800484-8e73-4408-bd15-98a57871694f" => [run: 7],
+      }
+  """
+  @spec get_levels(Game.join_code()) :: %{optional(Player.t()) => Levels.level()}
+  def get_levels(join_code) do
+    levels = GameServer.get(via(join_code), & &1.levels)
+
+    for {player_id, level_number} <- levels,
+        into: %{},
+        do: {player_id, Levels.by_number(level_number)}
   end
 
   @doc """

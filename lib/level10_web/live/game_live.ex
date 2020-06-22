@@ -18,8 +18,7 @@ defmodule Level10Web.GameLive do
          true <- Games.player_exists?(join_code, player_id) do
       players = Games.get_players(join_code)
       hand = join_code |> Games.get_hand_for_player(player_id) |> Card.sort()
-      scores = Games.get_scores(join_code)
-      levels = levels_from_scores(scores)
+      levels = Games.get_levels(join_code)
       player_level = levels[player_id]
       table = Games.get_table(join_code)
       has_completed_level = !is_nil(table[player_id])
@@ -244,17 +243,6 @@ defmodule Level10Web.GameLive do
   @spec flash_error(Socket.t(), String.t()) :: Socket.t()
   defp flash_error(socket, message) do
     put_flash(socket, :error, message)
-  end
-
-  @spec levels_from_scores(Games.scores()) :: %{optional(Player.id()) => Levels.level()}
-  defp levels_from_scores(scores) do
-    levels_list =
-      Enum.map(scores, fn {player_id, {level_number, _}} ->
-        level = Levels.by_number(level_number)
-        {player_id, level}
-      end)
-
-    Enum.into(levels_list, %{})
   end
 
   @spec selected_cards(Socket.t()) :: Game.cards()
