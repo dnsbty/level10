@@ -429,10 +429,28 @@ defmodule Level10.Games do
     with :game_over <- result, do: delete_game(join_code)
   end
 
-  @spec player_exists?(Game.join_code(), Player.id()) :: boolean()
-  def player_exists?(join_code, player_id) do
+  @spec player_exists?(Game.t() | Game.join_code(), Player.id()) :: boolean()
+  def player_exists?(join_code, player_id) when is_binary(join_code) do
+    GameServer.get(via(join_code), &Game.player_exists?(&1, player_id))
+  end
+
+  def player_exists?(game, player_id), do: Game.player_exists?(game, player_id)
+
+  @doc """
+  Check whether or not the current round has started.
+
+  ## Examples
+
+      iex> round_started?("ABCD")
+      true
+
+      iex> round_started?("EFGH")
+      false
+  """
+  @spec round_started?(Game.join_code()) :: boolean()
+  def round_started?(join_code) do
     GameServer.get(via(join_code), fn game ->
-      Enum.any?(game.players, fn player -> player.id == player_id end)
+      game.current_stage == :play
     end)
   end
 
@@ -524,6 +542,11 @@ defmodule Level10.Games do
     with :ok <- Phoenix.PubSub.unsubscribe(Level10.PubSub, topic) do
       Presence.untrack(self(), topic, player_id)
     end
+  end
+
+  @spec update(Game.join_code(), (Game.t() -> Game.t())) :: :ok
+  def update(join_code, fun) do
+    GameServer.update(via(join_code), fun)
   end
 
   @spec broadcast(Game.join_code(), event_type(), term()) :: :ok | {:error, term()}

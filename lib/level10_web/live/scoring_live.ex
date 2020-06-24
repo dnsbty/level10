@@ -6,6 +6,7 @@ defmodule Level10Web.ScoringLive do
   use Phoenix.LiveView, layout: {Level10Web.LayoutView, "live.html"}
 
   alias Level10.Games
+  alias Games.{Game, Player}
   alias Level10Web.{Endpoint, GameLive, ScoringView}
   alias Level10Web.Router.Helpers, as: Routes
 
@@ -13,29 +14,32 @@ defmodule Level10Web.ScoringLive do
     join_code = params["join_code"]
     player_id = params["player_id"]
 
-    with true <- Games.exists?(join_code),
-         true <- Games.started?(join_code),
-         true <- Games.player_exists?(join_code, player_id) do
-      scores = Games.get_scores(join_code)
-      players = join_code |> Games.get_players() |> sort_players(scores)
+    with %Game{} = game <- Games.get(join_code),
+         stage when stage in [:finish, :score] <- game.current_stage,
+         true <- Games.player_exists?(game, player_id) do
+      scores = game.scoring
+      players = sort_players(game.players, scores)
       [leader | _] = players
       presence = Games.list_presence(join_code)
 
       Games.subscribe(join_code, player_id)
 
       assigns = %{
-        finished: Games.finished?(join_code),
+        finished: stage == :finished,
         join_code: join_code,
         leader: leader,
         players: players,
         player_id: player_id,
-        players_ready: Games.get_players_ready(join_code),
+        players_ready: game.players_ready,
         presence: presence,
-        round_number: Games.get_round_number(join_code),
+        round_number: game.current_round,
         scores: scores
       }
 
       {:ok, assign(socket, assigns)}
+    else
+      error when error in [nil, false] -> {:ok, push_redirect(socket, to: "/")}
+      :play -> {:ok, redirect_to_game(socket, join_code, player_id)}
     end
   end
 
@@ -61,9 +65,7 @@ defmodule Level10Web.ScoringLive do
 
   def handle_info({:round_started, _}, socket) do
     %{join_code: join_code, player_id: player_id} = socket.assigns
-    path = Routes.live_path(Endpoint, GameLive, join_code, player_id: player_id)
-
-    {:noreply, push_redirect(socket, to: path)}
+    {:noreply, redirect_to_game(socket, join_code, player_id)}
   end
 
   def handle_info(%{event: "presence_diff", payload: payload}, socket) do
@@ -78,6 +80,12 @@ defmodule Level10Web.ScoringLive do
   end
 
   # Private
+
+  @spec redirect_to_game(Socket.t(), Game.join_code(), Player.id()) :: Socket.t()
+  defp redirect_to_game(socket, join_code, player_id) do
+    path = Routes.live_path(Endpoint, GameLive, join_code, player_id: player_id)
+    push_redirect(socket, to: path)
+  end
 
   defp sort_players(players, scores) do
     Enum.sort(players, fn %{id: player1}, %{id: player2} ->

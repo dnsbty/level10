@@ -16,11 +16,12 @@ defmodule Level10.Games.Game do
   @type score :: non_neg_integer()
   @type scores :: %{optional(Player.id()) => scoring()}
   @type scoring :: {level(), score()}
+  @type stage :: :finish | :lobby | :play | :score
   @type table :: %{optional(Player.id()) => player_table()}
   @type t :: %__MODULE__{
           current_player: Player.t(),
           current_round: non_neg_integer(),
-          current_stage: :finish | :lobby | :play | :score,
+          current_stage: stage(),
           current_turn: non_neg_integer(),
           current_turn_drawn?: boolean(),
           discard_pile: cards(),
@@ -146,7 +147,7 @@ defmodule Level10.Games.Game do
         end
       end)
 
-    %{game | current_stage: :scoring, scoring: scoring}
+    %{game | current_stage: :score, scoring: scoring}
   end
 
   @spec check_complete(t()) :: t()
@@ -310,6 +311,15 @@ defmodule Level10.Games.Game do
   @spec get_player(t(), Player.id()) :: Player.t()
   def get_player(game, player_id), do: Enum.find(game, &(&1.id == player_id))
 
+  @doc """
+  Checks whether or not a given player ID belongs to a player listed in the
+  given game
+  """
+  @spec player_exists?(t(), Player.id()) :: boolean()
+  def player_exists?(game, player_id) do
+    Enum.any?(game.players, fn player -> player.id == player_id end)
+  end
+
   @spec put_player(t(), Player.t()) :: {:ok, t()} | :already_started
   def put_player(game, player)
 
@@ -421,6 +431,7 @@ defmodule Level10.Games.Game do
           |> deal_hands()
           |> update_levels()
           |> put_new_discard()
+          |> put_stage(:play)
 
         [%{value: value}] = game.discard_pile
 
@@ -429,6 +440,11 @@ defmodule Level10.Games.Game do
       :game_over ->
         :game_over
     end
+  end
+
+  @spec put_stage(t(), stage()) :: t()
+  defp put_stage(game, stage) do
+    %{game | current_stage: stage}
   end
 
   @doc """
