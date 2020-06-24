@@ -462,6 +462,7 @@ defmodule Level10.Games do
     GameServer.get_and_update(via(join_code), fn game ->
       case Game.start_game(game) do
         {:ok, game} ->
+          Logger.info("Started game #{join_code}")
           broadcast(game.join_code, :game_started, nil)
           {:ok, game}
 

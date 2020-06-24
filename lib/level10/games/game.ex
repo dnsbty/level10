@@ -393,14 +393,16 @@ defmodule Level10.Games.Game do
   def start_game(%{players: players}) when length(players) < 2, do: :single_player
 
   def start_game(game) do
+    game = put_empty_scores(game)
+
     case start_round(game) do
-      {:ok, game} -> {:ok, add_empty_scores(game)}
+      {:ok, game} -> {:ok, game}
       :game_over -> raise "Trying to start finished game: #{game.join_code}"
     end
   end
 
-  @spec add_empty_scores(t()) :: t()
-  defp add_empty_scores(game = %{players: players}) do
+  @spec put_empty_scores(t()) :: t()
+  defp put_empty_scores(game = %{players: players}) do
     %{game | scoring: Map.new(players, &{&1.id, {1, 0}})}
   end
 

@@ -181,7 +181,6 @@ defmodule Level10Web.LobbyLive do
         {:noreply, socket}
 
       :ok ->
-        Logger.info("Starting game #{socket.assigns.join_code}")
         {:noreply, assign(socket, starting: true)}
     end
   end
