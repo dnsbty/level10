@@ -56,26 +56,28 @@
 </div>
 
 <!-- Player Table -->
-<div class="flex content-center flex-wrap ml-4 mr-2 mb-4">
-  <%= for {group, position} <- Enum.with_index(@player_level) do %>
-    <%= if is_nil(@player_table[position]) do %>
-      <div phx-click="table_cards" onclick="" phx-value-position="<%= position %>" class="<%= if MapSet.size(@selected_indexes) > 0, do: "cursor-pointer " %>flex-1 mr-2 bg-purple-900 text-purple-400 text-center rounded-md py-8">
-        <%= level_group_name(group) %>
-      </div>
-    <% else %>
-      <div class="flex flex-wrap flex-1 lg:w-1/3 bg-purple-900 mr-2 rounded-md p-2">
-        <p class="w-full text-purple-400 text-center text-xs mb-2"><%= level_group_name(group) %></p>
-        <div class="flex flex-row flex-1 text-purple-400">
-          <%= for card <- @player_table[position] do %>
-            <div class="flex-1 mr-1 ml-1">
-              <%= render_card(card) %>
-            </div>
-          <% end %>
+<%= if !@has_completed_level do %>
+  <div class="flex content-center flex-wrap ml-4 mr-2 mb-4">
+    <%= for {group, position} <- Enum.with_index(@player_level) do %>
+      <%= if is_nil(@player_table[position]) do %>
+        <div phx-click="table_cards" onclick="" phx-value-position="<%= position %>" class="<%= if MapSet.size(@selected_indexes) > 0, do: "cursor-pointer " %>flex-1 mr-2 bg-purple-900 text-purple-400 text-center rounded-md py-8">
+          <%= level_group_name(group) %>
         </div>
-      </div>
+      <% else %>
+        <div class="flex flex-wrap flex-1 lg:w-1/3 bg-purple-900 mr-2 rounded-md p-2">
+          <p class="w-full text-purple-400 text-center text-xs mb-2"><%= level_group_name(group) %></p>
+          <div class="flex flex-row flex-1 text-purple-400">
+            <%= for card <- @player_table[position] do %>
+              <div class="flex-1 mr-1 ml-1">
+                <%= render_card(card) %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
     <% end %>
-  <% end %>
-</div>
+  </div>
+<% end %>
 
 <!-- Player Hand -->
 <div class="grid grid-cols-5 gap-2 px-4">
