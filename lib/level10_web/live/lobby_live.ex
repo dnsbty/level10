@@ -206,15 +206,8 @@ defmodule Level10Web.LobbyLive do
     {:noreply, assign(socket, is_creator: is_creator, players: players)}
   end
 
-  def handle_info(%{event: "presence_diff", payload: payload}, socket) do
-    leaves = Enum.map(payload.leaves, fn {player_id, _} -> player_id end)
-
-    presence =
-      socket.assigns.presence
-      |> Map.drop(leaves)
-      |> Map.merge(payload.joins)
-
-    {:noreply, assign(socket, presence: presence)}
+  def handle_info(%{event: "presence_diff"}, socket) do
+    {:noreply, assign(socket, presence: Games.list_presence(socket.assigns.join_code))}
   end
 
   # Private

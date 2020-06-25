@@ -39,7 +39,7 @@ defmodule Level10Web.ScoringLive do
       {:ok, assign(socket, assigns)}
     else
       error when error in [nil, false] -> {:ok, push_redirect(socket, to: "/")}
-      :play -> {:ok, redirect_to_game(socket, join_code, player_id)}
+      stage when stage in [:play, :lobby] -> {:ok, redirect_to_game(socket, join_code, player_id)}
     end
   end
 
@@ -68,15 +68,8 @@ defmodule Level10Web.ScoringLive do
     {:noreply, redirect_to_game(socket, join_code, player_id)}
   end
 
-  def handle_info(%{event: "presence_diff", payload: payload}, socket) do
-    leaves = Enum.map(payload.leaves, fn {player_id, _} -> player_id end)
-
-    presence =
-      socket.assigns.presence
-      |> Map.drop(leaves)
-      |> Map.merge(payload.joins)
-
-    {:noreply, assign(socket, presence: presence)}
+  def handle_info(%{event: "presence_diff"}, socket) do
+    {:noreply, assign(socket, presence: Games.list_presence(socket.assigns.join_code))}
   end
 
   # Private
