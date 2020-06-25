@@ -4,6 +4,13 @@ import 'phoenix_html';
 import {Socket} from 'phoenix';
 import LiveSocket from 'phoenix_live_view';
 
+// Resize viewport units based on innerHeight rather than max height of the browser
+window.onresize = () => {
+  let vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+};
+window.onresize();
+
 // Functions for inviting friends via sms
 var isIosDevice = () => {
   var ua = navigator.userAgent.toLowerCase();
