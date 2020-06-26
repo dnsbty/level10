@@ -1,66 +1,87 @@
-name: Elixir CI
-
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+on: push
 
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        otp: [22.2.7]
-        elixir: [1.10.1]
+        otp: [22.3.1]
+        elixir: [1.10.2]
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Setup elixir
-      uses: actions/setup-elixir@v1
-      with:
-        elixir-version: ${{ matrix.elixir }}
-        otp-version: ${{ matrix.otp }}
+      - name: Setup Elixir
+        uses: actions/setup-elixir@v1
+        with:
+          otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ matrix.elixir }}
 
-    - name: Setup Node
-      uses: actions/setup-node@v1
-      with:
-        node-version: 13.11.0
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 13.11.0
 
-    - name: Fetch Dependencies from Cache
-      uses: actions/cache@v1
-      id: deps-cache
-      with:
-        path: deps
-        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+      - name: Fetch Dependencies from Cache
+        uses: actions/cache@v1
+        id: deps-cache
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
-    - name: Fetch Compiled App from Cache
-      uses: actions/cache@v1
-      id: build-cache
-      with:
-        path: _build
-        key: ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+      - name: Fetch Compiled App from Cache
+        uses: actions/cache@v1
+        id: build-cache
+        with:
+          path: _build
+          key: ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
-    - name: Find yarn cache location
-      id: yarn-cache
-      run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Find yarn cache location
+        id: yarn-cache
+        run: echo "::set-output name=dir::$(yarn cache dir)"
 
-    - name: Fetch Node Modules from Cache
-      uses: actions/cache@v1
-      with:
-        path: ${{ steps.yarn-cache.outputs.dir }}
-        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-yarn-
+      - name: Fetch Node Modules from Cache
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.yarn-cache.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
 
-    - name: Install Dependencies
-      run: |
-        mix deps.get
-        (cd assets && yarn)
+      - name: Install dependencies
+        run: |
+          mix deps.get
+          (cd assets && yarn)
 
-    - name: Check Formatting
-      run: mix format --check-formatted
+      - name: Check formatting
+        run: mix format --check-formatted
 
-    - name: Run Tests
-      run: mix test
+      - name: Run tests
+        run: mix test
+
+  deploy:
+    # only run this job if the verify job succeeds
+    needs: verify
+
+    # only run this job if the workflow is running on the master branch
+    if: github.ref == 'refs/heads/master'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        
+        # actions/checkout@v2 only checks out the latest commit,
+        # so we need to tell it to check out the entire master branch
+        with:
+          ref: master
+          fetch-depth: 0
+
+      # configure the gigalixir-actions with our credentials and app name
+      - uses: mhanberg/gigalixir-action@v0.3.0
+        with:
+          GIGALIXIR_USERNAME: ${{ secrets.GIGALIXIR_USERNAME }}
+          GIGALIXIR_PASSWORD: ${{ secrets.GIGALIXIR_PASSWORD }}
+          GIGALIXIR_APP: level10
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
