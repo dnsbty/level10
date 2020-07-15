@@ -46,7 +46,6 @@ FROM elixir-build AS release-build
 
 WORKDIR /app
 
-COPY --from=elixir-build /app .
 COPY --from=js-build /app/priv/static ./priv/static
 
 RUN mix phx.digest
