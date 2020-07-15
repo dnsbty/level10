@@ -1,0 +1,71 @@
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: level10
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: level10
+
+  template:
+    metadata:
+      labels:
+        app: level10
+    spec:
+      containers:
+        - name: level10
+          image: level10:master
+          ports:
+            - containerPort: 4000
+          env:
+            - name: PORT
+              value: '4000'
+            - name: PHOENIX_CHAT_HOST
+              value: 'localhost'
+            - name: RELEASE_COOKIE
+              value: 'secret'
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: RELEASE_NAME
+              value: 'level10@$(POD_IP)'
+            - name: RELEASE_DISTRIBUTION
+              value: 'name'
+            - name: SECRET_KEY_BASE
+              value: 'C5iCT8Z07ZPrKS8bDDS1YbYMsamxPZKGXal7D89YapVtFZorzAKVKRGzTbFQDQGx'
+          command: ['/app/bin/level10']
+          args: ['start']
+---
+kind: Service
+apiVersion: v1
+
+metadata:
+  name: level10
+  namespace: default
+spec:
+  type: LoadBalancer
+  selector:
+    app: level10
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 4000
+
+---
+kind: Service
+apiVersion: v1
+
+metadata:
+  name: level10-nodes
+  namespace: default
+spec:
+  clusterIP: None
+  selector:
+    app: level10
+  ports:
+    - name: epmd
+      port: 4369

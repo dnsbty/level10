@@ -20,10 +20,10 @@ config :level10, Level10Web.Endpoint,
 config :level10,
   cluster_topologies: [
     level10: [
-      strategy: Cluster.Strategy.Kubernetes,
+      strategy: Cluster.Strategy.Kubernetes.DNS,
       config: [
-        kubernetes_selector: System.get_env("LIBCLUSTER_KUBERNETES_SELECTOR", "level10"),
-        kubernetes_node_basename: System.get_env("LIBCLUSTER_KUBERNETES_NODE_BASENAME", "level10")
+        service: "level10-nodes",
+        application_name: "level10"
       ]
     ]
   ]
