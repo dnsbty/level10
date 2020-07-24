@@ -132,9 +132,7 @@ defmodule Level10.Games do
       %Player{id: "ffe6629a-faff-4053-b7b8-83c3a307400f", name: "Player 1"}
   """
   @spec get_current_turn(Game.join_code()) :: Player.t()
-  def get_current_turn(join_code) do
-    GameServer.get(via(join_code), & &1.current_player)
-  end
+  defdelegate get_current_turn(join_code), to: GameServer
 
   @doc """
   Get the count of cards in each player's hand.

@@ -130,6 +130,22 @@ defmodule Level10.Games.GameServer do
     GenServer.call(via(join_code), :get, 5000)
   end
 
+  @doc """
+  Get the player whose turn it currently is.
+
+  ## Examples
+
+      iex> get_current_turn("ABCD")
+      %Player{id: "ffe6629a-faff-4053-b7b8-83c3a307400f", name: "Player 1"}
+  """
+  @spec get_current_turn(Game.join_code()) :: Player.t()
+  def get_current_turn(join_code) do
+    GenServer.call(via(join_code), :current_player, 5000)
+  end
+
+  # Old School Agent Functions
+  # TODO: Burn them all down :)
+
   @spec start_link({Game.join_code(), Player.t()}, GenServer.options()) :: on_start
   def start_link({join_code, player}, options \\ []) do
     GenServer.start_link(__MODULE__, {join_code, player}, options)
@@ -205,6 +221,10 @@ defmodule Level10.Games.GameServer do
 
   def handle_call(:creator, _from, game) do
     {:reply, Game.creator(game), game}
+  end
+
+  def handle_call(:current_player, _from, game) do
+    {:reply, game.current_player, game}
   end
 
   def handle_call(:current_turn_drawn?, _from, game) do
