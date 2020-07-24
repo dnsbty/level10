@@ -59,6 +59,20 @@ defmodule Level10.Games.GameServer do
     GenServer.call(via(join_code), :current_turn_drawn?, 5000)
   end
 
+  @doc """
+  Discard a card from the player's hand
+
+  ## Examples
+
+      iex> discard_card("ABCD", "9c34b9fe-3104-44b3-b21b-28140e2e3624", %Card{color: :green, value: :twelve})
+      :ok
+  """
+  @spec discard_card(Game.join_code(), Player.id(), Card.t()) ::
+          :ok | :needs_to_draw | :not_your_turn
+  def discard_card(join_code, player_id, card) do
+    GenServer.call(via(join_code), {:discard, {player_id, card}}, 5000)
+  end
+
   @spec start_link({Game.join_code(), Player.t()}, GenServer.options()) :: on_start
   def start_link({join_code, player}, options \\ []) do
     GenServer.start_link(__MODULE__, {join_code, player}, options)
@@ -138,6 +152,24 @@ defmodule Level10.Games.GameServer do
 
   def handle_call(:current_turn_drawn?, _from, game) do
     {:reply, game.current_turn_drawn?, game}
+  end
+
+  def handle_call({:discard, {player_id, card}}, _from, game) do
+    with ^player_id <- game.current_player.id,
+         %Game{} = game <- Game.discard(game, card) do
+      broadcast(game.join_code, :hand_counts_updated, Game.hand_counts(game))
+      broadcast(game.join_code, :new_discard_top, card)
+
+      if Game.round_finished?(game, player_id) do
+        {:reply, :ok, maybe_complete_round(game, player_id)}
+      else
+        broadcast(game.join_code, :new_turn, game.current_player)
+        {:reply, :ok, game}
+      end
+    else
+      :needs_to_draw -> {:reply, :needs_to_draw, game}
+      _ -> {:reply, :not_your_turn, game}
+    end
   end
 
   def handle_call({:get, fun}, _from, state) do

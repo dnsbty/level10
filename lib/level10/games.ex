@@ -80,25 +80,7 @@ defmodule Level10.Games do
   """
   @spec discard_card(Game.join_code(), Player.id(), Card.t()) ::
           :ok | :needs_to_draw | :not_your_turn
-  def discard_card(join_code, player_id, card) do
-    GameServer.get_and_update(via(join_code), fn game ->
-      with ^player_id <- game.current_player.id,
-           %Game{} = game <- Game.discard(game, card) do
-        broadcast(join_code, :hand_counts_updated, Game.hand_counts(game))
-        broadcast(join_code, :new_discard_top, card)
-
-        if Game.round_finished?(game, player_id) do
-          {:ok, maybe_complete_round(game, player_id)}
-        else
-          broadcast(join_code, :new_turn, game.current_player)
-          {:ok, game}
-        end
-      else
-        :needs_to_draw -> :needs_to_draw
-        _ -> :not_your_turn
-      end
-    end)
-  end
+  defdelegate discard_card(join_code, player_id, card), to: GameServer
 
   @doc """
   Take the top card from either the draw pile or discard pile and returns add
