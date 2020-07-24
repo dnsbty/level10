@@ -20,17 +20,7 @@ defmodule Level10.Games do
   """
   @spec add_to_table(Game.join_code(), Player.id(), Player.id(), non_neg_integer(), Game.cards()) ::
           :ok | :invalid_group | :level_incomplete | :needs_to_draw | :not_your_turn
-  def add_to_table(join_code, player_id, table_id, position, cards_to_add) do
-    GameServer.get_and_update(via(join_code), fn game ->
-      with {:ok, game} <-
-             Game.add_to_table(game, player_id, table_id, position, cards_to_add) do
-        broadcast(join_code, :hand_counts_updated, Game.hand_counts(game))
-        broadcast(join_code, :table_updated, game.table)
-
-        {:ok, maybe_complete_round(game, player_id)}
-      end
-    end)
-  end
+  defdelegate add_to_table(join_code, player_id, table_id, position, cards_to_add), to: GameServer
 
   @doc """
   Get the current count of active games in play.

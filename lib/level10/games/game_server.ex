@@ -5,7 +5,7 @@ defmodule Level10.Games.GameServer do
 
   use GenServer
   alias Level10.StateHandoff
-  alias Level10.Games.{Game, Player}
+  alias Level10.Games.{Game, GameRegistry, Player}
   require Logger
 
   @typedoc "The agent reference"
@@ -20,7 +20,23 @@ defmodule Level10.Games.GameServer do
   @typedoc "The agent state"
   @type state :: term
 
+  @typep event_type :: atom()
+  @typep game_name :: {:via, module, term}
+
   # Client Functions
+
+  @doc """
+  Add one or more cards to a group that is already on the table
+  """
+  @spec add_to_table(Game.join_code(), Player.id(), Player.id(), non_neg_integer(), Game.cards()) ::
+          :ok | :invalid_group | :level_incomplete | :needs_to_draw | :not_your_turn
+  def add_to_table(join_code, player_id, table_id, position, cards_to_add) do
+    GenServer.call(
+      via(join_code),
+      {:add_to_table, {player_id, table_id, position, cards_to_add}},
+      5000
+    )
+  end
 
   @spec start_link({Game.join_code(), Player.t()}, GenServer.options()) :: on_start
   def start_link({join_code, player}, options \\ []) do
@@ -82,6 +98,19 @@ defmodule Level10.Games.GameServer do
     {:ok, game}
   end
 
+  def handle_call({:add_to_table, {player_id, table_id, position, cards_to_add}}, _from, game) do
+    case Game.add_to_table(game, player_id, table_id, position, cards_to_add) do
+      {:ok, game} ->
+        broadcast(game.join_code, :hand_counts_updated, Game.hand_counts(game))
+        broadcast(game.join_code, :table_updated, game.table)
+
+        {:reply, :ok, maybe_complete_round(game, player_id)}
+
+      error ->
+        {:reply, error, game}
+    end
+  end
+
   def handle_call({:get, fun}, _from, state) do
     {:reply, run(fun, [state]), state}
   end
@@ -125,5 +154,45 @@ defmodule Level10.Games.GameServer do
     StateHandoff.handoff(join_code, game)
     Process.sleep(10)
     :ok
+  end
+
+  # Private Functions
+
+  @spec broadcast(Game.join_code(), event_type(), term()) :: :ok | {:error, term()}
+  def broadcast(join_code, event_type, event) do
+    Phoenix.PubSub.broadcast(Level10.PubSub, "game:" <> join_code, {event_type, event})
+  end
+
+  @spec broadcast_game_complete(Game.t(), Player.id()) :: :ok | {:error, term()}
+  defp broadcast_game_complete(game, player_id) do
+    player = Enum.find(game.players, &(&1.id == player_id))
+    broadcast(game.join_code, :game_finished, player)
+  end
+
+  @spec broadcast_round_complete(Game.t(), Player.id()) :: Game.t()
+  defp broadcast_round_complete(game, player_id) do
+    player = Enum.find(game.players, &(&1.id == player_id))
+    broadcast(game.join_code, :round_finished, player)
+  end
+
+  @spec maybe_complete_round(Game.t(), Player.id()) :: Game.t()
+  defp maybe_complete_round(game, player_id) do
+    with true <- Game.round_finished?(game, player_id),
+         %{current_stage: :finish} = game <- Game.complete_round(game) do
+      broadcast_game_complete(game, player_id)
+      game
+    else
+      false ->
+        game
+
+      game ->
+        broadcast_round_complete(game, player_id)
+        game
+    end
+  end
+
+  @spec via(Game.join_code()) :: game_name()
+  defp via(join_code) do
+    {:via, Horde.Registry, {GameRegistry, join_code}}
   end
 end
