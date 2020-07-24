@@ -110,9 +110,7 @@ defmodule Level10.Games do
   end
 
   @spec finished?(Game.join_code()) :: boolean()
-  def finished?(join_code) do
-    GameServer.get(via(join_code), &(&1.current_stage == :finish))
-  end
+  defdelegate finished?(join_code), to: GameServer
 
   @doc """
   Returns the game with the specified join code.
