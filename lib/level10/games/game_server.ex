@@ -143,6 +143,19 @@ defmodule Level10.Games.GameServer do
     GenServer.call(via(join_code), :current_player, 5000)
   end
 
+  @doc """
+  Get the count of cards in each player's hand.
+
+  ## Examples
+
+      iex> get_hand_counts("ABCD")
+      %{"179539f0-661e-4b56-ac67-fec916214223" => 10, "000cc69a-bb7d-4d3e-ae9f-e42e3dcac23e" => 3}
+  """
+  @spec get_hand_counts(Game.join_code()) :: %{optional(Player.id()) => non_neg_integer()}
+  def get_hand_counts(join_code) do
+    GenServer.call(via(join_code), :hand_counts, 5000)
+  end
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -279,6 +292,10 @@ defmodule Level10.Games.GameServer do
       {reply, state} -> {:reply, reply, state}
       other -> {:stop, {:bad_return_value, other}, state}
     end
+  end
+
+  def handle_call(:hand_counts, _from, game) do
+    {:reply, Game.hand_counts(game), game}
   end
 
   def handle_call({:update, fun}, _from, state) do

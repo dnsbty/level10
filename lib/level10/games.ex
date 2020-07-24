@@ -143,9 +143,7 @@ defmodule Level10.Games do
       %{"179539f0-661e-4b56-ac67-fec916214223" => 10, "000cc69a-bb7d-4d3e-ae9f-e42e3dcac23e" => 3}
   """
   @spec get_hand_counts(Game.join_code()) :: %{optional(Player.id()) => non_neg_integer()}
-  def get_hand_counts(join_code) do
-    GameServer.get(via(join_code), &Game.hand_counts/1)
-  end
+  defdelegate get_hand_counts(join_code), to: GameServer
 
   @doc """
   Get the hand of the specified player.
