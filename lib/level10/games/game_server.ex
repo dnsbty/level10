@@ -117,6 +117,19 @@ defmodule Level10.Games.GameServer do
     GenServer.call(via(join_code), :finished?, 5000)
   end
 
+  @doc """
+  Returns the game with the specified join code.
+
+  ## Examples
+
+      iex> get("ABCD")
+      %Game{}
+  """
+  @spec get(Game.join_code()) :: Game.t()
+  def get(join_code) do
+    GenServer.call(via(join_code), :get, 5000)
+  end
+
   @spec start_link({Game.join_code(), Player.t()}, GenServer.options()) :: on_start
   def start_link({join_code, player}, options \\ []) do
     GenServer.start_link(__MODULE__, {join_code, player}, options)
@@ -231,6 +244,10 @@ defmodule Level10.Games.GameServer do
 
   def handle_call(:finished?, _from, game) do
     {:reply, game.current_stage == :finish, game}
+  end
+
+  def handle_call(:get, _from, game) do
+    {:reply, game, game}
   end
 
   def handle_call({:get, fun}, _from, state) do

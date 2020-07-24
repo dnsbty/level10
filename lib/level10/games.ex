@@ -121,11 +121,7 @@ defmodule Level10.Games do
       %Game{}
   """
   @spec get(Game.join_code()) :: Game.t()
-  def get(join_code) do
-    join_code
-    |> via()
-    |> GameServer.get(& &1)
-  end
+  defdelegate get(join_code), to: GameServer
 
   @doc """
   Get the player whose turn it currently is.
