@@ -55,9 +55,7 @@ defmodule Level10.Games do
       true
   """
   @spec current_player_has_drawn?(Game.join_code()) :: boolean()
-  def current_player_has_drawn?(join_code) do
-    GameServer.get(via(join_code), & &1.current_turn_drawn?)
-  end
+  defdelegate current_player_has_drawn?(join_code), to: GameServer
 
   @doc """
   Delete a game.

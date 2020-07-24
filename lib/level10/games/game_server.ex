@@ -46,6 +46,19 @@ defmodule Level10.Games.GameServer do
     GenServer.call(via(join_code), :creator, 5000)
   end
 
+  @doc """
+  Check to see if the current player has drawn a card yet.
+
+  ## Examples
+
+      iex> current_player_has_drawn?("ABCD")
+      true
+  """
+  @spec current_player_has_drawn?(Game.join_code()) :: boolean()
+  def current_player_has_drawn?(join_code) do
+    GenServer.call(via(join_code), :current_turn_drawn?, 5000)
+  end
+
   @spec start_link({Game.join_code(), Player.t()}, GenServer.options()) :: on_start
   def start_link({join_code, player}, options \\ []) do
     GenServer.start_link(__MODULE__, {join_code, player}, options)
@@ -121,6 +134,10 @@ defmodule Level10.Games.GameServer do
 
   def handle_call(:creator, _from, game) do
     {:reply, Game.creator(game), game}
+  end
+
+  def handle_call(:current_turn_drawn?, _from, game) do
+    {:reply, game.current_turn_drawn?, game}
   end
 
   def handle_call({:get, fun}, _from, state) do
