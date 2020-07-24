@@ -38,6 +38,14 @@ defmodule Level10.Games.GameServer do
     )
   end
 
+  @doc """
+  Returns a Player struct representing the player who created the game.
+  """
+  @spec creator(Game.join_code()) :: Player.t()
+  def creator(join_code) do
+    GenServer.call(via(join_code), :creator, 5000)
+  end
+
   @spec start_link({Game.join_code(), Player.t()}, GenServer.options()) :: on_start
   def start_link({join_code, player}, options \\ []) do
     GenServer.start_link(__MODULE__, {join_code, player}, options)
@@ -109,6 +117,10 @@ defmodule Level10.Games.GameServer do
       error ->
         {:reply, error, game}
     end
+  end
+
+  def handle_call(:creator, _from, game) do
+    {:reply, Game.creator(game), game}
   end
 
   def handle_call({:get, fun}, _from, state) do

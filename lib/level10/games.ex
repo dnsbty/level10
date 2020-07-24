@@ -31,19 +31,23 @@ defmodule Level10.Games do
     count
   end
 
+  @doc """
+  Create a new game with the player named as its creator.
+  """
   @spec create_game(String.t()) :: {:ok, Game.join_code(), Player.id()} | :error
   def create_game(player_name) do
     player = Player.new(player_name)
     do_create_game(player, @max_attempts)
   end
 
+  @doc """
+  Returns a Player struct representing the player who created the game.
+  """
   @spec creator(Game.join_code()) :: Player.t()
-  def creator(join_code) do
-    GameServer.get(via(join_code), &Game.creator/1)
-  end
+  defdelegate creator(join_code), to: GameServer
 
   @doc """
-  Check to see if the current player has drawn a card yet
+  Check to see if the current player has drawn a card yet.
 
   ## Examples
 
