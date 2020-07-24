@@ -83,8 +83,8 @@ defmodule Level10.Games do
   defdelegate discard_card(join_code, player_id, card), to: GameServer
 
   @doc """
-  Take the top card from either the draw pile or discard pile and returns add
-  it to the player's hand, returning the card
+  Take the top card from either the draw pile or discard pile and add it to the
+  player's hand
 
   ## Examples
 
@@ -96,20 +96,7 @@ defmodule Level10.Games do
   """
   @spec draw_card(Game.join_code(), Player.id(), :discard_pile | :draw_pile) ::
           Card.t() | :already_drawn | :empty_discard_pile | :not_your_turn | :skip
-  def draw_card(join_code, player_id, source) do
-    GameServer.get_and_update(via(join_code), fn game ->
-      with {:ok, game} <- Game.draw_card(game, player_id, source) do
-        if source == :discard_pile do
-          broadcast(join_code, :new_discard_top, Game.top_discarded_card(game))
-        end
-
-        broadcast(join_code, :hand_counts_updated, Game.hand_counts(game))
-        [new_card | _] = game.hands[player_id]
-
-        {new_card, game}
-      end
-    end)
-  end
+  defdelegate draw_card(join_code, player_id, source), to: GameServer
 
   @spec do_create_game(Player.t(), non_neg_integer()) ::
           {:ok, Game.join_code(), Player.id()} | :error

@@ -73,6 +73,24 @@ defmodule Level10.Games.GameServer do
     GenServer.call(via(join_code), {:discard, {player_id, card}}, 5000)
   end
 
+  @doc """
+  Take the top card from either the draw pile or discard pile and add it to the
+  player's hand
+
+  ## Examples
+
+      iex> draw_card("ABCD", "9c34b9fe-3104-44b3-b21b-28140e2e3624", :draw_pile)
+      %Card{color: :green, value: :twelve}
+
+      iex> draw_card("ABCD", "9c34b9fe-3104-44b3-b21b-28140e2e3624", :discard_pile)
+      %Card{color: :green, value: :twelve}
+  """
+  @spec draw_card(Game.join_code(), Player.id(), :discard_pile | :draw_pile) ::
+          Card.t() | :already_drawn | :empty_discard_pile | :not_your_turn | :skip
+  def draw_card(join_code, player_id, source) do
+    GenServer.call(via(join_code), {:draw, {player_id, source}}, 5000)
+  end
+
   @spec start_link({Game.join_code(), Player.t()}, GenServer.options()) :: on_start
   def start_link({join_code, player}, options \\ []) do
     GenServer.start_link(__MODULE__, {join_code, player}, options)
@@ -169,6 +187,19 @@ defmodule Level10.Games.GameServer do
     else
       :needs_to_draw -> {:reply, :needs_to_draw, game}
       _ -> {:reply, :not_your_turn, game}
+    end
+  end
+
+  def handle_call({:draw, {player_id, source}}, _from, game) do
+    with {:ok, game} <- Game.draw_card(game, player_id, source) do
+      if source == :discard_pile do
+        broadcast(game.join_code, :new_discard_top, Game.top_discarded_card(game))
+      end
+
+      broadcast(game.join_code, :hand_counts_updated, Game.hand_counts(game))
+      [new_card | _] = game.hands[player_id]
+
+      {:reply, new_card, game}
     end
   end
 
