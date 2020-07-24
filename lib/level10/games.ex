@@ -168,13 +168,7 @@ defmodule Level10.Games do
       }
   """
   @spec get_levels(Game.join_code()) :: %{optional(Player.t()) => Levels.level()}
-  def get_levels(join_code) do
-    levels = GameServer.get(via(join_code), & &1.levels)
-
-    for {player_id, level_number} <- levels,
-        into: %{},
-        do: {player_id, Levels.by_number(level_number)}
-  end
+  defdelegate get_levels(join_code), to: GameServer
 
   @doc """
   Get the list of players in a game.

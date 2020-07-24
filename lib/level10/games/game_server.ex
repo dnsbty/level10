@@ -5,7 +5,7 @@ defmodule Level10.Games.GameServer do
 
   use GenServer
   alias Level10.StateHandoff
-  alias Level10.Games.{Game, GameRegistry, Player}
+  alias Level10.Games.{Game, GameRegistry, Levels, Player}
   require Logger
 
   @typedoc "The agent reference"
@@ -169,6 +169,26 @@ defmodule Level10.Games.GameServer do
     GenServer.call(via(join_code), {:hand, player_id}, 5000)
   end
 
+  @doc """
+  Get the level information for each player in the game.
+
+  ## Examples
+
+      iex> get_levels("ABCD")
+      %{
+        "04ba446e-0b2a-49f2-8dbf-7d9742548842" => [set: 4, run: 4],
+        "86800484-8e73-4408-bd15-98a57871694f" => [run: 7],
+      }
+  """
+  @spec get_levels(Game.join_code()) :: %{optional(Player.t()) => Levels.level()}
+  def get_levels(join_code) do
+    levels = GenServer.call(via(join_code), :levels, 5000)
+
+    for {player_id, level_number} <- levels,
+        into: %{},
+        do: {player_id, Levels.by_number(level_number)}
+  end
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -313,6 +333,10 @@ defmodule Level10.Games.GameServer do
 
   def handle_call({:hand, player_id}, _from, game) do
     {:reply, game.hands[player_id], game}
+  end
+
+  def handle_call(:levels, _from, game) do
+    {:reply, game.levels, game}
   end
 
   def handle_call({:update, fun}, _from, state) do
