@@ -66,9 +66,7 @@ defmodule Level10.Games do
       :ok
   """
   @spec delete_game(Game.join_code()) :: :ok
-  def delete_game(join_code) do
-    GameServer.stop(via(join_code))
-  end
+  defdelegate delete_game(join_code), to: GameServer
 
   @doc """
   Discard a card from the player's hand
@@ -97,33 +95,6 @@ defmodule Level10.Games do
   @spec draw_card(Game.join_code(), Player.id(), :discard_pile | :draw_pile) ::
           Card.t() | :already_drawn | :empty_discard_pile | :not_your_turn | :skip
   defdelegate draw_card(join_code, player_id, source), to: GameServer
-
-  @spec do_create_game(Player.t(), non_neg_integer()) ::
-          {:ok, Game.join_code(), Player.id()} | :error
-  defp do_create_game(player, attempts_remaining)
-
-  defp do_create_game(_player, 0) do
-    :error
-  end
-
-  defp do_create_game(player, attempts_remaining) do
-    join_code = Game.generate_join_code()
-
-    game = %{
-      id: join_code,
-      start: {GameServer, :start_link, [{join_code, player}, [name: via(join_code)]]},
-      restart: :temporary
-    }
-
-    case Horde.DynamicSupervisor.start_child(GameSupervisor, game) do
-      {:ok, _pid} ->
-        Logger.info(["Created game ", join_code])
-        {:ok, join_code, player.id}
-
-      {:error, {:already_started, _pid}} ->
-        do_create_game(player, attempts_remaining - 1)
-    end
-  end
 
   @spec exists?(Game.join_code()) :: boolean()
   def exists?(join_code) do
@@ -522,6 +493,45 @@ defmodule Level10.Games do
 
   # Private
 
+  @spec broadcast_game_complete(Game.t(), Player.id()) :: :ok | {:error, term()}
+  defp broadcast_game_complete(game, player_id) do
+    player = Enum.find(game.players, &(&1.id == player_id))
+    broadcast(game.join_code, :game_finished, player)
+  end
+
+  @spec broadcast_round_complete(Game.t(), Player.id()) :: Game.t()
+  defp broadcast_round_complete(game, player_id) do
+    player = Enum.find(game.players, &(&1.id == player_id))
+    broadcast(game.join_code, :round_finished, player)
+  end
+
+  @spec do_create_game(Player.t(), non_neg_integer()) ::
+          {:ok, Game.join_code(), Player.id()} | :error
+  defp do_create_game(player, attempts_remaining)
+
+  defp do_create_game(_player, 0) do
+    :error
+  end
+
+  defp do_create_game(player, attempts_remaining) do
+    join_code = Game.generate_join_code()
+
+    game = %{
+      id: join_code,
+      start: {GameServer, :start_link, [{join_code, player}, [name: via(join_code)]]},
+      restart: :temporary
+    }
+
+    case Horde.DynamicSupervisor.start_child(GameSupervisor, game) do
+      {:ok, _pid} ->
+        Logger.info(["Created game ", join_code])
+        {:ok, join_code, player.id}
+
+      {:error, {:already_started, _pid}} ->
+        do_create_game(player, attempts_remaining - 1)
+    end
+  end
+
   @spec maybe_complete_round(Game.t(), Player.id()) :: Game.t()
   defp maybe_complete_round(game, player_id) do
     with true <- Game.round_finished?(game, player_id),
@@ -536,17 +546,5 @@ defmodule Level10.Games do
         broadcast_round_complete(game, player_id)
         game
     end
-  end
-
-  @spec broadcast_game_complete(Game.t(), Player.id()) :: :ok | {:error, term()}
-  defp broadcast_game_complete(game, player_id) do
-    player = Enum.find(game.players, &(&1.id == player_id))
-    broadcast(game.join_code, :game_finished, player)
-  end
-
-  @spec broadcast_round_complete(Game.t(), Player.id()) :: Game.t()
-  defp broadcast_round_complete(game, player_id) do
-    player = Enum.find(game.players, &(&1.id == player_id))
-    broadcast(game.join_code, :round_finished, player)
   end
 end

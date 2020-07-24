@@ -60,6 +60,19 @@ defmodule Level10.Games.GameServer do
   end
 
   @doc """
+  Delete a game.
+
+  ## Examples
+
+      iex> delete_game("ABCD")
+      :ok
+  """
+  @spec delete_game(Game.join_code(), reason :: term, timeout) :: :ok
+  def delete_game(join_code, reason \\ :normal, timeout \\ :infinity) do
+    GenServer.stop(via(join_code), reason, timeout)
+  end
+
+  @doc """
   Discard a card from the player's hand
 
   ## Examples
