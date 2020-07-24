@@ -154,9 +154,7 @@ defmodule Level10.Games do
       [%Card{color: :green, value: :twelve}, %Card{color: :blue, value: :nine}, ...]
   """
   @spec get_hand_for_player(Game.join_code(), Player.id()) :: list(Card.t())
-  def get_hand_for_player(join_code, player_id) do
-    GameServer.get(via(join_code), & &1.hands[player_id])
-  end
+  defdelegate get_hand_for_player(join_code, player_id), to: GameServer
 
   @doc """
   Get the level information for each player in the game.
