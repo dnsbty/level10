@@ -8,6 +8,8 @@ defmodule Level10.Games.GameServer do
   alias Level10.Games.{Game, GameRegistry, Levels, Player}
   require Logger
 
+  # Types
+
   @typedoc "The agent reference"
   @type agent :: pid | {atom, node} | name
 
@@ -22,6 +24,10 @@ defmodule Level10.Games.GameServer do
 
   @typep event_type :: atom()
   @typep game_name :: {:via, module, term}
+
+  # Constants
+
+  @max_players 6
 
   # Client Functions
 
@@ -299,6 +305,36 @@ defmodule Level10.Games.GameServer do
     GenServer.call(via(join_code), :top_discarded_card, 5000)
   end
 
+  @doc """
+  Attempts to join a game. Will return an ok tuple with the player ID for the
+  new player if joining is successful, or an atom with a reason if not.
+
+  ## Examples
+
+      iex> join_game("ABCD", "Player One")
+      {:ok, "9bbfeacb-a006-4646-8776-83cca0ad03eb"}
+
+      iex> join_game("ABCD", "Player One")
+      :already_started
+
+      iex> join_game("ABCD", "Player One")
+      :full
+
+      iex> join_game("ABCD", "Player One")
+      :not_found
+  """
+  @spec join_game(Game.join_code(), String.t()) ::
+          {:ok, Player.id()} | :already_started | :full | :not_found
+  def join_game(join_code, player_name) do
+    player = Player.new(player_name)
+
+    if exists?(join_code) do
+      GenServer.call(via(join_code), {:join, player}, 5000)
+    else
+      :not_found
+    end
+  end
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -447,6 +483,20 @@ defmodule Level10.Games.GameServer do
 
   def handle_call({:hand, player_id}, _from, game) do
     {:reply, game.hands[player_id], game}
+  end
+
+  def handle_call({:join, player}, _from, game) do
+    with {:ok, updated_game} <- Game.put_player(game, player),
+         true <- length(updated_game.players) <= @max_players do
+      broadcast(game.join_code, :players_updated, updated_game.players)
+      {:reply, {:ok, player.id}, updated_game}
+    else
+      :already_started ->
+        {:reply, :already_started, game}
+
+      _ ->
+        {:reply, :full, game}
+    end
   end
 
   def handle_call(:levels, _from, game) do

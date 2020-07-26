@@ -13,7 +13,6 @@ defmodule Level10.Games do
   @typep game_name :: {:via, module, term}
 
   @max_attempts 10
-  @max_players 6
 
   @doc """
   Add one or more cards to a group that is already on the table
@@ -272,27 +271,7 @@ defmodule Level10.Games do
   """
   @spec join_game(Game.join_code(), String.t()) ::
           {:ok, Player.id()} | :already_started | :full | :not_found
-  def join_game(join_code, player_name) do
-    player = Player.new(player_name)
-
-    if exists?(join_code) do
-      GameServer.get_and_update(via(join_code), fn game ->
-        with {:ok, updated_game} <- Game.put_player(game, player),
-             true <- length(updated_game.players) <= @max_players do
-          broadcast(game.join_code, :players_updated, updated_game.players)
-          {{:ok, player.id}, updated_game}
-        else
-          :already_started ->
-            {:already_started, game}
-
-          _ ->
-            {:full, game}
-        end
-      end)
-    else
-      :not_found
-    end
-  end
+  defdelegate join_game(join_code, player_name), to: GameServer
 
   @spec leave_game(Game.join_code(), Player.id()) :: :ok | :already_started | :deleted
   def leave_game(join_code, player_id) do
