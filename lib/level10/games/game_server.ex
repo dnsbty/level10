@@ -237,6 +237,33 @@ defmodule Level10.Games.GameServer do
     GenServer.call(via(join_code), :scoring, 5000)
   end
 
+  @doc """
+  Get the table: the cards that have been played to complete levels by each
+  player.
+
+  ## Examples
+
+      iex> get_table("ABCD")
+      %{
+        "12a29ba6-fe6f-4f81-8c89-46ef8aff4b82" => %{
+          0 => [
+            %Level10.Games.Card{color: :black, value: :wild},
+            %Level10.Games.Card{color: :blue, value: :twelve},
+            %Level10.Games.Card{color: :red, value: :twelve}
+          ],
+          1 => [
+            %Level10.Games.Card{color: :black, value: :wild},
+            %Level10.Games.Card{color: :green, value: :ten},
+            %Level10.Games.Card{color: :blue, value: :ten}
+          ]
+        }
+      }
+  """
+  @spec get_table(Game.join_code()) :: Game.table()
+  def get_table(join_code) do
+    GenServer.call(via(join_code), :table, 5000)
+  end
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -401,6 +428,10 @@ defmodule Level10.Games.GameServer do
 
   def handle_call(:scoring, _from, game) do
     {:reply, game.scoring, game}
+  end
+
+  def handle_call(:table, _from, game) do
+    {:reply, game.table, game}
   end
 
   def handle_call({:update, fun}, _from, state) do

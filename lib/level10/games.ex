@@ -230,9 +230,7 @@ defmodule Level10.Games do
       }
   """
   @spec get_table(Game.join_code()) :: Game.table()
-  def get_table(join_code) do
-    GameServer.get(via(join_code), & &1.table)
-  end
+  defdelegate get_table(join_code), to: GameServer
 
   @doc """
   Get the top card from the discard pile.
