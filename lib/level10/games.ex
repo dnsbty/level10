@@ -205,9 +205,7 @@ defmodule Level10.Games do
       }
   """
   @spec get_scores(Game.join_code()) :: Game.scores()
-  def get_scores(join_code) do
-    GameServer.get(via(join_code), & &1.scoring)
-  end
+  defdelegate get_scores(join_code), to: GameServer
 
   @doc """
   Get the table: the cards that have been played to complete levels by each

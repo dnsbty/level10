@@ -221,6 +221,22 @@ defmodule Level10.Games.GameServer do
     GenServer.call(via(join_code), :current_round, 5000)
   end
 
+  @doc """
+  Get the scores for all players in a game.
+
+  ## Examples
+
+      iex> get_scores("ABCD")
+      %{
+        "e486056e-4a01-4239-9f00-6f7f57ca8d54" => {3, 55},
+        "38379e46-4d29-4a22-a245-aa7013ec3c33" => {2, 120}
+      }
+  """
+  @spec get_scores(Game.join_code()) :: Game.scores()
+  def get_scores(join_code) do
+    GenServer.call(via(join_code), :scoring, 5000)
+  end
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -381,6 +397,10 @@ defmodule Level10.Games.GameServer do
 
   def handle_call(:players_ready, _from, game) do
     {:reply, game.players_ready, game}
+  end
+
+  def handle_call(:scoring, _from, game) do
+    {:reply, game.scoring, game}
   end
 
   def handle_call({:update, fun}, _from, state) do
