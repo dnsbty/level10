@@ -213,6 +213,14 @@ defmodule Level10.Games.GameServer do
     GenServer.call(via(join_code), :players_ready, 5000)
   end
 
+  @doc """
+  Get the round number for the current round.
+  """
+  @spec get_round_number(Game.join_code()) :: non_neg_integer()
+  def get_round_number(join_code) do
+    GenServer.call(via(join_code), :current_round, 5000)
+  end
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -295,6 +303,10 @@ defmodule Level10.Games.GameServer do
 
   def handle_call(:current_player, _from, game) do
     {:reply, game.current_player, game}
+  end
+
+  def handle_call(:current_round, _from, game) do
+    {:reply, game.current_round, game}
   end
 
   def handle_call(:current_turn_drawn?, _from, game) do

@@ -191,9 +191,7 @@ defmodule Level10.Games do
   defdelegate get_players_ready(join_code), to: GameServer
 
   @spec get_round_number(Game.join_code()) :: non_neg_integer()
-  def get_round_number(join_code) do
-    GameServer.get(via(join_code), & &1.current_round)
-  end
+  defdelegate get_round_number(join_code), to: GameServer
 
   @doc """
   Get the scores for all players in a game.
