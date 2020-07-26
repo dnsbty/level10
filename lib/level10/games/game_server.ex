@@ -105,6 +105,25 @@ defmodule Level10.Games.GameServer do
   end
 
   @doc """
+  Returns whether or not a game with the specified join code exists.
+
+  ## Examples
+
+      iex> exists?("ABCD")
+      true
+
+      iex> exists?("ASDF")
+      false
+  """
+  @spec exists?(Game.join_code()) :: boolean()
+  def exists?(join_code) do
+    case Horde.Registry.lookup(GameRegistry, join_code) do
+      [] -> false
+      _ -> true
+    end
+  end
+
+  @doc """
   Returns whether or not the specified game is finished.
 
   ## Examples

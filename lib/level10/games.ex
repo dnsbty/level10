@@ -96,13 +96,19 @@ defmodule Level10.Games do
           Card.t() | :already_drawn | :empty_discard_pile | :not_your_turn | :skip
   defdelegate draw_card(join_code, player_id, source), to: GameServer
 
+  @doc """
+  Returns whether or not a game with the specified join code exists.
+
+  ## Examples
+
+      iex> exists?("ABCD")
+      true
+
+      iex> exists?("ASDF")
+      false
+  """
   @spec exists?(Game.join_code()) :: boolean()
-  def exists?(join_code) do
-    case Horde.Registry.lookup(GameRegistry, join_code) do
-      [] -> false
-      _ -> true
-    end
-  end
+  defdelegate exists?(join_code), to: GameServer
 
   @spec via(Game.join_code()) :: game_name()
   defp via(join_code) do
