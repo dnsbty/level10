@@ -188,9 +188,7 @@ defmodule Level10.Games do
   Gets the set of IDs of players who are ready for the next round to begin.
   """
   @spec get_players_ready(Game.join_code()) :: MapSet.t(Player.id())
-  def get_players_ready(join_code) do
-    GameServer.get(via(join_code), & &1.players_ready)
-  end
+  defdelegate get_players_ready(join_code), to: GameServer
 
   @spec get_round_number(Game.join_code()) :: non_neg_integer()
   def get_round_number(join_code) do

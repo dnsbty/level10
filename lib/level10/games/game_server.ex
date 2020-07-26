@@ -205,6 +205,14 @@ defmodule Level10.Games.GameServer do
     GenServer.call(via(join_code), :players, 5000)
   end
 
+  @doc """
+  Gets the set of IDs of players who are ready for the next round to begin.
+  """
+  @spec get_players_ready(Game.join_code()) :: MapSet.t(Player.id())
+  def get_players_ready(join_code) do
+    GenServer.call(via(join_code), :players_ready, 5000)
+  end
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -357,6 +365,10 @@ defmodule Level10.Games.GameServer do
 
   def handle_call(:players, _from, game) do
     {:reply, game.players, game}
+  end
+
+  def handle_call(:players_ready, _from, game) do
+    {:reply, game.players_ready, game}
   end
 
   def handle_call({:update, fun}, _from, state) do
