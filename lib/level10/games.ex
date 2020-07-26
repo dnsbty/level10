@@ -283,26 +283,12 @@ defmodule Level10.Games do
   @spec leave_game(Game.join_code(), Player.id()) :: :ok | :already_started | :deleted
   defdelegate leave_game(join_code, player_id), to: GameServer
 
+  @doc """
+  Stores in the game state that the specified player is ready to move on to the
+  next stage of the game.
+  """
   @spec mark_player_ready(Game.join_code(), Player.id()) :: :ok
-  def mark_player_ready(join_code, player_id) do
-    result =
-      GameServer.get_and_update(via(join_code), fn game ->
-        with {:all_ready, game} <- Game.mark_player_ready(game, player_id),
-             {:ok, game} <- Game.start_round(game) do
-          broadcast(join_code, :round_started, nil)
-          {:ok, game}
-        else
-          :game_over ->
-            {:game_over, game}
-
-          {:ok, game} ->
-            broadcast(join_code, :players_ready, game.players_ready)
-            {:ok, game}
-        end
-      end)
-
-    with :game_over <- result, do: delete_game(join_code)
-  end
+  defdelegate mark_player_ready(join_code, player_id), to: GameServer
 
   @spec player_exists?(Game.t() | Game.join_code(), Player.id()) :: boolean()
   def player_exists?(join_code, player_id) when is_binary(join_code) do

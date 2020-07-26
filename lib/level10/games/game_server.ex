@@ -348,6 +348,16 @@ defmodule Level10.Games.GameServer do
     with :empty_game <- result, do: delete_game(join_code)
   end
 
+  @doc """
+  Stores in the game state that the specified player is ready to move on to the
+  next stage of the game.
+  """
+  @spec mark_player_ready(Game.join_code(), Player.id()) :: :ok
+  def mark_player_ready(join_code, player_id) do
+    result = GenServer.call(via(join_code), {:player_ready, player_id}, 5000)
+    with :game_over <- result, do: delete_game(join_code)
+  end
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -529,6 +539,22 @@ defmodule Level10.Games.GameServer do
 
   def handle_call(:players, _from, game) do
     {:reply, game.players, game}
+  end
+
+  # TODO: Move to cast
+  def handle_call({:player_ready, player_id}, _from, game) do
+    with {:all_ready, game} <- Game.mark_player_ready(game, player_id),
+         {:ok, game} <- Game.start_round(game) do
+      broadcast(game.join_code, :round_started, nil)
+      {:reply, :ok, game}
+    else
+      :game_over ->
+        {:reply, :game_over, game}
+
+      {:ok, game} ->
+        broadcast(game.join_code, :players_ready, game.players_ready)
+        {:reply, :ok, game}
+    end
   end
 
   def handle_call(:players_ready, _from, game) do
