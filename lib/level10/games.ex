@@ -244,11 +244,7 @@ defmodule Level10.Games do
       nil
   """
   @spec get_top_discarded_card(Game.join_code()) :: Card.t() | nil
-  def get_top_discarded_card(join_code) do
-    GameServer.get(via(join_code), fn game ->
-      Game.top_discarded_card(game)
-    end)
-  end
+  defdelegate get_top_discarded_card(join_code), to: GameServer
 
   @doc """
   Attempts to join a game. Will return an ok tuple with the player ID for the

@@ -264,6 +264,22 @@ defmodule Level10.Games.GameServer do
     GenServer.call(via(join_code), :table, 5000)
   end
 
+  @doc """
+  Get the top card from the discard pile.
+
+  ## Examples
+
+      iex> get_top_discarded_card("ABCD")
+      %Card{color: :green, value: :twelve}
+
+      iex> get_top_discarded_card("ABCD")
+      nil
+  """
+  @spec get_top_discarded_card(Game.join_code()) :: Card.t() | nil
+  def get_top_discarded_card(join_code) do
+    GenServer.call(via(join_code), :top_discarded_card, 5000)
+  end
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -432,6 +448,11 @@ defmodule Level10.Games.GameServer do
 
   def handle_call(:table, _from, game) do
     {:reply, game.table, game}
+  end
+
+  def handle_call(:top_discarded_card, _from, game) do
+    card = Game.top_discarded_card(game)
+    {:reply, card, game}
   end
 
   def handle_call({:update, fun}, _from, state) do
