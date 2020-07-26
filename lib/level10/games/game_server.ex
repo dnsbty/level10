@@ -335,6 +335,19 @@ defmodule Level10.Games.GameServer do
     end
   end
 
+  @doc """
+  Removes the specified player from the game. This is only allowed if the game
+  is still in the lobby stage.
+
+  If the player is currently alone in the game, the game will be deleted as
+  well.
+  """
+  @spec leave_game(Game.join_code(), Player.id()) :: :ok | :already_started | :deleted
+  def leave_game(join_code, player_id) do
+    result = GenServer.call(via(join_code), {:delete_player, player_id}, 5000)
+    with :empty_game <- result, do: delete_game(join_code)
+  end
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -425,6 +438,17 @@ defmodule Level10.Games.GameServer do
 
   def handle_call(:current_turn_drawn?, _from, game) do
     {:reply, game.current_turn_drawn?, game}
+  end
+
+  def handle_call({:delete_player, player_id}, _from, game) do
+    case Game.delete_player(game, player_id) do
+      {:ok, game} ->
+        broadcast(game.join_code, :players_updated, game.players)
+        {:reply, :ok, game}
+
+      error ->
+        {:reply, error, game}
+    end
   end
 
   def handle_call({:discard, {player_id, card}}, _from, game) do

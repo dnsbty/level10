@@ -273,25 +273,15 @@ defmodule Level10.Games do
           {:ok, Player.id()} | :already_started | :full | :not_found
   defdelegate join_game(join_code, player_name), to: GameServer
 
+  @doc """
+  Removes the specified player from the game. This is only allowed if the game
+  is still in the lobby stage.
+
+  If the player is currently alone in the game, the game will be deleted as
+  well.
+  """
   @spec leave_game(Game.join_code(), Player.id()) :: :ok | :already_started | :deleted
-  def leave_game(join_code, player_id) do
-    result =
-      GameServer.get_and_update(via(join_code), fn game ->
-        case Game.delete_player(game, player_id) do
-          {:ok, game} ->
-            broadcast(game.join_code, :players_updated, game.players)
-            {:ok, game}
-
-          :already_started ->
-            {:already_started, game}
-
-          :empty_game ->
-            {:empty_game, game}
-        end
-      end)
-
-    with :empty_game <- result, do: delete_game(join_code)
-  end
+  defdelegate leave_game(join_code, player_id), to: GameServer
 
   @spec mark_player_ready(Game.join_code(), Player.id()) :: :ok
   def mark_player_ready(join_code, player_id) do
