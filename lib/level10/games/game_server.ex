@@ -189,6 +189,22 @@ defmodule Level10.Games.GameServer do
         do: {player_id, Levels.by_number(level_number)}
   end
 
+  @doc """
+  Get the list of players in a game.
+
+  ## Examples
+
+      iex> get_players("ABCD")
+      [
+        %Player{id: "601a07a1-b229-47e5-ad13-dbe0599c90e9", name: "Player 1"},
+        %Player{id: "a0d2ef3e-e44c-4a58-b90d-a56d88224700", name: "Player 2"}
+      ]
+  """
+  @spec get_players(Game.join_code()) :: list(Player.t())
+  def get_players(join_code) do
+    GenServer.call(via(join_code), :players, 5000)
+  end
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -337,6 +353,10 @@ defmodule Level10.Games.GameServer do
 
   def handle_call(:levels, _from, game) do
     {:reply, game.levels, game}
+  end
+
+  def handle_call(:players, _from, game) do
+    {:reply, game.players, game}
   end
 
   def handle_call({:update, fun}, _from, state) do

@@ -182,9 +182,7 @@ defmodule Level10.Games do
       ]
   """
   @spec get_players(Game.join_code()) :: list(Player.t())
-  def get_players(join_code) do
-    GameServer.get(via(join_code), & &1.players)
-  end
+  defdelegate get_players(join_code), to: GameServer
 
   @doc """
   Gets the set of IDs of players who are ready for the next round to begin.
