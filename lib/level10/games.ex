@@ -361,10 +361,11 @@ defmodule Level10.Games do
   @spec unsubscribe(String.t(), Player.id()) :: :ok | {:error, term()}
   defdelegate unsubscribe(game_code, player_id), to: GameServer
 
+  @doc """
+  Update the specified game using the provided function.
+  """
   @spec update(Game.join_code(), (Game.t() -> Game.t())) :: :ok
-  def update(join_code, fun) do
-    GameServer.update(via(join_code), fun)
-  end
+  defdelegate update(join_code, fun), to: GameServer
 
   @spec broadcast(Game.join_code(), event_type(), term()) :: :ok | {:error, term()}
   def broadcast(join_code, event_type, event) do

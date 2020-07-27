@@ -459,6 +459,14 @@ defmodule Level10.Games.GameServer do
     end
   end
 
+  @doc """
+  Update the specified game using the provided function.
+  """
+  @spec update(Game.join_code(), (Game.t() -> Game.t())) :: :ok
+  def update(join_code, fun) do
+    GenServer.call(via(join_code), {:update, fun}, 5000)
+  end
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -485,16 +493,6 @@ defmodule Level10.Games.GameServer do
   @spec get_and_update(agent, module, atom, [term], timeout) :: any
   def get_and_update(agent, module, fun, args, timeout \\ 5000) do
     GenServer.call(agent, {:get_and_update, {module, fun, args}}, timeout)
-  end
-
-  @spec update(agent, (state -> state), timeout) :: :ok
-  def update(agent, fun, timeout \\ 5000) when is_function(fun, 1) do
-    GenServer.call(agent, {:update, fun}, timeout)
-  end
-
-  @spec update(agent, module, atom, [term], timeout) :: :ok
-  def update(agent, module, fun, args, timeout \\ 5000) do
-    GenServer.call(agent, {:update, {module, fun, args}}, timeout)
   end
 
   @spec stop(agent, reason :: term, timeout) :: :ok
