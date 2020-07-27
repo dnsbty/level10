@@ -384,6 +384,14 @@ defmodule Level10.Games.GameServer do
     GenServer.call(via(join_code), :round_started?, 5000)
   end
 
+  @doc """
+  Returns the player struct representing the player who won the current round.
+  """
+  @spec round_winner(Game.join_code()) :: Player.t() | nil
+  def round_winner(join_code) do
+    GenServer.call(via(join_code), :round_winner, 5000)
+  end
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -598,6 +606,10 @@ defmodule Level10.Games.GameServer do
 
   def handle_call(:round_started?, _from, game) do
     {:reply, game.current_stage == :play, game}
+  end
+
+  def handle_call(:round_winner, _from, game) do
+    {:reply, Game.round_winner(game), game}
   end
 
   def handle_call(:scoring, _from, game) do

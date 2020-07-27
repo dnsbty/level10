@@ -310,12 +310,11 @@ defmodule Level10.Games do
   @spec round_started?(Game.join_code()) :: boolean()
   defdelegate round_started?(join_code), to: GameServer
 
+  @doc """
+  Returns the player struct representing the player who won the current round.
+  """
   @spec round_winner(Game.join_code()) :: Player.t() | nil
-  def round_winner(join_code) do
-    GameServer.get(via(join_code), fn game ->
-      Game.round_winner(game)
-    end)
-  end
+  defdelegate round_winner(join_code), to: GameServer
 
   @spec start_round(Game.join_code()) :: :ok | :game_over
   def start_round(join_code) do
