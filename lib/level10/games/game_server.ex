@@ -27,6 +27,7 @@ defmodule Level10.Games.GameServer do
 
   # Constants
 
+  @max_creation_attempts 10
   @max_players 6
 
   # Client Functions
@@ -59,6 +60,15 @@ defmodule Level10.Games.GameServer do
   def count() do
     %{active: count} = Supervisor.count_children(GameSupervisor)
     count
+  end
+
+  @doc """
+  Create a new game with the player named as its creator.
+  """
+  @spec create_game(String.t()) :: {:ok, Game.join_code(), Player.id()} | :error
+  def create_game(player_name) do
+    player = Player.new(player_name)
+    do_create_game(player, @max_creation_attempts)
   end
 
   @doc """
@@ -802,6 +812,33 @@ defmodule Level10.Games.GameServer do
   defp broadcast_round_complete(game, player_id) do
     player = Enum.find(game.players, &(&1.id == player_id))
     broadcast(game.join_code, :round_finished, player)
+  end
+
+  @spec do_create_game(Player.t(), non_neg_integer()) ::
+          {:ok, Game.join_code(), Player.id()} | :error
+  defp do_create_game(player, attempts_remaining)
+
+  defp do_create_game(_player, 0) do
+    :error
+  end
+
+  defp do_create_game(player, attempts_remaining) do
+    join_code = Game.generate_join_code()
+
+    game = %{
+      id: join_code,
+      start: {__MODULE__, :start_link, [{join_code, player}, [name: via(join_code)]]},
+      restart: :temporary
+    }
+
+    case Horde.DynamicSupervisor.start_child(GameSupervisor, game) do
+      {:ok, _pid} ->
+        Logger.info(["Created game ", join_code])
+        {:ok, join_code, player.id}
+
+      {:error, {:already_started, _pid}} ->
+        do_create_game(player, attempts_remaining - 1)
+    end
   end
 
   @spec maybe_complete_round(Game.t(), Player.id()) :: Game.t()

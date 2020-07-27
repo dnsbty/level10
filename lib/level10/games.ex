@@ -5,13 +5,10 @@ defmodule Level10.Games do
   it.
   """
 
-  alias Level10.Games.{Card, Game, GameRegistry, GameServer, GameSupervisor, Levels, Player}
+  alias Level10.Games.{Card, Game, GameServer, Levels, Player}
   require Logger
 
   @typep event_type :: atom()
-  @typep game_name :: {:via, module, term}
-
-  @max_attempts 10
 
   @doc """
   Add one or more cards to a group that is already on the table
@@ -30,10 +27,7 @@ defmodule Level10.Games do
   Create a new game with the player named as its creator.
   """
   @spec create_game(String.t()) :: {:ok, Game.join_code(), Player.id()} | :error
-  def create_game(player_name) do
-    player = Player.new(player_name)
-    do_create_game(player, @max_attempts)
-  end
+  defdelegate create_game(player_name), to: GameServer
 
   @doc """
   Returns a Player struct representing the player who created the game.
@@ -104,11 +98,6 @@ defmodule Level10.Games do
   """
   @spec exists?(Game.join_code()) :: boolean()
   defdelegate exists?(join_code), to: GameServer
-
-  @spec via(Game.join_code()) :: game_name()
-  defp via(join_code) do
-    {:via, Horde.Registry, {GameRegistry, join_code}}
-  end
 
   @spec finished?(Game.join_code()) :: boolean()
   defdelegate finished?(join_code), to: GameServer
@@ -374,33 +363,4 @@ defmodule Level10.Games do
   """
   @spec list_presence(Game.join_code()) :: %{optional(Player.id()) => map()}
   defdelegate list_presence(join_code), to: GameServer
-
-  # Private
-
-  @spec do_create_game(Player.t(), non_neg_integer()) ::
-          {:ok, Game.join_code(), Player.id()} | :error
-  defp do_create_game(player, attempts_remaining)
-
-  defp do_create_game(_player, 0) do
-    :error
-  end
-
-  defp do_create_game(player, attempts_remaining) do
-    join_code = Game.generate_join_code()
-
-    game = %{
-      id: join_code,
-      start: {GameServer, :start_link, [{join_code, player}, [name: via(join_code)]]},
-      restart: :temporary
-    }
-
-    case Horde.DynamicSupervisor.start_child(GameSupervisor, game) do
-      {:ok, _pid} ->
-        Logger.info(["Created game ", join_code])
-        {:ok, join_code, player.id}
-
-      {:error, {:already_started, _pid}} ->
-        do_create_game(player, attempts_remaining - 1)
-    end
-  end
 end
