@@ -4,7 +4,7 @@ defmodule Level10.Games.GameServer do
   """
 
   use GenServer
-  alias Level10.StateHandoff
+  alias Level10.{Presence, StateHandoff}
   alias Level10.Games.{Game, GameRegistry, Levels, Player}
   require Logger
 
@@ -425,12 +425,38 @@ defmodule Level10.Games.GameServer do
   end
 
   @doc """
+  Susbscribe a process to updates for the specified game.
+  """
+  @spec subscribe(String.t(), Player.id()) :: :ok | {:error, term()}
+  def subscribe(game_code, player_id) do
+    topic = "game:" <> game_code
+
+    with :ok <- Phoenix.PubSub.subscribe(Level10.PubSub, topic),
+         {:ok, _} <- Presence.track_player(game_code, player_id) do
+      Presence.track_user(player_id, game_code)
+      :ok
+    end
+  end
+
+  @doc """
   Set the given player's table to the given cards.
   """
   @spec table_cards(Game.join_code(), Player.id(), Game.player_table()) ::
           :ok | :already_set | :needs_to_draw | :not_your_turn
   def table_cards(join_code, player_id, player_table) do
     GenServer.call(via(join_code), {:table_cards, {player_id, player_table}}, 5000)
+  end
+
+  @doc """
+  Unsubscribe a process from updates for the specified game.
+  """
+  @spec unsubscribe(String.t(), Player.id()) :: :ok | {:error, term()}
+  def unsubscribe(game_code, player_id) do
+    topic = "game:" <> game_code
+
+    with :ok <- Phoenix.PubSub.unsubscribe(Level10.PubSub, topic) do
+      Presence.untrack(self(), topic, player_id)
+    end
   end
 
   # Old School Agent Functions

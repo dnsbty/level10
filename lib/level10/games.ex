@@ -349,25 +349,17 @@ defmodule Level10.Games do
           :ok | :already_set | :needs_to_draw | :not_your_turn
   defdelegate table_cards(join_code, player_id, player_table), to: GameServer
 
+  @doc """
+  Susbscribe a process to updates for the specified game.
+  """
   @spec subscribe(String.t(), Player.id()) :: :ok | {:error, term()}
-  def subscribe(game_code, player_id) do
-    topic = "game:" <> game_code
+  defdelegate subscribe(game_code, player_id), to: GameServer
 
-    with :ok <- Phoenix.PubSub.subscribe(Level10.PubSub, topic),
-         {:ok, _} <- Presence.track_player(game_code, player_id) do
-      Presence.track_user(player_id, game_code)
-      :ok
-    end
-  end
-
+  @doc """
+  Unsubscribe a process from updates for the specified game.
+  """
   @spec unsubscribe(String.t(), Player.id()) :: :ok | {:error, term()}
-  def unsubscribe(game_code, player_id) do
-    topic = "game:" <> game_code
-
-    with :ok <- Phoenix.PubSub.unsubscribe(Level10.PubSub, topic) do
-      Presence.untrack(self(), topic, player_id)
-    end
-  end
+  defdelegate unsubscribe(game_code, player_id), to: GameServer
 
   @spec update(Game.join_code(), (Game.t() -> Game.t())) :: :ok
   def update(join_code, fun) do
