@@ -181,18 +181,6 @@ defmodule Level10.Games.GameServer do
     {:reply, game.scoring, game}
   end
 
-  # TODO: Move to cast
-  def handle_call(:start_round, _from, game) do
-    case Game.start_round(game) do
-      {:ok, game} ->
-        broadcast(game.join_code, :round_started, nil)
-        {:reply, :ok, game}
-
-      :game_over ->
-        {:reply, :game_over, game}
-    end
-  end
-
   def handle_call(:started?, _from, game) do
     {:reply, game.current_stage != :lobby, game}
   end

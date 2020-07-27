@@ -405,14 +405,6 @@ defmodule Level10.Games do
   end
 
   @doc """
-  Start the next round.
-  """
-  @spec start_round(Game.join_code()) :: :ok | :game_over
-  def start_round(join_code) do
-    GenServer.call(via(join_code), :start_round, 5000)
-  end
-
-  @doc """
   Start the game.
   """
   @spec start_game(Game.join_code()) :: :ok
