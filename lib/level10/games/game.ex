@@ -61,7 +61,7 @@ defmodule Level10.Games.Game do
       {:ok, %Game{}}
   """
   @spec add_to_table(t(), Player.id(), Player.id(), non_neg_integer(), Game.cards()) ::
-          {:ok | :invalid_group | :level_incomplete | :needs_to_draw | :not_your_turn, t()}
+          t() | :invalid_group | :level_incomplete | :needs_to_draw | :not_your_turn
   def add_to_table(game, current_player_id, group_player_id, position, cards_to_add) do
     # get the level requirement for the specified group
     requirement = group_requirement(game, group_player_id, position)
@@ -79,20 +79,11 @@ defmodule Level10.Games.Game do
       hands = %{game.hands | current_player_id => game.hands[current_player_id] -- cards_to_add}
       {:ok, %{game | hands: hands, table: table}}
     else
-      nil ->
-        {:invalid_group, game}
-
-      false ->
-        {:invalid_group, game}
-
-      {:current_turn_drawn?, _} ->
-        {:needs_to_draw, game}
-
-      {:level_complete?, _} ->
-        {:level_incomplete, game}
-
-      player_id when is_binary(player_id) ->
-        {:not_your_turn, game}
+      nil -> :invalid_group
+      false -> :invalid_group
+      {:current_turn_drawn?, _} -> :needs_to_draw
+      {:level_complete?, _} -> :level_incomplete
+      player_id when is_binary(player_id) -> :not_your_turn
     end
   end
 
@@ -212,20 +203,20 @@ defmodule Level10.Games.Game do
           {:ok | :already_drawn | :empty_discard_pile | :not_your_turn | :skip, t()}
   def draw_card(game, player_id, pile)
 
-  def draw_card(game = %{current_player: %{id: current_id}}, player_id, _)
+  def draw_card(%{current_player: %{id: current_id}}, player_id, _)
       when current_id != player_id do
-    {:not_your_turn, game}
+    :not_your_turn
   end
 
-  def draw_card(game = %{current_turn_drawn?: true}, _player_id, _pile) do
-    {:already_drawn, game}
+  def draw_card(%{current_turn_drawn?: true}, _player_id, _pile) do
+    :already_drawn
   end
 
   def draw_card(game = %{draw_pile: pile, hands: hands}, player_id, :draw_pile) do
     case pile do
       [card | pile] ->
         hands = Map.update!(hands, player_id, &[card | &1])
-        {:ok, %{game | current_turn_drawn?: true, draw_pile: pile, hands: hands}}
+        %{game | current_turn_drawn?: true, draw_pile: pile, hands: hands}
 
       [] ->
         game
@@ -234,18 +225,18 @@ defmodule Level10.Games.Game do
     end
   end
 
-  def draw_card(game = %{discard_pile: []}, _player_id, :discard_pile) do
-    {:empty_discard_pile, game}
+  def draw_card(%{discard_pile: []}, _player_id, :discard_pile) do
+    :empty_discard_pile
   end
 
-  def draw_card(game = %{discard_pile: [%{value: :skip} | _]}, _player_id, :discard_pile) do
-    {:skip, game}
+  def draw_card(%{discard_pile: [%{value: :skip} | _]}, _player_id, :discard_pile) do
+    :skip
   end
 
   def draw_card(game, player_id, :discard_pile) do
     %{discard_pile: [card | pile], hands: hands} = game
     hands = Map.update!(hands, player_id, &[card | &1])
-    {:ok, %{game | current_turn_drawn?: true, discard_pile: pile, hands: hands}}
+    %{game | current_turn_drawn?: true, discard_pile: pile, hands: hands}
   end
 
   @doc """
@@ -370,7 +361,7 @@ defmodule Level10.Games.Game do
   Set a player's table to the given cards
   """
   @spec set_player_table(t(), Player.id(), player_table()) ::
-          {:ok | :already_set | :invalid_level | :needs_to_draw | :not_your_turn, t()}
+          t() | :already_set | :invalid_level | :needs_to_draw | :not_your_turn
   def set_player_table(game, player_id, player_table) do
     with ^player_id <- game.current_player.id,
          {:drawn, true} <- {:drawn, game.current_turn_drawn?},
@@ -385,12 +376,12 @@ defmodule Level10.Games.Game do
       cards_used = Enum.reduce(player_table, [], fn {_, cards}, acc -> acc ++ cards end)
       player_hand = game.hands[player_id] -- cards_used
       hands = Map.put(game.hands, player_id, player_hand)
-      {:ok, %{game | hands: hands, table: table}}
+      %{game | hands: hands, table: table}
     else
-      player_id when is_binary(player_id) -> {:not_your_turn, game}
-      false -> {:invalid_level, game}
-      {:drawn, false} -> {:needs_to_draw, game}
-      _ -> {:already_set, game}
+      player_id when is_binary(player_id) -> :not_your_turn
+      false -> :invalid_level
+      {:drawn, false} -> :needs_to_draw
+      _ -> :already_set
     end
   end
 
