@@ -368,6 +368,22 @@ defmodule Level10.Games.GameServer do
 
   def player_exists?(game, player_id), do: Game.player_exists?(game, player_id)
 
+  @doc """
+  Check whether or not the current round has started.
+
+  ## Examples
+
+      iex> round_started?("ABCD")
+      true
+
+      iex> round_started?("EFGH")
+      false
+  """
+  @spec round_started?(Game.join_code()) :: boolean()
+  def round_started?(join_code) do
+    GenServer.call(via(join_code), :round_started?, 5000)
+  end
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -578,6 +594,10 @@ defmodule Level10.Games.GameServer do
 
   def handle_call(:players_ready, _from, game) do
     {:reply, game.players_ready, game}
+  end
+
+  def handle_call(:round_started?, _from, game) do
+    {:reply, game.current_stage == :play, game}
   end
 
   def handle_call(:scoring, _from, game) do

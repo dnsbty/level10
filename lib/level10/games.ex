@@ -308,11 +308,7 @@ defmodule Level10.Games do
       false
   """
   @spec round_started?(Game.join_code()) :: boolean()
-  def round_started?(join_code) do
-    GameServer.get(via(join_code), fn game ->
-      game.current_stage == :play
-    end)
-  end
+  defdelegate round_started?(join_code), to: GameServer
 
   @spec round_winner(Game.join_code()) :: Player.t() | nil
   def round_winner(join_code) do
