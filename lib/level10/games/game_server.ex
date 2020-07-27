@@ -165,22 +165,6 @@ defmodule Level10.Games.GameServer do
     {:reply, game.players, game}
   end
 
-  # TODO: Move to cast
-  def handle_call({:player_ready, player_id}, _from, game) do
-    with {:all_ready, game} <- Game.mark_player_ready(game, player_id),
-         {:ok, game} <- Game.start_round(game) do
-      broadcast(game.join_code, :round_started, nil)
-      {:reply, :ok, game}
-    else
-      :game_over ->
-        {:reply, :game_over, game}
-
-      {:ok, game} ->
-        broadcast(game.join_code, :players_ready, game.players_ready)
-        {:reply, :ok, game}
-    end
-  end
-
   def handle_call(:players_ready, _from, game) do
     {:reply, game.players_ready, game}
   end
@@ -250,6 +234,22 @@ defmodule Level10.Games.GameServer do
 
   def handle_call({:update, fun}, _from, state) do
     {:reply, :ok, apply(fun, [state])}
+  end
+
+  @impl true
+  def handle_cast({:player_ready, player_id}, game) do
+    with {:all_ready, game} <- Game.mark_player_ready(game, player_id),
+         {:ok, game} <- Game.start_round(game) do
+      broadcast(game.join_code, :round_started, nil)
+      {:noreply, game}
+    else
+      :game_over ->
+        {:noreply, game}
+
+      {:ok, game} ->
+        broadcast(game.join_code, :players_ready, game.players_ready)
+        {:noreply, game}
+    end
   end
 
   # Handle exits whenever a name conflict occurs

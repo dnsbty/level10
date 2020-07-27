@@ -366,7 +366,7 @@ defmodule Level10.Games do
   """
   @spec mark_player_ready(Game.join_code(), Player.id()) :: :ok
   def mark_player_ready(join_code, player_id) do
-    result = GenServer.call(via(join_code), {:player_ready, player_id}, 5000)
+    result = GenServer.cast(via(join_code), {:player_ready, player_id})
     with :game_over <- result, do: delete_game(join_code)
   end
 
