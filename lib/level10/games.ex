@@ -340,11 +340,7 @@ defmodule Level10.Games do
       false
   """
   @spec started?(Game.join_code()) :: boolean()
-  def started?(join_code) do
-    GameServer.get(via(join_code), fn game ->
-      game.current_stage != :lobby
-    end)
-  end
+  defdelegate started?(join_code), to: GameServer
 
   @doc """
   Set the given player's table to the given cards.

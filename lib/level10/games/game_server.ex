@@ -408,6 +408,22 @@ defmodule Level10.Games.GameServer do
     GenServer.call(via(join_code), :start_game, 5000)
   end
 
+  @doc """
+  Check whether or not a game has started.
+
+  ## Examples
+
+      iex> started?("ABCD")
+      true
+
+      iex> started?("EFGH")
+      false
+  """
+  @spec started?(Game.join_code()) :: boolean()
+  def started?(join_code) do
+    GenServer.call(via(join_code), :started?, 5000)
+  end
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -654,6 +670,10 @@ defmodule Level10.Games.GameServer do
       :single_player ->
         {:reply, :single_player, game}
     end
+  end
+
+  def handle_call(:started?, _from, game) do
+    {:reply, game.current_stage != :lobby, game}
   end
 
   def handle_call(:table, _from, game) do
