@@ -358,6 +358,16 @@ defmodule Level10.Games.GameServer do
     with :game_over <- result, do: delete_game(join_code)
   end
 
+  @doc """
+  Returns whether or not the specified player exists within the specified game.
+  """
+  @spec player_exists?(Game.t() | Game.join_code(), Player.id()) :: boolean()
+  def player_exists?(join_code, player_id) when is_binary(join_code) do
+    GenServer.call(via(join_code), {:player_exists?, player_id}, 5000)
+  end
+
+  def player_exists?(game, player_id), do: Game.player_exists?(game, player_id)
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -540,6 +550,10 @@ defmodule Level10.Games.GameServer do
 
   def handle_call(:levels, _from, game) do
     {:reply, game.levels, game}
+  end
+
+  def handle_call({:player_exists?, player_id}, _from, game) do
+    {:reply, Game.player_exists?(game, player_id), game}
   end
 
   def handle_call(:players, _from, game) do

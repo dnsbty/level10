@@ -290,12 +290,11 @@ defmodule Level10.Games do
   @spec mark_player_ready(Game.join_code(), Player.id()) :: :ok
   defdelegate mark_player_ready(join_code, player_id), to: GameServer
 
+  @doc """
+  Returns whether or not the specified player exists within the specified game.
+  """
   @spec player_exists?(Game.t() | Game.join_code(), Player.id()) :: boolean()
-  def player_exists?(join_code, player_id) when is_binary(join_code) do
-    GameServer.get(via(join_code), &Game.player_exists?(&1, player_id))
-  end
-
-  def player_exists?(game, player_id), do: Game.player_exists?(game, player_id)
+  defdelegate player_exists?(join_code, player_id), to: GameServer
 
   @doc """
   Check whether or not the current round has started.
