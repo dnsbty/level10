@@ -193,19 +193,6 @@ defmodule Level10.Games.GameServer do
     end
   end
 
-  # TODO: Move to cast
-  def handle_call(:start_game, _from, game) do
-    case Game.start_game(game) do
-      {:ok, game} ->
-        Logger.info("Started game #{game.join_code}")
-        broadcast(game.join_code, :game_started, nil)
-        {:reply, :ok, game}
-
-      :single_player ->
-        {:reply, :single_player, game}
-    end
-  end
-
   def handle_call(:started?, _from, game) do
     {:reply, game.current_stage != :lobby, game}
   end
@@ -248,6 +235,19 @@ defmodule Level10.Games.GameServer do
 
       {:ok, game} ->
         broadcast(game.join_code, :players_ready, game.players_ready)
+        {:noreply, game}
+    end
+  end
+
+  def handle_cast(:start_game, game) do
+    case Game.start_game(game) do
+      {:ok, game} ->
+        Logger.info("Started game #{game.join_code}")
+        broadcast(game.join_code, :game_started, nil)
+        {:noreply, game}
+
+      :single_player ->
+        broadcast(game.join_code, :start_error, :single_player)
         {:noreply, game}
     end
   end

@@ -167,22 +167,8 @@ defmodule Level10Web.LobbyLive do
   end
 
   def handle_event("start_game", _params, socket) do
-    case Games.start_game(socket.assigns.join_code) do
-      :single_player ->
-        Logger.warn("User tried to start game #{socket.assigns.join_code} with no other players")
-
-        socket =
-          put_flash(
-            socket,
-            :error,
-            "At least 2 players are needed to play Level 10. Time to make some friends! 😘"
-          )
-
-        {:noreply, socket}
-
-      :ok ->
-        {:noreply, assign(socket, starting: true)}
-    end
+    Games.start_game(socket.assigns.join_code)
+    {:noreply, assign(socket, starting: true)}
   end
 
   def handle_event("validate", %{"info" => info}, socket) do
@@ -204,6 +190,17 @@ defmodule Level10Web.LobbyLive do
     creator = List.last(players)
     is_creator = creator.id == socket.assigns.player_id
     {:noreply, assign(socket, is_creator: is_creator, players: players)}
+  end
+
+  def handle_info({:start_error, error}, socket) do
+    message =
+      case error do
+        :single_player ->
+          "At least 2 players are needed to play Level 10. Time to make some friends! 😘"
+      end
+
+    socket = assign(socket, starting: false)
+    {:noreply, put_flash(socket, :error, message)}
   end
 
   def handle_info(%{event: "presence_diff"}, socket) do

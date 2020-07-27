@@ -415,9 +415,9 @@ defmodule Level10.Games do
   @doc """
   Start the game.
   """
-  @spec start_game(Game.join_code()) :: :ok | :single_player
+  @spec start_game(Game.join_code()) :: :ok
   def start_game(join_code) do
-    GenServer.call(via(join_code), :start_game, 5000)
+    GenServer.cast(via(join_code), :start_game)
   end
 
   @doc """
