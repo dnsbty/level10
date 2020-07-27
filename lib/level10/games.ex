@@ -475,12 +475,12 @@ defmodule Level10.Games do
   end
 
   @doc """
-  Update the specified game using the provided function.
+  Update the specified game using the provided function. This isn't meant to be
+  used for anything other than administrative debugging.
   """
   @spec update(Game.join_code(), (Game.t() -> Game.t())) :: :ok
   def update(join_code, fun) do
-    # TODO: Move this to cast
-    GenServer.call(via(join_code), {:update, fun}, 5000)
+    GenServer.cast(via(join_code), {:update, fun})
   end
 
   # Private

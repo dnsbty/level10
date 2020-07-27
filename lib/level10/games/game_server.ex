@@ -207,10 +207,6 @@ defmodule Level10.Games.GameServer do
     {:reply, card, game}
   end
 
-  def handle_call({:update, fun}, _from, state) do
-    {:reply, :ok, apply(fun, [state])}
-  end
-
   @impl true
   def handle_cast({:player_ready, player_id}, game) do
     with {:all_ready, game} <- Game.mark_player_ready(game, player_id),
@@ -238,6 +234,10 @@ defmodule Level10.Games.GameServer do
         broadcast(game.join_code, :start_error, :single_player)
         {:noreply, game}
     end
+  end
+
+  def handle_cast({:update, fun}, state) do
+    {:noreply, apply(fun, [state])}
   end
 
   # Handle exits whenever a name conflict occurs
