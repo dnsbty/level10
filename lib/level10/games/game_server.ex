@@ -400,6 +400,14 @@ defmodule Level10.Games.GameServer do
     GenServer.call(via(join_code), :start_round, 5000)
   end
 
+  @doc """
+  Start the game.
+  """
+  @spec start_game(Game.join_code()) :: :ok | :single_player
+  def start_game(join_code) do
+    GenServer.call(via(join_code), :start_game, 5000)
+  end
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -534,7 +542,6 @@ defmodule Level10.Games.GameServer do
         {:reply, new_card, game}
 
       error ->
-        IO.inspect(error)
         {:reply, error, game}
     end
   end
@@ -633,6 +640,19 @@ defmodule Level10.Games.GameServer do
 
       :game_over ->
         {:reply, :game_over, game}
+    end
+  end
+
+  # TODO: Move to cast
+  def handle_call(:start_game, _from, game) do
+    case Game.start_game(game) do
+      {:ok, game} ->
+        Logger.info("Started game #{game.join_code}")
+        broadcast(game.join_code, :game_started, nil)
+        {:reply, :ok, game}
+
+      :single_player ->
+        {:reply, :single_player, game}
     end
   end
 

@@ -322,20 +322,11 @@ defmodule Level10.Games do
   @spec start_round(Game.join_code()) :: :ok | :game_over
   defdelegate start_round(join_code), to: GameServer
 
+  @doc """
+  Start the game.
+  """
   @spec start_game(Game.join_code()) :: :ok | :single_player
-  def start_game(join_code) do
-    GameServer.get_and_update(via(join_code), fn game ->
-      case Game.start_game(game) do
-        {:ok, game} ->
-          Logger.info("Started game #{join_code}")
-          broadcast(game.join_code, :game_started, nil)
-          {:ok, game}
-
-        :single_player ->
-          {:single_player, game}
-      end
-    end)
-  end
+  defdelegate start_game(join_code), to: GameServer
 
   @doc """
   Check whether or not a game has started.
