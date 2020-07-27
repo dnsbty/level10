@@ -347,16 +347,7 @@ defmodule Level10.Games do
   """
   @spec table_cards(Game.join_code(), Player.id(), Game.player_table()) ::
           :ok | :already_set | :needs_to_draw | :not_your_turn
-  def table_cards(join_code, player_id, player_table) do
-    GameServer.get_and_update(via(join_code), fn game ->
-      with {:ok, game} <- Game.set_player_table(game, player_id, player_table) do
-        broadcast(join_code, :hand_counts_updated, Game.hand_counts(game))
-        broadcast(join_code, :table_updated, game.table)
-
-        {:ok, maybe_complete_round(game, player_id)}
-      end
-    end)
-  end
+  defdelegate table_cards(join_code, player_id, player_table), to: GameServer
 
   @spec subscribe(String.t(), Player.id()) :: :ok | {:error, term()}
   def subscribe(game_code, player_id) do
@@ -395,18 +386,6 @@ defmodule Level10.Games do
 
   # Private
 
-  @spec broadcast_game_complete(Game.t(), Player.id()) :: :ok | {:error, term()}
-  defp broadcast_game_complete(game, player_id) do
-    player = Enum.find(game.players, &(&1.id == player_id))
-    broadcast(game.join_code, :game_finished, player)
-  end
-
-  @spec broadcast_round_complete(Game.t(), Player.id()) :: Game.t()
-  defp broadcast_round_complete(game, player_id) do
-    player = Enum.find(game.players, &(&1.id == player_id))
-    broadcast(game.join_code, :round_finished, player)
-  end
-
   @spec do_create_game(Player.t(), non_neg_integer()) ::
           {:ok, Game.join_code(), Player.id()} | :error
   defp do_create_game(player, attempts_remaining)
@@ -431,22 +410,6 @@ defmodule Level10.Games do
 
       {:error, {:already_started, _pid}} ->
         do_create_game(player, attempts_remaining - 1)
-    end
-  end
-
-  @spec maybe_complete_round(Game.t(), Player.id()) :: Game.t()
-  defp maybe_complete_round(game, player_id) do
-    with true <- Game.round_finished?(game, player_id),
-         %{current_stage: :finish} = game <- Game.complete_round(game) do
-      broadcast_game_complete(game, player_id)
-      game
-    else
-      false ->
-        game
-
-      game ->
-        broadcast_round_complete(game, player_id)
-        game
     end
   end
 end

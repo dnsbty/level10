@@ -424,6 +424,15 @@ defmodule Level10.Games.GameServer do
     GenServer.call(via(join_code), :started?, 5000)
   end
 
+  @doc """
+  Set the given player's table to the given cards.
+  """
+  @spec table_cards(Game.join_code(), Player.id(), Game.player_table()) ::
+          :ok | :already_set | :needs_to_draw | :not_your_turn
+  def table_cards(join_code, player_id, player_table) do
+    GenServer.call(via(join_code), {:table_cards, {player_id, player_table}}, 5000)
+  end
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -678,6 +687,19 @@ defmodule Level10.Games.GameServer do
 
   def handle_call(:table, _from, game) do
     {:reply, game.table, game}
+  end
+
+  def handle_call({:table_cards, {player_id, player_table}}, _from, game) do
+    case Game.set_player_table(game, player_id, player_table) do
+      %Game{} = game ->
+        broadcast(game.join_code, :hand_counts_updated, Game.hand_counts(game))
+        broadcast(game.join_code, :table_updated, game.table)
+
+        {:reply, :ok, maybe_complete_round(game, player_id)}
+
+      error ->
+        {:reply, error, game}
+    end
   end
 
   def handle_call(:top_discarded_card, _from, game) do

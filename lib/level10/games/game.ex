@@ -61,7 +61,7 @@ defmodule Level10.Games.Game do
       {:ok, %Game{}}
   """
   @spec add_to_table(t(), Player.id(), Player.id(), non_neg_integer(), Game.cards()) ::
-          {:ok | :invalid_group | :level_incomplete | :needs_to_draw | :not_your_turn, t()}
+          t() | :invalid_group | :level_incomplete | :needs_to_draw | :not_your_turn
   def add_to_table(game, current_player_id, group_player_id, position, cards_to_add) do
     # get the level requirement for the specified group
     requirement = group_requirement(game, group_player_id, position)
@@ -79,20 +79,11 @@ defmodule Level10.Games.Game do
       hands = %{game.hands | current_player_id => game.hands[current_player_id] -- cards_to_add}
       {:ok, %{game | hands: hands, table: table}}
     else
-      nil ->
-        {:invalid_group, game}
-
-      false ->
-        {:invalid_group, game}
-
-      {:current_turn_drawn?, _} ->
-        {:needs_to_draw, game}
-
-      {:level_complete?, _} ->
-        {:level_incomplete, game}
-
-      player_id when is_binary(player_id) ->
-        {:not_your_turn, game}
+      nil -> :invalid_group
+      false -> :invalid_group
+      {:current_turn_drawn?, _} -> :needs_to_draw
+      {:level_complete?, _} -> :level_incomplete
+      player_id when is_binary(player_id) -> :not_your_turn
     end
   end
 
@@ -370,7 +361,7 @@ defmodule Level10.Games.Game do
   Set a player's table to the given cards
   """
   @spec set_player_table(t(), Player.id(), player_table()) ::
-          {:ok | :already_set | :invalid_level | :needs_to_draw | :not_your_turn, t()}
+          t() | :already_set | :invalid_level | :needs_to_draw | :not_your_turn
   def set_player_table(game, player_id, player_table) do
     with ^player_id <- game.current_player.id,
          {:drawn, true} <- {:drawn, game.current_turn_drawn?},
@@ -385,12 +376,12 @@ defmodule Level10.Games.Game do
       cards_used = Enum.reduce(player_table, [], fn {_, cards}, acc -> acc ++ cards end)
       player_hand = game.hands[player_id] -- cards_used
       hands = Map.put(game.hands, player_id, player_hand)
-      {:ok, %{game | hands: hands, table: table}}
+      %{game | hands: hands, table: table}
     else
-      player_id when is_binary(player_id) -> {:not_your_turn, game}
-      false -> {:invalid_level, game}
-      {:drawn, false} -> {:needs_to_draw, game}
-      _ -> {:already_set, game}
+      player_id when is_binary(player_id) -> :not_your_turn
+      false -> :invalid_level
+      {:drawn, false} -> :needs_to_draw
+      _ -> :already_set
     end
   end
 
