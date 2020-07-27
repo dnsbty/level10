@@ -134,9 +134,10 @@ defmodule Level10Web.GameLive do
         "discard_pile" -> :discard_pile
       end
 
-    with %Card{} = new_card <- Games.draw_card(assigns.join_code, player_id, source) do
-      {:noreply, assign(socket, hand: [new_card | assigns.hand], has_drawn_card: true)}
-    else
+    case Games.draw_card(assigns.join_code, player_id, source) do
+      %Card{} = new_card ->
+        {:noreply, assign(socket, hand: [new_card | assigns.hand], has_drawn_card: true)}
+
       error ->
         message =
           case error do
@@ -148,9 +149,6 @@ defmodule Level10Web.GameLive do
           end
 
         {:noreply, flash_error(socket, message)}
-
-      _ ->
-        {:noreply, socket}
     end
   end
 

@@ -480,15 +480,20 @@ defmodule Level10.Games.GameServer do
   end
 
   def handle_call({:draw, {player_id, source}}, _from, game) do
-    with {:ok, game} <- Game.draw_card(game, player_id, source) do
-      if source == :discard_pile do
-        broadcast(game.join_code, :new_discard_top, Game.top_discarded_card(game))
-      end
+    case Game.draw_card(game, player_id, source) do
+      %Game{} = game ->
+        if source == :discard_pile do
+          broadcast(game.join_code, :new_discard_top, Game.top_discarded_card(game))
+        end
 
-      broadcast(game.join_code, :hand_counts_updated, Game.hand_counts(game))
-      [new_card | _] = game.hands[player_id]
+        broadcast(game.join_code, :hand_counts_updated, Game.hand_counts(game))
+        [new_card | _] = game.hands[player_id]
 
-      {:reply, new_card, game}
+        {:reply, new_card, game}
+
+      error ->
+        IO.inspect(error)
+        {:reply, error, game}
     end
   end
 

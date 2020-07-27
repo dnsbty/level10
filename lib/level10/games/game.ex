@@ -212,20 +212,20 @@ defmodule Level10.Games.Game do
           {:ok | :already_drawn | :empty_discard_pile | :not_your_turn | :skip, t()}
   def draw_card(game, player_id, pile)
 
-  def draw_card(game = %{current_player: %{id: current_id}}, player_id, _)
+  def draw_card(%{current_player: %{id: current_id}}, player_id, _)
       when current_id != player_id do
-    {:not_your_turn, game}
+    :not_your_turn
   end
 
-  def draw_card(game = %{current_turn_drawn?: true}, _player_id, _pile) do
-    {:already_drawn, game}
+  def draw_card(%{current_turn_drawn?: true}, _player_id, _pile) do
+    :already_drawn
   end
 
   def draw_card(game = %{draw_pile: pile, hands: hands}, player_id, :draw_pile) do
     case pile do
       [card | pile] ->
         hands = Map.update!(hands, player_id, &[card | &1])
-        {:ok, %{game | current_turn_drawn?: true, draw_pile: pile, hands: hands}}
+        %{game | current_turn_drawn?: true, draw_pile: pile, hands: hands}
 
       [] ->
         game
@@ -234,18 +234,18 @@ defmodule Level10.Games.Game do
     end
   end
 
-  def draw_card(game = %{discard_pile: []}, _player_id, :discard_pile) do
-    {:empty_discard_pile, game}
+  def draw_card(%{discard_pile: []}, _player_id, :discard_pile) do
+    :empty_discard_pile
   end
 
-  def draw_card(game = %{discard_pile: [%{value: :skip} | _]}, _player_id, :discard_pile) do
-    {:skip, game}
+  def draw_card(%{discard_pile: [%{value: :skip} | _]}, _player_id, :discard_pile) do
+    :skip
   end
 
   def draw_card(game, player_id, :discard_pile) do
     %{discard_pile: [card | pile], hands: hands} = game
     hands = Map.update!(hands, player_id, &[card | &1])
-    {:ok, %{game | current_turn_drawn?: true, discard_pile: pile, hands: hands}}
+    %{game | current_turn_drawn?: true, discard_pile: pile, hands: hands}
   end
 
   @doc """
