@@ -316,19 +316,11 @@ defmodule Level10.Games do
   @spec round_winner(Game.join_code()) :: Player.t() | nil
   defdelegate round_winner(join_code), to: GameServer
 
+  @doc """
+  Start the next round.
+  """
   @spec start_round(Game.join_code()) :: :ok | :game_over
-  def start_round(join_code) do
-    GameServer.get_and_update(via(join_code), fn game ->
-      case Game.start_round(game) do
-        {:ok, game} ->
-          broadcast(join_code, :round_started, nil)
-          {:ok, game}
-
-        :game_over ->
-          {:game_over, game}
-      end
-    end)
-  end
+  defdelegate start_round(join_code), to: GameServer
 
   @spec start_game(Game.join_code()) :: :ok | :single_player
   def start_game(join_code) do

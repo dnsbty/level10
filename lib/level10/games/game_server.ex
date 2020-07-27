@@ -392,6 +392,14 @@ defmodule Level10.Games.GameServer do
     GenServer.call(via(join_code), :round_winner, 5000)
   end
 
+  @doc """
+  Start the next round.
+  """
+  @spec start_round(Game.join_code()) :: :ok | :game_over
+  def start_round(join_code) do
+    GenServer.call(via(join_code), :start_round, 5000)
+  end
+
   # Old School Agent Functions
   # TODO: Burn them all down :)
 
@@ -614,6 +622,18 @@ defmodule Level10.Games.GameServer do
 
   def handle_call(:scoring, _from, game) do
     {:reply, game.scoring, game}
+  end
+
+  # TODO: Move to cast
+  def handle_call(:start_round, _from, game) do
+    case Game.start_round(game) do
+      {:ok, game} ->
+        broadcast(game.join_code, :round_started, nil)
+        {:reply, :ok, game}
+
+      :game_over ->
+        {:reply, :game_over, game}
+    end
   end
 
   def handle_call(:table, _from, game) do
