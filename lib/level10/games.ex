@@ -6,7 +6,6 @@ defmodule Level10.Games do
   """
 
   alias Level10.Games.{Card, Game, GameRegistry, GameServer, GameSupervisor, Levels, Player}
-  alias Level10.Presence
   require Logger
 
   @typep event_type :: atom()
@@ -367,15 +366,17 @@ defmodule Level10.Games do
   @spec update(Game.join_code(), (Game.t() -> Game.t())) :: :ok
   defdelegate update(join_code, fun), to: GameServer
 
+  @doc """
+  Send an update to all the subscribed processes
+  """
   @spec broadcast(Game.join_code(), event_type(), term()) :: :ok | {:error, term()}
-  def broadcast(join_code, event_type, event) do
-    Phoenix.PubSub.broadcast(Level10.PubSub, "game:" <> join_code, {event_type, event})
-  end
+  defdelegate broadcast(join_code, event_type, event), to: GameServer
 
+  @doc """
+  Get the list of players currently present in the specified game.
+  """
   @spec list_presence(Game.join_code()) :: %{optional(Player.id()) => map()}
-  def list_presence(join_code) do
-    Presence.list("game:" <> join_code)
-  end
+  defdelegate list_presence(join_code), to: GameServer
 
   # Private
 

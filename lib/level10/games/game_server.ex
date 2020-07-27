@@ -45,6 +45,14 @@ defmodule Level10.Games.GameServer do
   end
 
   @doc """
+  Send an update to all the subscribed processes
+  """
+  @spec broadcast(Game.join_code(), event_type(), term()) :: :ok | {:error, term()}
+  def broadcast(join_code, event_type, event) do
+    Phoenix.PubSub.broadcast(Level10.PubSub, "game:" <> join_code, {event_type, event})
+  end
+
+  @doc """
   Returns a Player struct representing the player who created the game.
   """
   @spec creator(Game.join_code()) :: Player.t()
@@ -346,6 +354,14 @@ defmodule Level10.Games.GameServer do
   def leave_game(join_code, player_id) do
     result = GenServer.call(via(join_code), {:delete_player, player_id}, 5000)
     with :empty_game <- result, do: delete_game(join_code)
+  end
+
+  @doc """
+  Get the list of players currently present in the specified game.
+  """
+  @spec list_presence(Game.join_code()) :: %{optional(Player.id()) => map()}
+  def list_presence(join_code) do
+    Presence.list("game:" <> join_code)
   end
 
   @doc """
@@ -766,11 +782,6 @@ defmodule Level10.Games.GameServer do
   end
 
   # Private Functions
-
-  @spec broadcast(Game.join_code(), event_type(), term()) :: :ok | {:error, term()}
-  def broadcast(join_code, event_type, event) do
-    Phoenix.PubSub.broadcast(Level10.PubSub, "game:" <> join_code, {event_type, event})
-  end
 
   @spec broadcast_game_complete(Game.t(), Player.id()) :: :ok | {:error, term()}
   defp broadcast_game_complete(game, player_id) do
