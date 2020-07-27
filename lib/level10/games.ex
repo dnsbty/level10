@@ -24,10 +24,7 @@ defmodule Level10.Games do
   Get the current count of active games in play.
   """
   @spec count() :: non_neg_integer()
-  def count() do
-    %{active: count} = Supervisor.count_children(GameSupervisor)
-    count
-  end
+  defdelegate count, to: GameServer
 
   @doc """
   Create a new game with the player named as its creator.

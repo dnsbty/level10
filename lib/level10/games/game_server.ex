@@ -5,7 +5,7 @@ defmodule Level10.Games.GameServer do
 
   use GenServer
   alias Level10.{Presence, StateHandoff}
-  alias Level10.Games.{Game, GameRegistry, Levels, Player}
+  alias Level10.Games.{Game, GameRegistry, GameSupervisor, Levels, Player}
   require Logger
 
   # Types
@@ -50,6 +50,15 @@ defmodule Level10.Games.GameServer do
   @spec broadcast(Game.join_code(), event_type(), term()) :: :ok | {:error, term()}
   def broadcast(join_code, event_type, event) do
     Phoenix.PubSub.broadcast(Level10.PubSub, "game:" <> join_code, {event_type, event})
+  end
+
+  @doc """
+  Get the current count of active games in play.
+  """
+  @spec count() :: non_neg_integer()
+  def count() do
+    %{active: count} = Supervisor.count_children(GameSupervisor)
+    count
   end
 
   @doc """
