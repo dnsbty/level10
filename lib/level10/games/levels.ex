@@ -38,6 +38,19 @@ defmodule Level10.Games.Levels do
   end
 
   @doc """
+  Returns the player's table fully sorted based on the level number provided.
+  """
+  @spec sort_for_level(integer(), Game.player_table()) :: Game.table()
+  def sort_for_level(level_number, player_table) do
+    level_requirements = by_number(level_number)
+
+    for {position, cards} <- player_table, into: %{} do
+      {type, _} = Enum.at(level_requirements, position)
+      {position, Card.sort_for_group(type, cards)}
+    end
+  end
+
+  @doc """
   Returns whether the cards provided are valid for the group provided
 
   ## Examples
@@ -56,7 +69,7 @@ defmodule Level10.Games.Levels do
   def valid_group?({_, count}, cards) when length(cards) < count, do: false
 
   def valid_group?({type, _}, cards) do
-    {wild_count, cards} = pop_wilds(cards)
+    {wild_count, cards} = Card.pop_wilds(cards)
     valid_group?(type, cards, wild_count)
   end
 
@@ -109,16 +122,6 @@ defmodule Level10.Games.Levels do
       :eleven -> :twelve
       _ -> nil
     end
-  end
-
-  @spec pop_wilds(Game.cards()) :: {non_neg_integer(), Game.cards()}
-  defp pop_wilds(cards) do
-    Enum.reduce(cards, {0, []}, fn card, {wild_count, group} ->
-      case card.value do
-        :wild -> {wild_count + 1, group}
-        _ -> {wild_count, [card | group]}
-      end
-    end)
   end
 
   @spec valid_color?(Card.color(), Game.cards()) :: boolean()

@@ -2,6 +2,8 @@ defmodule Level10.Games.CardTest do
   use ExUnit.Case, async: true
   alias Level10.Games.Card
 
+  doctest Level10.Games.Card, import: true
+
   describe "new/2" do
     test "creates a card with value and color" do
       card = Card.new(:seven, :blue)

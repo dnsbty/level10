@@ -65,6 +65,7 @@ defmodule Level10.Games.Game do
   def add_to_table(game, current_player_id, group_player_id, position, cards_to_add) do
     # get the level requirement for the specified group
     requirement = group_requirement(game, group_player_id, position)
+    {required_type, _} = requirement
 
     # make sure the player is doing this when they should and using valid cards
     with ^current_player_id <- game.current_player.id,
@@ -74,7 +75,7 @@ defmodule Level10.Games.Game do
          new_group = group ++ cards_to_add,
          true <- Levels.valid_group?(requirement, new_group) do
       # update the table to include the new cards and remove them from the player's hand
-      sorted_group = Card.sort(new_group)
+      sorted_group = Card.sort_for_group(required_type, new_group)
       table = put_in(game.table, [group_player_id, position], sorted_group)
       hands = %{game.hands | current_player_id => game.hands[current_player_id] -- cards_to_add}
       {:ok, %{game | hands: hands, table: table}}
@@ -369,10 +370,9 @@ defmodule Level10.Games.Game do
          {level_number, _} <- game.scoring[player_id],
          true <- Levels.valid_level?(level_number, player_table) do
       # sort the table so that runs will show up as expected
-      player_table =
-        for {position, cards} <- player_table, do: {position, Card.sort(cards)}, into: %{}
+      sorted_player_table = Levels.sort_for_level(level_number, player_table)
 
-      table = Map.put(game.table, player_id, player_table)
+      table = Map.put(game.table, player_id, sorted_player_table)
       cards_used = Enum.reduce(player_table, [], fn {_, cards}, acc -> acc ++ cards end)
       player_hand = game.hands[player_id] -- cards_used
       hands = Map.put(game.hands, player_id, player_hand)
