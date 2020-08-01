@@ -7,15 +7,20 @@ defmodule Level10.Application do
     topologies = Application.get_env(:level10, :cluster_topologies, [])
 
     children = [
-      {Level10.StateHandoff, []},
+      Level10.StateHandoff,
       {Horde.DynamicSupervisor,
-       [name: Level10.Games.GameSupervisor, strategy: :one_for_one, members: :auto]},
+       [
+         name: Level10.Games.GameSupervisor,
+         shutdown: 5000,
+         strategy: :one_for_one,
+         members: :auto
+       ]},
       {Horde.Registry, name: Level10.Games.GameRegistry, keys: :unique, members: :auto},
       {Cluster.Supervisor, [topologies, [name: Level10.ClusterSupervisor]]},
       {Phoenix.PubSub, name: Level10.PubSub},
       Level10.Presence,
       Level10.Telemetry,
-      {Level10.TerminationMonitor, []},
+      Level10.TerminationMonitor,
       Level10Web.Endpoint
     ]
 

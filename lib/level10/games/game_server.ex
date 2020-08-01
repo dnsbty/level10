@@ -33,18 +33,7 @@ defmodule Level10.Games.GameServer do
     Process.flag(:trap_exit, true)
     Process.put(:"$initial_call", {Game, :new, 2})
 
-    game =
-      case StateHandoff.pickup(join_code) do
-        nil ->
-          Logger.info("Creating new game #{join_code}")
-          Game.new(join_code, player)
-
-        game ->
-          Logger.info("Creating game from state handoff #{join_code}")
-          game
-      end
-
-    {:ok, game}
+    {:ok, {join_code, player}, {:continue, :load_state}}
   end
 
   @impl true
@@ -240,14 +229,26 @@ defmodule Level10.Games.GameServer do
     {:noreply, apply(fun, [state])}
   end
 
+  @impl true
+  def handle_continue(:load_state, {join_code, player}) do
+    game =
+      case StateHandoff.pickup(join_code) do
+        nil ->
+          Logger.info("Creating new game #{join_code}")
+          Game.new(join_code, player)
+
+        game ->
+          Logger.info("Creating game from state handoff #{join_code}")
+          game
+      end
+
+    {:noreply, game}
+  end
+
   # Handle exits whenever a name conflict occurs
   @impl true
   def handle_info({:EXIT, _pid, {:name_conflict, _, _, _}}, game), do: {:stop, :shutdown, game}
-
-  def handle_info(message, %{join_code: join_code} = game) do
-    Logger.warn("Game server #{join_code} received unexpected message: #{inspect(message)}")
-    {:noreply, game}
-  end
+  def handle_info({:EXIT, _pid, :shutdown}, game), do: {:noreply, game}
 
   # Matches whenever we manually stop a server since we don't need to move that
   # state to a new node

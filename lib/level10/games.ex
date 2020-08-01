@@ -499,6 +499,7 @@ defmodule Level10.Games do
     game = %{
       id: join_code,
       start: {GameServer, :start_link, [{join_code, player}, [name: via(join_code)]]},
+      shutdown: 1000,
       restart: :temporary
     }
 
