@@ -18,7 +18,7 @@ defmodule Level10Web.ScoringLive do
          stage when stage in [:finish, :score] <- game.current_stage,
          true <- Games.player_exists?(game, player_id) do
       scores = game.scoring
-      players = sort_players(game.players, scores)
+      players = Game.players_by_score(game)
       [leader | _] = players
       presence = Games.list_presence(join_code)
 

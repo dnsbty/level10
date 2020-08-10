@@ -312,6 +312,24 @@ defmodule Level10.Games.Game do
     Enum.any?(game.players, fn player -> player.id == player_id end)
   end
 
+  @doc """
+  Returns the players from the given game sorted by their scores from best to
+  worst.
+  """
+  @spec players_by_score(t) :: list(Player.t())
+  def players_by_score(%{players: players, scoring: scores}) do
+    Enum.sort(players, fn %{id: player1}, %{id: player2} ->
+      {level1, score1} = scores[player1]
+      {level2, score2} = scores[player2]
+
+      cond do
+        level1 > level2 -> true
+        level1 < level2 -> false
+        true -> score1 <= score2
+      end
+    end)
+  end
+
   @spec put_player(t(), Player.t()) :: {:ok, t()} | :already_started
   def put_player(game, player)
 

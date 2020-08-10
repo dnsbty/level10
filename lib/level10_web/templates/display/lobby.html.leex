@@ -1,0 +1,37 @@
+<div class="flex flex-row items-center justify-center h-screen w-full">
+  <div class="flex flex-1 flex-col items-center">
+    <div>
+      <h3 class="text-center text-3xl text-gray-200 tracking-widest uppercase">
+        Join Code
+      </h3>
+      <h2 class="text-center text-6xl mt-4 leading-9 font-extrabold text-gray-100">
+        <%= @game.join_code %>
+      </h2>
+    </div>
+    <p class="text-center text-3xl my-32 text-gray-200">
+      Waiting for <%= Level10.Games.Game.creator(@game).name %> to start the game...
+    </p>
+  </div>
+  <div class="flex-1 pt-12 h-screen">
+    <h2 class="text-center text-3xl text-gray-200 tracking-widest uppercase">
+      Players
+    </h2>
+    <ul class="mt-8 px-4 list-decimal">
+      <%= for player <- @game.players do %>
+      <li class="flex px-4 py-2 font-bold tracking-wide text-5xl text-gray-100 items-center">
+        <%= if player.id in Map.keys(@presence) do %>
+          <div class="text-xl text-green-500 mr-4 cursor-default" title="online">
+            ●
+          </div>
+          <% else %>
+          <div class="text-xl text-purple-500 mr-4 cursor-default" title="offline">
+            ○
+          </div>
+        <% end %>
+        <div><%= player.name %></div>
+      </li>
+      <% end %>
+    </ol>
+  </div>
+</div>
+

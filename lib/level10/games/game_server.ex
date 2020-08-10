@@ -103,6 +103,7 @@ defmodule Level10.Games.GameServer do
         end
 
         broadcast(game.join_code, :hand_counts_updated, Game.hand_counts(game))
+        broadcast(game.join_code, :current_turn_drawn?, true)
         [new_card | _] = game.hands[player_id]
 
         {:reply, new_card, game}

@@ -1,0 +1,38 @@
+<div class="flex flex-row items-center justify-around h-screen mx-16">
+  <div class="w-1/3 flex flex-col items-center">
+    <p class="text-center text-6xl text-gray-200 font-extrabold">
+      <%= @round_winner.name %> wins the round!
+    </p>
+  </div>
+
+  <!-- Player Display -->
+  <div class="w-1/2">
+    <h3 class="text-center text-3xl text-gray-200 tracking-widest uppercase">
+      Round <%= @game.current_round %>
+    </h3>
+    <ol class="pl-12 list-decimal mt-16">
+      <%= for player <- @players do %>
+      <li class="px-4 py-2 font-bold tracking-wide text-4xl text-gray-100">
+        <div class="flex items-center">
+          <div class="flex-1">
+            <%= player.name %>
+            <%= if MapSet.member?(@game.players_ready, player.id), do: " ✓" %>
+          </div>
+          <div>
+            <%= score(@game.scoring, player.id) %> (<%= level(@game.scoring, player.id) %>)
+          </div>
+          <%= if player.id in Map.keys(@presence) do %>
+            <div class="text-sm text-green-500 ml-2 cursor-default" title="online">
+              ●
+            </div>
+            <% else %>
+            <div class="text-sm text-purple-500 ml-2 cursor-default" title="offline">
+              ○
+            </div>
+          <% end %>
+        </div>
+      </li>
+      <% end %>
+    </ol>
+  </div>
+</div>
