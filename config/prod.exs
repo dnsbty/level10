@@ -1,5 +1,4 @@
 use Mix.Config
-
 # For production, don't forget to configure the url host
 # to something meaningful, Phoenix uses this information
 # when generating URLs.
@@ -22,8 +21,9 @@ config :level10,
     level10: [
       strategy: Cluster.Strategy.Kubernetes,
       config: [
-        kubernetes_selector: System.get_env("LIBCLUSTER_KUBERNETES_SELECTOR", "level10"),
-        kubernetes_node_basename: System.get_env("LIBCLUSTER_KUBERNETES_NODE_BASENAME", "level10")
+        kubernetes_namespace: "default",
+        kubernetes_node_basename: "level10",
+        kubernetes_selector: "app=level10"
       ]
     ]
   ]

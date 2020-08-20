@@ -26,3 +26,10 @@ npm-debug.log
 # we ignore priv/static. You may want to comment
 # this depending on your deployment strategy.
 /priv/static/
+
+# Ignore language server files
+/.elixir_ls/
+
+# Ignore github files
+/.git/
+/.github/

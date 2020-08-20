@@ -9,6 +9,7 @@ defmodule Level10.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
+      releases: releases(),
       deps: deps()
     ]
   end
@@ -26,6 +27,14 @@ defmodule Level10.MixProject do
   # Specifies which paths to compile per environment.
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
+
+  defp releases do
+    [
+      level10: [
+        include_executables_for: [:unix]
+      ]
+    ]
+  end
 
   # Specifies your project dependencies.
   #

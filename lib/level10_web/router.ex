@@ -26,6 +26,12 @@ defmodule Level10Web.Router do
   end
 
   scope "/", Level10Web do
+    pipe_through :api
+
+    get "/health", HealthController, :index
+  end
+
+  scope "/", Level10Web do
     pipe_through :browser
 
     live "/display", DisplayLive
