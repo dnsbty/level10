@@ -90,6 +90,20 @@ defmodule Level10.Games do
   end
 
   @doc """
+  Deletes the specified player from the game. This is only allowed if the game
+  is still in the lobby stage.
+
+  If the player is currently alone in the game, the game will be deleted as
+  well.
+  """
+  @spec delete_player(Game.join_code(), Player.id(), timeout()) ::
+          :ok | :already_started | :deleted
+  def delete_player(join_code, player_id, timeout \\ 5000) do
+    result = GenServer.call(via(join_code), {:delete_player, player_id}, timeout)
+    with :empty_game <- result, do: delete_game(join_code)
+  end
+
+  @doc """
   Discard a card from the player's hand
 
   ## Examples
@@ -349,19 +363,6 @@ defmodule Level10.Games do
   end
 
   @doc """
-  Removes the specified player from the game. This is only allowed if the game
-  is still in the lobby stage.
-
-  If the player is currently alone in the game, the game will be deleted as
-  well.
-  """
-  @spec leave_game(Game.join_code(), Player.id(), timeout()) :: :ok | :already_started | :deleted
-  def leave_game(join_code, player_id, timeout \\ 5000) do
-    result = GenServer.call(via(join_code), {:delete_player, player_id}, timeout)
-    with :empty_game <- result, do: delete_game(join_code)
-  end
-
-  @doc """
   Get the list of players currently present in the specified game.
   """
   @spec list_presence(Game.join_code()) :: %{optional(Player.id()) => map()}
@@ -390,6 +391,22 @@ defmodule Level10.Games do
   end
 
   def player_exists?(game, player_id, _), do: Game.player_exists?(game, player_id)
+
+  @doc """
+  Returns the set of players that remain in the game.
+  """
+  @spec remaining_players(Game.join_code(), timeout()) :: MapSet.t()
+  def remaining_players(join_code, timeout \\ 5000) do
+    GenServer.call(via(join_code), :remaining_players, timeout)
+  end
+
+  @doc """
+  Removes the specified player from the game after it has already started.
+  """
+  @spec remove_player(Game.join_code(), Player.id()) :: :ok
+  def remove_player(join_code, player_id) do
+    GenServer.cast(via(join_code), {:remove_player, player_id})
+  end
 
   @doc """
   Check whether or not the current round has started.

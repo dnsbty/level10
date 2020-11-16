@@ -31,6 +31,7 @@ defmodule Level10.Games.Game do
           levels: levels(),
           players: [Player.t()],
           players_ready: MapSet.t(),
+          remaining_players: MapSet.t(),
           scoring: scores(),
           table: table()
         }
@@ -48,6 +49,7 @@ defmodule Level10.Games.Game do
     levels
     players
     players_ready
+    remaining_players
     scoring
     table
   ]a
@@ -105,6 +107,17 @@ defmodule Level10.Games.Game do
   defp level_complete?(game, player_id), do: !is_nil(game.table[player_id])
 
   @doc """
+  Returns whether or not all players remaining in the game have marked
+  themselves as ready for the next round.
+  """
+  @spec all_ready?(t()) :: boolean()
+  def all_ready?(game) do
+    players_ready = MapSet.size(game.players_ready)
+    total_players = MapSet.size(game.remaining_players)
+    players_ready == total_players
+  end
+
+  @doc """
   At the end of a round, the game struct should be passed into this function.
   It will update player scoring and levels, check if the game has been
   complete, and reset the state for the next round.
@@ -121,7 +134,7 @@ defmodule Level10.Games.Game do
   defp update_scoring_and_levels(%{scoring: scoring, table: table, hands: hands} = game) do
     scoring =
       Map.new(scoring, fn {player, {level, score}} ->
-        hand = hands[player]
+        hand = Map.get(hands, player, [])
 
         hand_score =
           hand
@@ -171,7 +184,7 @@ defmodule Level10.Games.Game do
     |> binary_part(4, 4)
   end
 
-  @spec delete_player(t(), Player.id()) :: {:ok, t()} | :already_started
+  @spec delete_player(t(), Player.id()) :: {:ok, t()} | :already_started | :empty_game
   def delete_player(game, player_id)
 
   def delete_player(game = %{current_stage: :lobby, players: players}, player_id) do
@@ -272,7 +285,7 @@ defmodule Level10.Games.Game do
   @spec mark_player_ready(t(), Player.id()) :: {:ok | :all_ready, t()}
   def mark_player_ready(game, player_id) do
     players_ready = MapSet.put(game.players_ready, player_id)
-    total_players = length(game.players)
+    total_players = MapSet.size(game.remaining_players)
     status = if MapSet.size(players_ready) == total_players, do: :all_ready, else: :ok
     {status, %{game | players_ready: players_ready}}
   end
@@ -339,6 +352,32 @@ defmodule Level10.Games.Game do
 
   def put_player(_game, _player) do
     :already_started
+  end
+
+  @doc """
+  Remove a player from a game that has started.
+
+  Prior to the game starting, players are free to come and go, and they can
+  simply be deleted from the player list. Once the game has been started,
+  players can no longer be deleted from the game or else the turn ordering will
+  be thrown off.
+
+  For that reason, the game maintains a set of player IDs for players that are
+  still remaining in the game. That way every time it's someone else's turn,
+  the game can check to make sure they're still in the list of remaining players.
+
+  This function will remove the provided player ID from the set of remaining
+  players so that they can still exist in the player list, but the game will
+  know that they should no longer be given turns.
+  """
+  @spec remove_player(t(), Player.id()) :: t()
+  def remove_player(game = %{remaining_players: remaining}, player_id) do
+    remaining_players = MapSet.delete(remaining, player_id)
+
+    # Also remove the player from the list of players that are ready so that
+    # the counts won't be off
+    players_ready = MapSet.delete(game.players_ready, player_id)
+    %{game | players_ready: players_ready, remaining_players: remaining_players}
   end
 
   @doc """
@@ -412,9 +451,13 @@ defmodule Level10.Games.Game do
   def start_game(%{players: players}) when length(players) < 2, do: :single_player
 
   def start_game(game) do
-    game = put_empty_scores(game)
+    started_game =
+      game
+      |> put_empty_scores()
+      |> put_remaining_players()
+      |> start_round()
 
-    case start_round(game) do
+    case started_game do
       {:ok, game} -> {:ok, game}
       :game_over -> raise "Trying to start finished game: #{game.join_code}"
     end
@@ -429,7 +472,7 @@ defmodule Level10.Games.Game do
   Sets everything up to start the next round. Shuffles and deals a new deck and
   all hands.
   """
-  @spec start_round(t()) :: t()
+  @spec start_round(t()) :: {:ok, t()} | :game_over
   def start_round(game) do
     case increment_current_round(game) do
       {:ok, game} ->
@@ -491,7 +534,13 @@ defmodule Level10.Games.Game do
     player = Enum.at(players, player_index)
     new_turn = turn + increment
 
-    %{game | current_turn: new_turn, current_turn_drawn?: false, current_player: player}
+    game = %{game | current_turn: new_turn, current_turn_drawn?: false, current_player: player}
+
+    if player.id in game.remaining_players do
+      game
+    else
+      increment_current_turn(game, skip)
+    end
   end
 
   @spec increment_current_round(t()) :: t()
@@ -537,12 +586,23 @@ defmodule Level10.Games.Game do
   defp deal_hands(game = %{draw_pile: deck, players: players}) do
     {hands, deck} =
       Enum.reduce(players, {%{}, deck}, fn %{id: player_id}, {hands, deck} ->
-        {hand, deck} = Enum.split(deck, 10)
-        hands = Map.put(hands, player_id, hand)
-        {hands, deck}
+        if player_id in game.remaining_players do
+          {hand, deck} = Enum.split(deck, 10)
+          hands = Map.put(hands, player_id, hand)
+          {hands, deck}
+        else
+          {hands, deck}
+        end
       end)
 
     %{game | draw_pile: deck, hands: hands}
+  end
+
+  @spec put_remaining_players(t()) :: t()
+  defp put_remaining_players(game = %{players: players}) do
+    player_ids = Enum.map(players, & &1.id)
+    remaining = MapSet.new(player_ids)
+    %{game | remaining_players: remaining}
   end
 
   @spec update_levels(t()) :: t()

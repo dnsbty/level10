@@ -159,6 +159,10 @@ defmodule Level10.Games.GameServer do
     {:reply, game.players_ready, game}
   end
 
+  def handle_call(:remaining_players, _from, game) do
+    {:reply, game.remaining_players, game}
+  end
+
   def handle_call(:round_started?, _from, game) do
     {:reply, game.current_stage == :play, game}
   end
@@ -209,6 +213,23 @@ defmodule Level10.Games.GameServer do
 
       {:ok, game} ->
         broadcast(game.join_code, :players_ready, game.players_ready)
+        {:noreply, game}
+    end
+  end
+
+  def handle_cast({:remove_player, player_id}, game) do
+    game = Game.remove_player(game, player_id)
+
+    with true <- Game.all_ready?(game),
+         {:ok, game} <- Game.start_round(game) do
+      broadcast(game.join_code, :round_started, nil)
+      {:noreply, game}
+    else
+      false ->
+        broadcast(game.join_code, :player_removed, player_id)
+        {:noreply, game}
+
+      :game_over ->
         {:noreply, game}
     end
   end

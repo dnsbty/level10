@@ -1,7 +1,7 @@
 <div>
   <!-- Player Display -->
   <div class="my-8">
-    <%= for player <- @players do %>
+    <%= for player <- @players, MapSet.member?(@remaining_players, player.id) do %>
       <div class="flex flex-row items-center ml-4 mr-2 mb-2 <%= player_opacity(player.id, @turn.id) %>">
         <%= if player.id in Map.keys(@presence) do %>
           <div class="text-sm text-green-500 mr-2 cursor-default" title="online">
