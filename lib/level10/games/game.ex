@@ -528,18 +528,22 @@ defmodule Level10.Games.Game do
   @spec increment_current_turn(t(), boolean()) :: t()
   defp increment_current_turn(game, skip) do
     %{current_round: round, current_turn: turn, players: players} = game
-    increment = if skip, do: 2, else: 1
     total_players = length(players)
-    player_index = rem(round + turn + increment, total_players)
+    new_turn = turn + 1
+    player_index = rem(round + new_turn, total_players)
     player = Enum.at(players, player_index)
-    new_turn = turn + increment
 
     game = %{game | current_turn: new_turn, current_turn_drawn?: false, current_player: player}
 
-    if player.id in game.remaining_players do
-      game
-    else
-      increment_current_turn(game, skip)
+    cond do
+      player.id not in game.remaining_players ->
+        increment_current_turn(game, skip)
+
+      skip ->
+        increment_current_turn(game, false)
+
+      true ->
+        game
     end
   end
 
