@@ -16,7 +16,7 @@
             <%= if !MapSet.member?(@remaining_players, player.id), do: " 💀" %>
           </div>
           <div>
-            <%= score(@scores, player.id) %> (<%= level(@scores, player.id) %>)
+            <%= score(@scores, player.id) %><%= level(@scores, player.id) %>
           </div>
           <%= if player.id in Map.keys(@presence) do %>
             <div class="text-sm text-green-500 ml-2 cursor-default" title="online">
@@ -46,11 +46,13 @@
         </span>
       <% end %>
     </div>
-    <div class="flex mt-4">
-      <button type="cancel" phx-click="leave_game" class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-gray-300 bg-purple-800 hover:bg-purple-700 focus:outline-none focus:border-purple-700 focus:shadow-outline-purple active:bg-purple-800 transition duration-150 ease-in-out">
-        Leave Game
-      </button>
-    </div>
+    <%= if @finished == false do %>
+      <div class="flex mt-4">
+        <button type="cancel" phx-click="leave_game" class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-gray-300 bg-purple-800 hover:bg-purple-700 focus:outline-none focus:border-purple-700 focus:shadow-outline-purple active:bg-purple-800 transition duration-150 ease-in-out">
+          Leave Game
+        </button>
+      </div>
+    <% end %>
   </div>
 </div>
 

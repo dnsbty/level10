@@ -26,7 +26,7 @@ defmodule Level10Web.ScoringLive do
 
       assigns = %{
         confirm_leave: false,
-        finished: stage == :finished,
+        finished: stage == :finish,
         join_code: join_code,
         leader: leader,
         players: players,
