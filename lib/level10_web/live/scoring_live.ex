@@ -82,6 +82,10 @@ defmodule Level10Web.ScoringLive do
     {:noreply, socket}
   end
 
+  def handle_info({:game_finished, _}, socket) do
+    {:noreply, assign(socket, finished: true)}
+  end
+
   def handle_info({:players_ready, players_ready}, socket) do
     {:noreply, assign(socket, players_ready: players_ready)}
   end

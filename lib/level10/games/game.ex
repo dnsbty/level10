@@ -329,13 +329,17 @@ defmodule Level10.Games.Game do
   Returns the players from the given game sorted by their scores from best to
   worst.
   """
-  @spec players_by_score(t) :: list(Player.t())
-  def players_by_score(%{players: players, scoring: scores}) do
+  @spec players_by_score(t()) :: list(Player.t())
+  def players_by_score(game) do
+    %{players: players, remaining_players: remaining, scoring: scores} = game
+
     Enum.sort(players, fn %{id: player1}, %{id: player2} ->
       {level1, score1} = scores[player1]
       {level2, score2} = scores[player2]
 
       cond do
+        player1 in remaining && player2 not in remaining -> true
+        player2 in remaining && player1 not in remaining -> false
         level1 > level2 -> true
         level1 < level2 -> false
         true -> score1 <= score2
@@ -369,6 +373,9 @@ defmodule Level10.Games.Game do
   This function will remove the provided player ID from the set of remaining
   players so that they can still exist in the player list, but the game will
   know that they should no longer be given turns.
+
+  If the next to last player leaves so that there is only a single player
+  remaining, the game's stage will also be changed to `:finish`.
   """
   @spec remove_player(t(), Player.id()) :: t()
   def remove_player(game = %{remaining_players: remaining}, player_id) do
@@ -377,7 +384,13 @@ defmodule Level10.Games.Game do
     # Also remove the player from the list of players that are ready so that
     # the counts won't be off
     players_ready = MapSet.delete(game.players_ready, player_id)
-    %{game | players_ready: players_ready, remaining_players: remaining_players}
+
+    game = %{game | players_ready: players_ready, remaining_players: remaining_players}
+
+    case MapSet.size(remaining_players) do
+      1 -> %{game | current_stage: :finish}
+      _ -> game
+    end
   end
 
   @doc """

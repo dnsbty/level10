@@ -220,13 +220,19 @@ defmodule Level10.Games.GameServer do
   def handle_cast({:remove_player, player_id}, game) do
     game = Game.remove_player(game, player_id)
 
-    with true <- Game.all_ready?(game),
+    with status when status != :finish <- game.current_stage,
+         true <- Game.all_ready?(game),
          {:ok, game} <- Game.start_round(game) do
       broadcast(game.join_code, :round_started, nil)
       {:noreply, game}
     else
       false ->
         broadcast(game.join_code, :player_removed, player_id)
+        {:noreply, game}
+
+      :finish ->
+        broadcast(game.join_code, :player_removed, player_id)
+        broadcast(game.join_code, :game_finished, nil)
         {:noreply, game}
 
       :game_over ->
