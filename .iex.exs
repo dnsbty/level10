@@ -145,3 +145,4 @@ game = %{
 }
 
 Horde.DynamicSupervisor.start_child(GameSupervisor, game)
+Seeds.reset()
