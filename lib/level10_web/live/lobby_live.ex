@@ -161,7 +161,7 @@ defmodule Level10Web.LobbyLive do
     end
   end
 
-  def handle_event("start_game", _params, %{assigns: %{is_creator: false}} = socket) do
+  def handle_event("start_game", _params, socket = %{assigns: %{is_creator: false}}) do
     Logger.warn("Non-creator tried to start game #{socket.assigns.join_code}")
     {:noreply, socket}
   end

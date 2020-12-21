@@ -70,7 +70,7 @@ defmodule Level10Web.ScoringLive do
     {:noreply, assign(socket, confirm_leave: true)}
   end
 
-  def handle_event("mark_ready", _params, %{assigns: %{finished: true}} = socket) do
+  def handle_event("mark_ready", _params, socket = %{assigns: %{finished: true}}) do
     %{join_code: join_code, player_id: player_id} = socket.assigns
     Games.mark_player_ready(join_code, player_id)
     {:noreply, push_redirect(socket, to: "/")}
@@ -110,5 +110,18 @@ defmodule Level10Web.ScoringLive do
   defp redirect_to_game(socket, join_code, player_id) do
     path = Routes.live_path(Endpoint, GameLive, join_code, player_id: player_id)
     push_redirect(socket, to: path)
+  end
+
+  defp sort_players(players, scores) do
+    Enum.sort(players, fn %{id: player1}, %{id: player2} ->
+      {level1, score1} = scores[player1]
+      {level2, score2} = scores[player2]
+
+      cond do
+        level1 > level2 -> true
+        level1 < level2 -> false
+        true -> score1 <= score2
+      end
+    end)
   end
 end

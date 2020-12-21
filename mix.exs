@@ -41,6 +41,7 @@ defmodule Level10.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:delta_crdt, "~> 0.5"},
       {:ecto, "~> 3.4"},
       {:gettext, "~> 0.11"},

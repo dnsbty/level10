@@ -62,22 +62,18 @@ defmodule Level10.Games.Card do
       :twelve
   """
   @spec from_number(non_neg_integer()) :: value()
-  def from_number(number) do
-    case number do
-      1 -> :one
-      2 -> :two
-      3 -> :three
-      4 -> :four
-      5 -> :five
-      6 -> :six
-      7 -> :seven
-      8 -> :eight
-      9 -> :nine
-      10 -> :ten
-      11 -> :eleven
-      12 -> :twelve
-    end
-  end
+  defp from_number(1), do: :one
+  defp from_number(2), do: :two
+  defp from_number(3), do: :three
+  defp from_number(4), do: :four
+  defp from_number(5), do: :five
+  defp from_number(6), do: :six
+  defp from_number(7), do: :seven
+  defp from_number(8), do: :eight
+  defp from_number(9), do: :nine
+  defp from_number(10), do: :ten
+  defp from_number(11), do: :eleven
+  defp from_number(12), do: :twelve
 
   @doc """
   Convenience function for creating a new Wild or Skip card struct
@@ -301,24 +297,20 @@ defmodule Level10.Games.Card do
   # Private
 
   @spec numeric_value(value()) :: non_neg_integer()
-  defp numeric_value(value) do
-    case value do
-      :wild -> 0
-      :one -> 1
-      :two -> 2
-      :three -> 3
-      :four -> 4
-      :five -> 5
-      :six -> 6
-      :seven -> 7
-      :eight -> 8
-      :nine -> 9
-      :ten -> 10
-      :eleven -> 11
-      :twelve -> 12
-      :skip -> 13
-    end
-  end
+  defp numeric_value(:wild), do: 0
+  defp numeric_value(:one), do: 1
+  defp numeric_value(:two), do: 2
+  defp numeric_value(:three), do: 3
+  defp numeric_value(:four), do: 4
+  defp numeric_value(:five), do: 5
+  defp numeric_value(:six), do: 6
+  defp numeric_value(:seven), do: 7
+  defp numeric_value(:eight), do: 8
+  defp numeric_value(:nine), do: 9
+  defp numeric_value(:ten), do: 10
+  defp numeric_value(:eleven), do: 11
+  defp numeric_value(:twelve), do: 12
+  defp numeric_value(:skip), do: 13
 
   @spec put_wilds_in_run(Game.cards(), non_neg_integer(), Game.cards()) :: Game.cards()
   defp put_wilds_in_run([], 0, run), do: run
@@ -335,7 +327,7 @@ defmodule Level10.Games.Card do
     put_wilds_in_run(remaining, 0, [card | run])
   end
 
-  defp put_wilds_in_run([card | remaining], wild_count, [last | _] = run) do
+  defp put_wilds_in_run([card | remaining], wild_count, run = [last | _]) do
     last_value = numeric_value(last.value)
     value = numeric_value(card.value)
 

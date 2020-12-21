@@ -128,14 +128,9 @@ defmodule Level10Web.GameLive do
     end
   end
 
-  def handle_event("draw_card", %{"source" => source}, %{assigns: assigns} = socket) do
+  def handle_event("draw_card", %{"source" => source}, socket = %{assigns: assigns}) do
     player_id = assigns.player_id
-
-    source =
-      case source do
-        "draw_pile" -> :draw_pile
-        "discard_pile" -> :discard_pile
-      end
+    source = atomic_source(source)
 
     case Games.draw_card(assigns.join_code, player_id, source) do
       %Card{} = new_card ->
@@ -155,7 +150,7 @@ defmodule Level10Web.GameLive do
     end
   end
 
-  def handle_event("table_cards", %{"position" => position}, %{assigns: assigns} = socket) do
+  def handle_event("table_cards", %{"position" => position}, socket = %{assigns: assigns}) do
     cards_to_table = selected_cards(socket)
 
     with {position, ""} <- Integer.parse(position),
@@ -164,12 +159,14 @@ defmodule Level10Web.GameLive do
       hand = assigns.hand -- cards_to_table
       player_table = Map.put(assigns.player_table, position, cards_to_table)
 
+      # don't send the new table to the server unless all of the groups have
+      # cards in them
       has_completed_level =
-        unless Enum.any?(player_table, fn {_, value} -> is_nil(value) end) do
+        if Enum.any?(player_table, fn {_, value} -> is_nil(value) end) do
+          false
+        else
           Games.table_cards(assigns.join_code, assigns.player_id, player_table)
           true
-        else
-          false
         end
 
       assigns = %{
@@ -246,8 +243,12 @@ defmodule Level10Web.GameLive do
     |> Enum.map(&Enum.at(hand, &1))
   end
 
+  @spec atomic_source(String.t()) :: :draw_pile | :discard_pile
+  defp atomic_source("draw_pile"), do: :draw_pile
+  defp atomic_source("discard_pile"), do: :discard_pile
+
   @spec toggle_selected(Socket.t(), non_neg_integer()) :: Socket.t()
-  defp toggle_selected(%{assigns: %{selected_indexes: indexes}} = socket, position) do
+  defp toggle_selected(socket = %{assigns: %{selected_indexes: indexes}}, position) do
     selected_indexes =
       if MapSet.member?(indexes, position) do
         MapSet.delete(indexes, position)

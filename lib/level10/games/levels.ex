@@ -107,22 +107,18 @@ defmodule Level10.Games.Levels do
   # Private
 
   @spec next_value(Card.value()) :: Card.value()
-  defp next_value(value) do
-    case value do
-      :one -> :two
-      :two -> :three
-      :three -> :four
-      :four -> :five
-      :five -> :six
-      :six -> :seven
-      :seven -> :eight
-      :eight -> :nine
-      :nine -> :ten
-      :ten -> :eleven
-      :eleven -> :twelve
-      _ -> nil
-    end
-  end
+  defp next_value(:one), do: :two
+  defp next_value(:two), do: :three
+  defp next_value(:three), do: :four
+  defp next_value(:four), do: :five
+  defp next_value(:five), do: :six
+  defp next_value(:six), do: :seven
+  defp next_value(:seven), do: :eight
+  defp next_value(:eight), do: :nine
+  defp next_value(:nine), do: :ten
+  defp next_value(:ten), do: :eleven
+  defp next_value(:eleven), do: :twelve
+  defp next_value(_), do: nil
 
   @spec valid_color?(Card.color(), Game.cards()) :: boolean()
   defp valid_color?(color, [%{color: color} | rest]), do: valid_color?(color, rest)
@@ -145,7 +141,7 @@ defmodule Level10.Games.Levels do
     if next_value(value) == next_value, do: valid_run?(next_value, rest, 0), else: false
   end
 
-  defp valid_run?(previous_value, [%{value: value} | rest] = cards, wild_count) do
+  defp valid_run?(previous_value, cards = [%{value: value} | rest], wild_count) do
     case next_value(previous_value) do
       ^value -> valid_run?(value, rest, wild_count)
       next_value -> valid_run?(next_value, cards, wild_count - 1)

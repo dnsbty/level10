@@ -131,7 +131,7 @@ defmodule Level10.Games.Game do
   end
 
   @spec update_scoring_and_levels(t()) :: t()
-  defp update_scoring_and_levels(%{scoring: scoring, table: table, hands: hands} = game) do
+  defp update_scoring_and_levels(game = %{scoring: scoring, table: table, hands: hands}) do
     scoring =
       Map.new(scoring, fn {player, {level, score}} ->
         hand = Map.get(hands, player, [])
@@ -156,8 +156,8 @@ defmodule Level10.Games.Game do
   end
 
   @spec check_complete(t()) :: t()
-  defp check_complete(%{scoring: scoring} = game) do
-    if Enum.any?(scoring, &match?({_player, {_level = 11, _score}}, &1)) do
+  defp check_complete(game) do
+    if Enum.any?(game.scoring, fn {_, {level, _}} -> level == 11 end) do
       %{game | current_stage: :finish}
     else
       game

@@ -1,4 +1,14 @@
 defmodule Level10.Telemetry do
+  @moduledoc """
+  Handles the telemetry metrics for the application.
+
+  Each of the measurements in `periodic_measurements/0` will be polled every 10
+  seconds.
+
+  Each of the metrics in `metrics/0` will be received as well, and displayed on
+  the live dashboard.
+  """
+
   use Supervisor
   import Telemetry.Metrics
   alias Level10.Telemetry.Measurements
