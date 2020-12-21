@@ -31,6 +31,8 @@ defmodule Level10Web.GameLive do
       turn = Games.get_current_turn(join_code)
       round_winner = Games.round_winner(join_code)
       hand_counts = Games.get_hand_counts(join_code)
+      skipped_players = Games.get_skipped_players(join_code)
+      next_player = Games.get_next_player(join_code, player_id)
       presence = Games.list_presence(join_code)
 
       has_drawn =
@@ -45,6 +47,7 @@ defmodule Level10Web.GameLive do
         has_drawn_card: has_drawn,
         join_code: params["join_code"],
         levels: levels,
+        next_player_id: next_player.id,
         player_id: params["player_id"],
         player_level: player_level,
         player_table: player_table,
@@ -54,6 +57,7 @@ defmodule Level10Web.GameLive do
         round_winner: round_winner,
         overflow_hidden: !is_nil(round_winner),
         selected_indexes: MapSet.new(),
+        skipped_players: skipped_players,
         table: table,
         turn: turn
       ]
@@ -97,17 +101,10 @@ defmodule Level10Web.GameLive do
     end
   end
 
-  def handle_event("show_scores", _params, socket) do
-    %{join_code: join_code, player_id: player_id} = socket.assigns
-    path = Routes.live_path(Endpoint, ScoringLive, join_code, player_id: player_id)
-
-    {:noreply, push_redirect(socket, to: path)}
-  end
-
   def handle_event("discard", _, socket) do
     with [position] <- MapSet.to_list(socket.assigns.selected_indexes),
          {card, hand} = List.pop_at(socket.assigns.hand, position),
-         :ok <- Games.discard_card(socket.assigns.join_code, socket.assigns.player_id, card) do
+         :ok <- discard(card, socket.assigns) do
       {:noreply, assign(socket, hand: Card.sort(hand), selected_indexes: MapSet.new())}
     else
       [] ->
@@ -116,6 +113,12 @@ defmodule Level10Web.GameLive do
 
       selected when is_list(selected) ->
         message = "Nice try, but you can only discard one card at a time 🧐"
+        {:noreply, flash_error(socket, message)}
+
+      :already_skipped ->
+        message =
+          "That player was already skipped... Continue that vendetta on your next turn instead 😎"
+
         {:noreply, flash_error(socket, message)}
 
       :not_your_turn ->
@@ -148,6 +151,13 @@ defmodule Level10Web.GameLive do
 
         {:noreply, flash_error(socket, message)}
     end
+  end
+
+  def handle_event("show_scores", _params, socket) do
+    %{join_code: join_code, player_id: player_id} = socket.assigns
+    path = Routes.live_path(Endpoint, ScoringLive, join_code, player_id: player_id)
+
+    {:noreply, push_redirect(socket, to: path)}
   end
 
   def handle_event("table_cards", %{"position" => position}, socket = %{assigns: assigns}) do
@@ -225,6 +235,15 @@ defmodule Level10Web.GameLive do
   def handle_info(_, socket), do: {:noreply, socket}
 
   # Private Functions
+
+  @spec discard(Card.t(), map()) :: :ok | :already_skipped | :not_your_turn | :needs_to_draw
+  defp discard(%{value: :skip}, assigns) do
+    Games.skip_player(assigns.join_code, assigns.player_id, assigns.next_player_id)
+  end
+
+  defp discard(card, assigns) do
+    Games.discard_card(assigns.join_code, assigns.player_id, card)
+  end
 
   @spec empty_player_table(Levels.level()) :: Game.player_table()
   defp empty_player_table(level) do

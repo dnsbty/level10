@@ -33,6 +33,7 @@ defmodule Level10.Games.Game do
           players_ready: MapSet.t(),
           remaining_players: MapSet.t(),
           scoring: scores(),
+          skipped_players: MapSet.t(),
           table: table()
         }
 
@@ -51,6 +52,7 @@ defmodule Level10.Games.Game do
     players_ready
     remaining_players
     scoring
+    skipped_players
     table
   ]a
 
@@ -209,8 +211,7 @@ defmodule Level10.Games.Game do
   def discard(game = %{current_player: player, discard_pile: pile, hands: hands}, card) do
     hands = Map.update!(hands, player.id, &List.delete(&1, card))
     pile = [card | pile]
-    game = %{game | discard_pile: pile, hands: hands}
-    increment_current_turn(game, card.value == :skip)
+    increment_current_turn(%{game | discard_pile: pile, hands: hands})
   end
 
   @spec draw_card(t(), Player.id(), :draw_pile | :discard_pile) ::
@@ -311,6 +312,24 @@ defmodule Level10.Games.Game do
 
     {:ok, game} = put_player(game, player)
     game
+  end
+
+  @doc """
+  Get the player whose turn will come after the specified player during the
+  current round. This function is used mostly for getting the player to be
+  skipped for games that are set to not allow players to choose whom they wish
+  to skip.
+
+  ## Examples
+
+      iex> next_player(%Game{}, "b1bbeda1-c6b5-42dd-b0e1-8bed3273dfab")
+      %Player{}
+  """
+  @spec next_player(t(), Player.id()) :: Player.t()
+  def next_player(game, player_id) do
+    total_players = length(game.players)
+    index = Enum.find_index(game.players, fn %{id: id} -> id == player_id end)
+    next_player(game.players, index, total_players, game.remaining_players)
   end
 
   @spec get_player(t(), Player.id()) :: Player.t()
@@ -456,6 +475,19 @@ defmodule Level10.Games.Game do
   end
 
   @doc """
+  Add a player ID to the list of players who should be skipped on their next
+  turn.
+  """
+  @spec skip_player(t(), Player.id()) :: t() | :already_skipped
+  def skip_player(game, player_id) do
+    if player_id in game.skipped_players do
+      :already_skipped
+    else
+      %{game | skipped_players: MapSet.put(game.skipped_players, player_id)}
+    end
+  end
+
+  @doc """
   Starts the game.
 
   Checks to make sure that there are at least two players present.
@@ -492,15 +524,14 @@ defmodule Level10.Games.Game do
         game =
           game
           |> clear_table()
+          |> clear_skipped_players()
           |> put_new_deck()
           |> deal_hands()
           |> update_levels()
           |> put_new_discard()
           |> put_stage(:play)
 
-        [%{value: value}] = game.discard_pile
-
-        {:ok, increment_current_turn(game, value == :skip)}
+        {:ok, increment_current_turn(game)}
 
       :game_over ->
         :game_over
@@ -535,11 +566,14 @@ defmodule Level10.Games.Game do
   @spec clear_ready(t()) :: t()
   defp clear_ready(game), do: %{game | players_ready: MapSet.new()}
 
+  @spec clear_skipped_players(t()) :: t()
+  defp clear_skipped_players(game), do: %{game | skipped_players: MapSet.new()}
+
   @spec clear_table(t()) :: t()
   defp clear_table(game), do: %{game | table: %{}}
 
-  @spec increment_current_turn(t(), boolean()) :: t()
-  defp increment_current_turn(game, skip) do
+  @spec increment_current_turn(t()) :: t()
+  defp increment_current_turn(game) do
     %{current_round: round, current_turn: turn, players: players} = game
     total_players = length(players)
     new_turn = turn + 1
@@ -550,10 +584,11 @@ defmodule Level10.Games.Game do
 
     cond do
       player.id not in game.remaining_players ->
-        increment_current_turn(game, skip)
+        increment_current_turn(game)
 
-      skip ->
-        increment_current_turn(game, false)
+      player.id in game.skipped_players ->
+        skipped_players = MapSet.delete(game.skipped_players, player.id)
+        increment_current_turn(%{game | skipped_players: skipped_players})
 
       true ->
         game
@@ -597,6 +632,19 @@ defmodule Level10.Games.Game do
     |> Stream.concat(skips)
     |> Stream.concat(wilds)
     |> Enum.shuffle()
+  end
+
+  @spec next_player(list(Player.t()), non_neg_integer(), non_neg_integer(), MapSet.t(Player.t())) ::
+          Player.t()
+  defp next_player(players, previous_index, total_players, remaining_players) do
+    index = rem(previous_index + 1, total_players)
+    player = Enum.at(players, index)
+
+    if player.id in remaining_players do
+      player
+    else
+      next_player(players, index, total_players, remaining_players)
+    end
   end
 
   @spec deal_hands(t()) :: t()

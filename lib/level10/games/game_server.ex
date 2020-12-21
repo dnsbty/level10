@@ -13,7 +13,7 @@ defmodule Level10.Games.GameServer do
 
   use GenServer
   alias Level10.StateHandoff
-  alias Level10.Games.{Game, Player}
+  alias Level10.Games.{Card, Game, Player}
   require Logger
 
   @typedoc "Return values of `start*` functions"
@@ -147,6 +147,10 @@ defmodule Level10.Games.GameServer do
     {:reply, game.levels, game}
   end
 
+  def handle_call({:next_player, player_id}, _from, game) do
+    {:reply, Game.next_player(game, player_id), game}
+  end
+
   def handle_call({:player_exists?, player_id}, _from, game) do
     {:reply, Game.player_exists?(game, player_id), game}
   end
@@ -173,6 +177,33 @@ defmodule Level10.Games.GameServer do
 
   def handle_call(:scoring, _from, game) do
     {:reply, game.scoring, game}
+  end
+
+  def handle_call({:skip_player, {player_id, player_to_skip}}, _from, game) do
+    skip_card = Card.new(:skip)
+
+    with ^player_id <- game.current_player.id,
+         %Game{} = game <- Game.skip_player(game, player_to_skip),
+         %Game{} = game <- Game.discard(game, skip_card) do
+      broadcast(game.join_code, :hand_counts_updated, Game.hand_counts(game))
+      broadcast(game.join_code, :new_discard_top, skip_card)
+      broadcast(game.join_code, :player_skipped, player_to_skip)
+
+      if Game.round_finished?(game, player_id) do
+        {:reply, :ok, maybe_complete_round(game, player_id)}
+      else
+        broadcast(game.join_code, :new_turn, game.current_player)
+        {:reply, :ok, game}
+      end
+    else
+      :already_skipped -> {:reply, :already_skipped, game}
+      :needs_to_draw -> {:reply, :needs_to_draw, game}
+      _ -> {:reply, :not_your_turn, game}
+    end
+  end
+
+  def handle_call(:skipped_players, _from, game) do
+    {:reply, game.skipped_players, game}
   end
 
   def handle_call(:started?, _from, game) do

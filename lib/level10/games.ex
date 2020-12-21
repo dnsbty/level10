@@ -242,6 +242,19 @@ defmodule Level10.Games do
   end
 
   @doc """
+  Get the player whose turn will come after the player specified.
+
+  ## Examples
+
+      iex> get_next_player("ABCD", "103b1a2c-e3fd-4cfb-bdcd-8842cf5c8012")
+      %Player{id: "27aada8a-a9d4-4b00-a306-92d1e507a3cd"}
+  """
+  @spec get_next_player(Game.join_code(), Player.id(), timeout()) :: Player.t()
+  def get_next_player(join_code, player_id, timeout \\ 5000) do
+    GenServer.call(via(join_code), {:next_player, player_id}, timeout)
+  end
+
+  @doc """
   Get the list of players in a game.
 
   ## Examples
@@ -287,6 +300,19 @@ defmodule Level10.Games do
   @spec get_scores(Game.join_code(), timeout()) :: Game.scores()
   def get_scores(join_code, timeout \\ 5000) do
     GenServer.call(via(join_code), :scoring, timeout)
+  end
+
+  @doc """
+  Gets the set of players that will be skipped on their next turn.
+
+  ## Examples
+
+      iex> get_skipped_players("ABCD")
+      #MapSet<["a66f96e0-dfd9-493e-9bb9-47cb8baed530"]
+  """
+  @spec get_skipped_players(Game.join_code(), timeout()) :: MapSet.t(Player.id())
+  def get_skipped_players(join_code, timeout \\ 5000) do
+    GenServer.call(via(join_code), :skipped_players, timeout)
   end
 
   @doc """
@@ -430,6 +456,24 @@ defmodule Level10.Games do
   @spec round_winner(Game.join_code(), timeout()) :: Player.t() | nil
   def round_winner(join_code, timeout \\ 5000) do
     GenServer.call(via(join_code), :round_winner, timeout)
+  end
+
+  @doc """
+  Discards a skip card from the player's hand and specify the player whose next
+  turn should be skipped.
+
+  ## Examples
+
+      iex> skip_player("ABCD", "9c34b9fe-3104-44b3-b21b-28140e2e3624", "4fabf53c-6449-4d18-ab28-11cf642dee24")
+      :ok
+
+      iex> skip_player("ABCD", "9c34b9fe-3104-44b3-b21b-28140e2e3624", "4fabf53c-6449-4d18-ab28-11cf642dee24")
+      :ok
+  """
+  @spec skip_player(Game.join_code(), Player.id(), Player.id(), timeout()) ::
+          :ok | :needs_to_draw | :not_your_turn
+  def skip_player(join_code, player_id, player_to_skip, timeout \\ 5000) do
+    GenServer.call(via(join_code), {:skip_player, {player_id, player_to_skip}}, timeout)
   end
 
   @doc """
