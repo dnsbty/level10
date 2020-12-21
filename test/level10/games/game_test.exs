@@ -2,12 +2,19 @@ defmodule Level10.Games.GameTest do
   use ExUnit.Case, async: true
   alias Level10.Games.{Card, Game, Player}
 
-  describe "start_round/1" do
+  describe "start_game/1" do
     @game Game.new("ABCD", Player.new("Player 1"))
+
+    test "fails when the game only has a single player" do
+      assert :single_player == Game.start_game(@game)
+    end
 
     test "increments the current_round" do
       assert @game.current_round == 0
-      {:ok, game} = Game.start_round(@game)
+
+      {:ok, game} = Game.put_player(@game, Player.new("Player 2"))
+      {:ok, game} = Game.start_game(game)
+
       assert game.current_round == 1
     end
 
@@ -15,7 +22,7 @@ defmodule Level10.Games.GameTest do
       assert @game.hands == %{}
 
       {:ok, game} = Game.put_player(@game, Player.new("Player 2"))
-      {:ok, game} = Game.start_round(game)
+      {:ok, game} = Game.start_game(game)
 
       [player1, player2] = game.players
 
@@ -27,7 +34,7 @@ defmodule Level10.Games.GameTest do
       assert @game.draw_pile == []
 
       {:ok, game} = Game.put_player(@game, Player.new("Player 2"))
-      {:ok, game} = Game.start_round(game)
+      {:ok, game} = Game.start_game(game)
 
       assert length(game.draw_pile) == 87
     end
@@ -36,7 +43,7 @@ defmodule Level10.Games.GameTest do
       assert @game.discard_pile == []
 
       {:ok, game} = Game.put_player(@game, Player.new("Player 2"))
-      {:ok, game} = Game.start_round(game)
+      {:ok, game} = Game.start_game(game)
 
       assert length(game.discard_pile) == 1
     end
