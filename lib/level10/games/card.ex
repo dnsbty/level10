@@ -62,18 +62,18 @@ defmodule Level10.Games.Card do
       :twelve
   """
   @spec from_number(non_neg_integer()) :: value()
-  defp from_number(1), do: :one
-  defp from_number(2), do: :two
-  defp from_number(3), do: :three
-  defp from_number(4), do: :four
-  defp from_number(5), do: :five
-  defp from_number(6), do: :six
-  defp from_number(7), do: :seven
-  defp from_number(8), do: :eight
-  defp from_number(9), do: :nine
-  defp from_number(10), do: :ten
-  defp from_number(11), do: :eleven
-  defp from_number(12), do: :twelve
+  def from_number(1), do: :one
+  def from_number(2), do: :two
+  def from_number(3), do: :three
+  def from_number(4), do: :four
+  def from_number(5), do: :five
+  def from_number(6), do: :six
+  def from_number(7), do: :seven
+  def from_number(8), do: :eight
+  def from_number(9), do: :nine
+  def from_number(10), do: :ten
+  def from_number(11), do: :eleven
+  def from_number(12), do: :twelve
 
   @doc """
   Convenience function for creating a new Wild or Skip card struct

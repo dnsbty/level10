@@ -111,17 +111,4 @@ defmodule Level10Web.ScoringLive do
     path = Routes.live_path(Endpoint, GameLive, join_code, player_id: player_id)
     push_redirect(socket, to: path)
   end
-
-  defp sort_players(players, scores) do
-    Enum.sort(players, fn %{id: player1}, %{id: player2} ->
-      {level1, score1} = scores[player1]
-      {level2, score2} = scores[player2]
-
-      cond do
-        level1 > level2 -> true
-        level1 < level2 -> false
-        true -> score1 <= score2
-      end
-    end)
-  end
 end

@@ -22,7 +22,7 @@ COPY priv priv
 COPY .iex.exs .
 COPY lib lib
 
-RUN mix compile
+RUN mix compile --warnings-as-errors
 
 # Build the Javascript stuff
 
