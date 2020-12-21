@@ -51,8 +51,6 @@ COPY --from=js-build /app/priv/static ./priv/static
 RUN mix phx.digest
 RUN mix release
 
-RUN ls -R /app/_build
-
 # Put it into an empty Alpine container
 
 FROM alpine:latest
