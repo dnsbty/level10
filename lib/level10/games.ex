@@ -316,6 +316,19 @@ defmodule Level10.Games do
   end
 
   @doc """
+  Get the settings for the game.
+
+  ## Examples
+
+      iex> get_settings("ABCD")
+      %Level10.Games.Settings{}
+  """
+  @spec get_settings(Game.join_code(), timeout()) :: Settings.t()
+  def get_settings(join_code, timeout \\ 5000) do
+    GenServer.call(via(join_code), :settings, timeout)
+  end
+
+  @doc """
   Get the table: the cards that have been played to complete levels by each
   player.
 

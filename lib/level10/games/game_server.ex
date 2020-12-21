@@ -179,6 +179,10 @@ defmodule Level10.Games.GameServer do
     {:reply, game.scoring, game}
   end
 
+  def handle_call(:settings, _from, game) do
+    {:reply, game.settings, game}
+  end
+
   def handle_call({:skip_player, {player_id, player_to_skip}}, _from, game) do
     skip_card = Card.new(:skip)
 

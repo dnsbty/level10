@@ -6,7 +6,7 @@ defmodule Level10.Games.Game do
   down to clients.
   """
   require Logger
-  alias Level10.Games.{Card, Levels, Player}
+  alias Level10.Games.{Card, Levels, Player, Settings}
 
   @type cards :: list(Card.t())
   @type join_code :: String.t()
@@ -33,6 +33,7 @@ defmodule Level10.Games.Game do
           players_ready: MapSet.t(),
           remaining_players: MapSet.t(),
           scoring: scores(),
+          settings: Settings.t(),
           skipped_players: MapSet.t(),
           table: table()
         }
@@ -52,6 +53,7 @@ defmodule Level10.Games.Game do
     players_ready
     remaining_players
     scoring
+    settings
     skipped_players
     table
   ]a
@@ -307,6 +309,7 @@ defmodule Level10.Games.Game do
       players: [],
       players_ready: MapSet.new(),
       scoring: %{},
+      settings: Settings.default(),
       table: %{}
     }
 
@@ -375,6 +378,15 @@ defmodule Level10.Games.Game do
 
   def put_player(_game, _player) do
     :already_started
+  end
+
+  @doc """
+  Update a setting for configuring the game.
+  """
+  @spec put_setting(t(), Settings.setting(), boolean()) :: t()
+  def put_setting(game, setting_name, value) do
+    settings = Settings.set(game.settings, setting_name, value)
+    %{game | settings: settings}
   end
 
   @doc """

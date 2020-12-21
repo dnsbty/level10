@@ -68,6 +68,9 @@ defmodule Seeds do
         "2fa9afae-9613-48dd-a100-af426ecc70ce" => {2, 10},
         "6e6885fc-a2b1-4402-8b15-63575d399bee" => {2, 0}
       },
+      settings: %Level10.Games.Settings{
+        skip_next_player: false
+      },
       table: %{
         "0dbc7f1b-2ece-4c48-ae8e-72966dda0114" => %{
           0 => [

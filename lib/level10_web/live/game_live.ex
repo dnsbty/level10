@@ -34,6 +34,7 @@ defmodule Level10Web.GameLive do
       skipped_players = Games.get_skipped_players(join_code)
       next_player = Games.get_next_player(join_code, player_id)
       presence = Games.list_presence(join_code)
+      settings = Games.get_settings(join_code)
 
       has_drawn =
         if turn.id == player_id, do: Games.current_player_has_drawn?(join_code), else: false
@@ -57,6 +58,7 @@ defmodule Level10Web.GameLive do
         round_winner: round_winner,
         overflow_hidden: !is_nil(round_winner),
         selected_indexes: MapSet.new(),
+        settings: settings,
         skipped_players: skipped_players,
         table: table,
         turn: turn
