@@ -1,10 +1,11 @@
 module.exports = {
-  theme: {
-    extend: {},
-    negativeMargin: {
-      '1/6': '16.6666666667%',
-    },
-  },
+  purge: [
+    '../lib/**/*.ex',
+    '../lib/**/*.leex',
+    '../lib/**/*.eex',
+    './js/**/*.js'
+  ],
+  theme: {},
   variants: {},
   plugins: [],
 };

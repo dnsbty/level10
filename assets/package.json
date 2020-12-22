@@ -2,7 +2,7 @@
   "repository": {},
   "license": "MIT",
   "scripts": {
-    "deploy": "webpack --mode production",
+    "deploy": "NODE_ENV=production webpack --mode production",
     "watch": "webpack --mode development --watch"
   },
   "dependencies": {
@@ -14,14 +14,16 @@
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
     "@fullhuman/postcss-purgecss": "^2.1.0",
+    "autoprefixer": "^10.1.0",
     "babel-loader": "^8.0.0",
     "copy-webpack-plugin": "^6.0.3",
     "css-loader": "^3.4.2",
     "mini-css-extract-plugin": "^0.9.0",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
+    "postcss": "^8.2.1",
     "postcss-import": "^12.0.1",
-    "postcss-loader": "^3.0.0",
-    "tailwindcss": "^1.2.0",
+    "postcss-loader": "^4.1.0",
+    "tailwindcss": "^2.0.2",
     "terser-webpack-plugin": "^2.3.2",
     "webpack": "4.41.5",
     "webpack-cli": "^3.3.2"
