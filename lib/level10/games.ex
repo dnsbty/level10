@@ -10,7 +10,7 @@ defmodule Level10.Games do
   """
 
   alias Level10.Presence
-  alias Level10.Games.{Game, GameRegistry, GameServer, GameSupervisor, Levels, Player}
+  alias Level10.Games.{Game, GameRegistry, GameServer, GameSupervisor, Levels, Player, Settings}
   require Logger
 
   @typep game_name :: {:via, module, term}
@@ -49,10 +49,10 @@ defmodule Level10.Games do
   @doc """
   Create a new game with the player named as its creator.
   """
-  @spec create_game(String.t()) :: {:ok, Game.join_code(), Player.id()} | :error
-  def create_game(player_name) do
+  @spec create_game(String.t(), Settings.t()) :: {:ok, Game.join_code(), Player.id()} | :error
+  def create_game(player_name, settings) do
     player = Player.new(player_name)
-    do_create_game(player, @max_creation_attempts)
+    do_create_game(player, settings, @max_creation_attempts)
   end
 
   @doc """
@@ -559,20 +559,20 @@ defmodule Level10.Games do
 
   # Private
 
-  @spec do_create_game(Player.t(), non_neg_integer()) ::
+  @spec do_create_game(Player.t(), Settings.t(), non_neg_integer()) ::
           {:ok, Game.join_code(), Player.id()} | :error
-  defp do_create_game(player, attempts_remaining)
+  defp do_create_game(player, settings, attempts_remaining)
 
-  defp do_create_game(_player, 0) do
+  defp do_create_game(_player, _settings, 0) do
     :error
   end
 
-  defp do_create_game(player, attempts_remaining) do
+  defp do_create_game(player, settings, attempts_remaining) do
     join_code = Game.generate_join_code()
 
     game = %{
       id: join_code,
-      start: {GameServer, :start_link, [{join_code, player}, [name: via(join_code)]]},
+      start: {GameServer, :start_link, [{join_code, player, settings}, [name: via(join_code)]]},
       shutdown: 1000,
       restart: :temporary
     }
@@ -583,7 +583,7 @@ defmodule Level10.Games do
         {:ok, join_code, player.id}
 
       {:error, {:already_started, _pid}} ->
-        do_create_game(player, attempts_remaining - 1)
+        do_create_game(player, settings, attempts_remaining - 1)
     end
   end
 

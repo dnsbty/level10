@@ -23,17 +23,17 @@ defmodule Level10.Games.GameServer do
 
   @max_players 6
 
-  @spec start_link({Game.join_code(), Player.t()}, GenServer.options()) :: on_start
-  def start_link({join_code, player}, options \\ []) do
-    GenServer.start_link(__MODULE__, {join_code, player}, options)
+  @spec start_link({Game.join_code(), Player.t(), Settings.t()}, GenServer.options()) :: on_start
+  def start_link({join_code, player, settings}, options \\ []) do
+    GenServer.start_link(__MODULE__, {join_code, player, settings}, options)
   end
 
   @impl true
-  def init({join_code, player}) do
+  def init({join_code, player, settings}) do
     Process.flag(:trap_exit, true)
     Process.put(:"$initial_call", {Game, :new, 2})
 
-    {:ok, {join_code, player}, {:continue, :load_state}}
+    {:ok, {join_code, player, settings}, {:continue, :load_state}}
   end
 
   @impl true
@@ -293,12 +293,12 @@ defmodule Level10.Games.GameServer do
   end
 
   @impl true
-  def handle_continue(:load_state, {join_code, player}) do
+  def handle_continue(:load_state, {join_code, player, settings}) do
     game =
       case StateHandoff.pickup(join_code) do
         nil ->
           Logger.info("Creating new game #{join_code}")
-          Game.new(join_code, player)
+          Game.new(join_code, player, settings)
 
         game ->
           Logger.info("Creating game from state handoff #{join_code}")

@@ -7,7 +7,7 @@ defmodule Level10Web.LobbyLive do
   require Logger
 
   alias Level10.Games
-  alias Games.Player
+  alias Games.{Player, Settings}
   alias Level10Web.Router.Helpers, as: Routes
   alias Level10Web.LobbyView
 
@@ -19,7 +19,8 @@ defmodule Level10Web.LobbyLive do
       name: "",
       player_id: nil,
       players: nil,
-      presence: nil
+      presence: nil,
+      settings: Settings.default()
     ]
 
     {:ok, assign(socket, initial_assigns)}
@@ -66,7 +67,7 @@ defmodule Level10Web.LobbyLive do
   end
 
   def handle_event("create_game", _params, socket) do
-    case Games.create_game(socket.assigns.name) do
+    case Games.create_game(socket.assigns.name, socket.assigns.settings) do
       {:ok, join_code, player_id} ->
         players = [%Player{id: player_id, name: socket.assigns.name}]
         presence = Games.list_presence(join_code)
@@ -169,6 +170,12 @@ defmodule Level10Web.LobbyLive do
   def handle_event("start_game", _params, socket) do
     Games.start_game(socket.assigns.join_code)
     {:noreply, assign(socket, starting: true)}
+  end
+
+  def handle_event("toggle_setting", %{"setting" => "skip_next_player"}, socket) do
+    value = !socket.assigns.settings.skip_next_player
+    settings = Settings.set(socket.assigns.settings, :skip_next_player, value)
+    {:noreply, assign(socket, settings: settings)}
   end
 
   def handle_event("validate", %{"info" => info}, socket) do

@@ -293,8 +293,8 @@ defmodule Level10.Games.Game do
     {status, %{game | players_ready: players_ready}}
   end
 
-  @spec new(join_code(), Player.t()) :: t()
-  def new(join_code, player) do
+  @spec new(join_code(), Player.t(), Settings.t()) :: t()
+  def new(join_code, player, settings) do
     game = %__MODULE__{
       current_player: player,
       current_round: 0,
@@ -309,7 +309,7 @@ defmodule Level10.Games.Game do
       players: [],
       players_ready: MapSet.new(),
       scoring: %{},
-      settings: Settings.default(),
+      settings: settings,
       table: %{}
     }
 

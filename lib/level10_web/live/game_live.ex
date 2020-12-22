@@ -272,7 +272,7 @@ defmodule Level10Web.GameLive do
   end
 
   defp discard(%{value: :skip}, assigns, _) do
-    if assigns.settings.skip_next_player do
+    if assigns.settings.skip_next_player || MapSet.size(assigns.remaining_players) < 3 do
       Games.skip_player(assigns.join_code, assigns.player_id, assigns.next_player_id)
     else
       :choose_skip_target
