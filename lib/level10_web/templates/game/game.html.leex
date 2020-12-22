@@ -16,6 +16,14 @@
         <div class="flex-1 text-white text-lg">
           <%= if player.id == @player_id, do: "You", else: player.name %>
         </div>
+        <div class="flex text-white text-sm mr-1 w-4">
+          <%= if player.id in @skipped_players do %>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" role="img" aria-labelledby="skip-icon-title">
+              <title id="skip-icon-title">Skipped</title>
+              <path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z" />
+            </svg>
+          <% end %>
+        </div>
         <div class="flex text-white text-sm mr-1 mb-1">&#x1F02B;</div>
         <div class="flex text-white text-sm mr-2"><%= @hand_counts[player.id] %></div>
         <%= if is_nil(@table[player.id]) do %>

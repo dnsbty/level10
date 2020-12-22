@@ -3,6 +3,7 @@ defmodule Level10Web.GameLive do
   Live view for gameplay
   """
   use Phoenix.LiveView, layout: {Level10Web.LayoutView, "live.html"}
+  require Logger
 
   alias Level10.Games
   alias Games.{Card, Levels}
@@ -234,6 +235,10 @@ defmodule Level10Web.GameLive do
     {:noreply, assign(socket, round_winner: winner)}
   end
 
+  def handle_info({:skipped_players_updated, skipped_players}, socket) do
+    {:noreply, assign(socket, skipped_players: skipped_players)}
+  end
+
   def handle_info({:table_updated, table}, socket) do
     player_table = Map.get(table, socket.assigns.player_id, socket.assigns.player_table)
     {:noreply, assign(socket, player_table: player_table, table: table)}
@@ -243,7 +248,10 @@ defmodule Level10Web.GameLive do
     {:noreply, assign(socket, presence: Games.list_presence(socket.assigns.join_code))}
   end
 
-  def handle_info(_, socket), do: {:noreply, socket}
+  def handle_info(event, socket) do
+    Logger.warn(["Game socket received unknown event: ", inspect(event)])
+    {:noreply, socket}
+  end
 
   # Private Functions
 

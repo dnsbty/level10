@@ -86,6 +86,7 @@ defmodule Level10.Games.GameServer do
       if Game.round_finished?(game, player_id) do
         {:reply, :ok, maybe_complete_round(game, player_id)}
       else
+        broadcast(game.join_code, :skipped_players_updated, game.skipped_players)
         broadcast(game.join_code, :new_turn, game.current_player)
         {:reply, :ok, game}
       end
@@ -103,7 +104,6 @@ defmodule Level10.Games.GameServer do
         end
 
         broadcast(game.join_code, :hand_counts_updated, Game.hand_counts(game))
-        broadcast(game.join_code, :current_turn_drawn?, true)
         [new_card | _] = game.hands[player_id]
 
         {:reply, new_card, game}
@@ -191,7 +191,7 @@ defmodule Level10.Games.GameServer do
          %Game{} = game <- Game.discard(game, skip_card) do
       broadcast(game.join_code, :hand_counts_updated, Game.hand_counts(game))
       broadcast(game.join_code, :new_discard_top, skip_card)
-      broadcast(game.join_code, :player_skipped, player_to_skip)
+      broadcast(game.join_code, :skipped_players_updated, game.skipped_players)
 
       if Game.round_finished?(game, player_id) do
         {:reply, :ok, maybe_complete_round(game, player_id)}
