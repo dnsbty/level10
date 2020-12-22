@@ -40,6 +40,7 @@ defmodule Level10Web.GameLive do
         if turn.id == player_id, do: Games.current_player_has_drawn?(join_code), else: false
 
       assigns = [
+        choose_skip_target: false,
         discard_top: discard_top,
         game_over: false,
         hand: hand,
@@ -103,23 +104,31 @@ defmodule Level10Web.GameLive do
     end
   end
 
-  def handle_event("discard", _, socket) do
+  def handle_event("cancel_skip", _, socket) do
+    {:noreply, assign(socket, choose_skip_target: false, selected_indexes: MapSet.new())}
+  end
+
+  def handle_event("discard", params, socket) do
     with [position] <- MapSet.to_list(socket.assigns.selected_indexes),
          {card, hand} = List.pop_at(socket.assigns.hand, position),
-         :ok <- discard(card, socket.assigns) do
-      {:noreply, assign(socket, hand: Card.sort(hand), selected_indexes: MapSet.new())}
+         :ok <- discard(card, socket.assigns, params) do
+      assigns = [choose_skip_target: false, hand: Card.sort(hand), selected_indexes: MapSet.new()]
+      {:noreply, assign(socket, assigns)}
     else
+      :choose_skip_target ->
+        {:noreply, assign(socket, choose_skip_target: true)}
+
       [] ->
         message = "You need to select a card in your hand before you can discard it silly 😄"
         {:noreply, flash_error(socket, message)}
 
-      selected when is_list(selected) ->
+      [%Card{} | _] ->
         message = "Nice try, but you can only discard one card at a time 🧐"
         {:noreply, flash_error(socket, message)}
 
-      :already_skipped ->
+      {:already_skipped, player} ->
         message =
-          "That player was already skipped... Continue that vendetta on your next turn instead 😎"
+          "#{player.name} was already skipped... Continue that vendetta on your next turn instead 😈"
 
         {:noreply, flash_error(socket, message)}
 
@@ -238,12 +247,39 @@ defmodule Level10Web.GameLive do
 
   # Private Functions
 
-  @spec discard(Card.t(), map()) :: :ok | :already_skipped | :not_your_turn | :needs_to_draw
-  defp discard(%{value: :skip}, assigns) do
-    Games.skip_player(assigns.join_code, assigns.player_id, assigns.next_player_id)
+  @spec discard(Card.t(), map(), map()) ::
+          :ok
+          | {:already_skipped, Player.t()}
+          | :choose_skip_target
+          | :not_your_turn
+          | :needs_to_draw
+  defp discard(%{value: :skip}, assigns, %{"player_id" => skip_target}) do
+    %{
+      settings: settings,
+      join_code: join_code,
+      player_id: player_id,
+      next_player_id: next_player_id
+    } = assigns
+
+    skip_target = if settings.skip_next_player, do: next_player_id, else: skip_target
+
+    if skip_target in assigns.skipped_players do
+      player = Enum.find(assigns.players, &(&1.id == skip_target))
+      {:already_skipped, player}
+    else
+      Games.skip_player(join_code, player_id, skip_target)
+    end
   end
 
-  defp discard(card, assigns) do
+  defp discard(%{value: :skip}, assigns, _) do
+    if assigns.settings.skip_next_player do
+      Games.skip_player(assigns.join_code, assigns.player_id, assigns.next_player_id)
+    else
+      :choose_skip_target
+    end
+  end
+
+  defp discard(card, assigns, _) do
     Games.discard_card(assigns.join_code, assigns.player_id, card)
   end
 
