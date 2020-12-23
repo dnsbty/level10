@@ -5,7 +5,12 @@ module.exports = {
     '../lib/**/*.eex',
     './js/**/*.js'
   ],
-  theme: {},
-  variants: {},
+  darkMode: false, // or 'media' or 'class'
+  theme: {
+    extend: {},
+  },
+  variants: {
+    extend: {},
+  },
   plugins: [],
-};
+}
