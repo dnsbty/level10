@@ -37,6 +37,9 @@ WORKDIR /app/assets
 COPY assets/package.json assets/yarn.lock ./
 RUN yarn install
 
+# We need the lib folder for Tailwind to be able to purge any unused classes
+COPY --from=elixir-build /app/lib /app/lib
+
 COPY assets .
 RUN yarn run deploy
 
