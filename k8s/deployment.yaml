@@ -71,6 +71,11 @@ spec:
               value: "level10@$(POD_IP)"
             - name: RELEASE_DISTRIBUTION
               value: "name"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: level10
+                  key: databaseUrl
             - name: SECRET_KEY_BASE
               valueFrom:
                 secretKeyRef:

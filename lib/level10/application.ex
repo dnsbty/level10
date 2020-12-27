@@ -17,12 +17,20 @@ defmodule Level10.Application do
        ]},
       {Horde.Registry, name: Level10.Games.GameRegistry, keys: :unique, members: :auto},
       {Cluster.Supervisor, [topologies, [name: Level10.ClusterSupervisor]]},
+      Level10.Repo,
       {Phoenix.PubSub, name: Level10.PubSub},
       Level10.Presence,
       Level10.Telemetry,
       Level10.TerminationMonitor,
       Level10Web.Endpoint
     ]
+
+    children =
+      if Application.get_env(:ressipy, :database_only, false) do
+        [Level10.Repo]
+      else
+        children
+      end
 
     opts = [strategy: :one_for_one, name: Level10.Supervisor]
     Supervisor.start_link(children, opts)

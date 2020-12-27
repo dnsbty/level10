@@ -7,6 +7,9 @@
 # General application configuration
 use Mix.Config
 
+config :level10,
+  ecto_repos: [Level10.Repo]
+
 # Configures the endpoint
 config :level10, Level10Web.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT") || "4000")],

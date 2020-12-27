@@ -10,6 +10,7 @@ defmodule Level10.MixProject do
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       releases: releases(),
+      aliases: aliases(),
       deps: deps()
     ]
   end
@@ -43,20 +44,32 @@ defmodule Level10.MixProject do
     [
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:delta_crdt, "~> 0.5"},
-      {:ecto, "~> 3.4"},
+      {:ecto, "~> 3.5"},
+      {:ecto_sql, "~> 3.5"},
       {:gettext, "~> 0.11"},
       {:horde, "~> 0.8.0-rc.1"},
       {:jason, "~> 1.0"},
       {:libcluster, "~> 3.2"},
       {:phoenix, "~> 1.5"},
+      {:phoenix_ecto, "~> 4.1"},
       {:phoenix_html, "~> 2.11"},
-      {:phoenix_live_dashboard, "~> 0.2"},
+      {:phoenix_live_dashboard, "~> 0.4"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 0.15"},
       {:phoenix_pubsub, "~> 2.0"},
       {:plug_cowboy, "~> 2.2"},
+      {:postgrex, ">= 0.0.0"},
       {:telemetry_metrics, "~> 0.5"},
-      {:telemetry_poller, "~> 0.5", override: true}
+      {:telemetry_poller, "~> 0.5"}
+    ]
+  end
+
+  defp aliases do
+    [
+      setup: ["deps.get", "ecto.setup", "cmd npm install --prefix assets"],
+      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
+      "ecto.reset": ["ecto.drop", "ecto.setup"],
+      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
     ]
   end
 end

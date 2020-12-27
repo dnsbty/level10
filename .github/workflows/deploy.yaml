@@ -13,9 +13,6 @@ jobs:
       - name: Checkout master
         uses: actions/checkout@master
 
-      - name: Build container image
-        run: docker build -t ${REGISTRY_URL}:$(echo $GITHUB_SHA | head -c7) .
-
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
         with:
@@ -24,11 +21,21 @@ jobs:
       - name: Log in to DigitalOcean Container Registry
         run: doctl registry login --expiry-seconds 600
 
+      - name: Load cached layers
+        uses: satackey/action-docker-layer-caching@v0.0.8
+        continue-on-error: true
+
+      - name: Build container image
+        run: docker build -t ${REGISTRY_URL}:$(echo $GITHUB_SHA | head -c7) .
+
       - name: Push image to DigitalOcean Container Registry
         run: docker push ${REGISTRY_URL}
 
       - name: Save DigitalOcean kubeconfig
         run: doctl kubernetes cluster kubeconfig save dnsbty-k8s
+
+      - name: Run database migrations
+        run: ./bin/migrate.sh $(echo $GITHUB_SHA | head -c7)
 
       - name: Deploy to DigitalOcean Kubernetes
         run: kubectl set image deployments/level10 level10=${REGISTRY_URL}:$(echo $GITHUB_SHA | head -c7)
