@@ -1,9 +1,9 @@
 defmodule Level10.Games.GameTest do
   use ExUnit.Case, async: true
-  alias Level10.Games.{Card, Game, Player}
+  alias Level10.Games.{Card, Game, Player, Settings}
 
   describe "complete_round/1" do
-    @game Game.new("ABCD", Player.new("Player 1"))
+    @game Game.new("ABCD", Player.new("Player 1"), Settings.default())
 
     @hand_nothing [
       %Card{color: :blue, value: :one},
@@ -155,7 +155,7 @@ defmodule Level10.Games.GameTest do
   end
 
   describe "skip_player/2" do
-    @game Game.new("ABCD", Player.new("Player 1"))
+    @game Game.new("ABCD", Player.new("Player 1"), Settings.default())
 
     test "adds the given player ID into the set of skipped players" do
       game = %Game{skipped_players: MapSet.new()}
@@ -171,7 +171,7 @@ defmodule Level10.Games.GameTest do
   end
 
   describe "start_game/1" do
-    @game Game.new("ABCD", Player.new("Player 1"))
+    @game Game.new("ABCD", Player.new("Player 1"), Settings.default())
 
     test "fails when the game only has a single player" do
       assert :single_player == Game.start_game(@game)
