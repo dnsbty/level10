@@ -8,6 +8,8 @@ jobs:
       matrix:
         otp: [23.1.5]
         elixir: [1.11.2]
+    env:
+      MIX_ENV: test
 
     services:
       db:
