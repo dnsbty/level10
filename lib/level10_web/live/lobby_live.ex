@@ -8,8 +8,8 @@ defmodule Level10Web.LobbyLive do
 
   alias Level10.Games
   alias Games.{Player, Settings}
-  alias Level10Web.Router.Helpers, as: Routes
   alias Level10Web.LobbyView
+  alias Level10Web.Router.Helpers, as: Routes
 
   def mount(_params, _session, socket) do
     initial_assigns = [
