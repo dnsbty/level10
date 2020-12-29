@@ -6,7 +6,7 @@ defmodule Level10Web.UserRegistrationController do
   alias Level10Web.UserAuth
 
   def new(conn, _params) do
-    changeset = Accounts.change_user_registration(%User{})
+    changeset = Accounts.change_user_registration(%User{subscribed: true})
     render(conn, "new.html", changeset: changeset)
   end
 

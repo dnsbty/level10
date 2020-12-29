@@ -44,13 +44,16 @@
               <div class="mt-1">
                 <%= password_input f, :password, required: true, autocomplete: "current-password", class: "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-red-400 focus:border-red-500 sm:text-sm" %>
               </div>
+              <div class="text-xs text-gray-300">
+                At least 8 characters including 1 letter, 1 number, 1 symbol
+              </div>
               <%= error_tag f, :password %>
             </div>
 
             <div class="flex items-center justify-between">
               <div class="flex items-center">
-                <%= checkbox f, :notify_me, class: "h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded" %>
-                <%= label f, :notify_me, "Notify me about updates to the game", class: "ml-2 block text-sm text-gray-300" %>
+                <%= checkbox f, :subscribed, class: "h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded" %>
+                <%= label f, :subscribed, "Notify me about updates to the game", class: "ml-2 block text-sm text-gray-300" %>
               </div>
             </div>
 

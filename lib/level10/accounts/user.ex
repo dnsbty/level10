@@ -12,6 +12,8 @@ defmodule Level10.Accounts.User do
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
+    field :subscribed_at, :naive_datetime
+    field :subscribed, :boolean, virtual: true
 
     timestamps()
   end
@@ -35,9 +37,10 @@ defmodule Level10.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :password])
+    |> cast(attrs, [:email, :password, :subscribed])
     |> validate_email()
     |> validate_password(opts)
+    |> set_subscribed_at()
   end
 
   defp validate_email(changeset) do
@@ -52,10 +55,10 @@ defmodule Level10.Accounts.User do
   defp validate_password(changeset, opts) do
     changeset
     |> validate_required([:password])
-    |> validate_length(:password, min: 12, max: 80)
-    # |> validate_format(:password, ~r/[a-z]/, message: "at least one lower case character")
-    # |> validate_format(:password, ~r/[A-Z]/, message: "at least one upper case character")
-    # |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/, message: "at least one digit or punctuation character")
+    |> validate_length(:password, min: 8, max: 80)
+    |> validate_format(:password, ~r/[A-Za-z]/, message: "at least one letter")
+    |> validate_format(:password, ~r/[0-9]/, message: "at least one number")
+    |> validate_format(:password, ~r([!-/:-@\[-`{-~]), message: "at least one symbol")
     |> maybe_hash_password(opts)
   end
 
@@ -69,6 +72,17 @@ defmodule Level10.Accounts.User do
       |> delete_change(:password)
     else
       changeset
+    end
+  end
+
+  defp set_subscribed_at(changeset) do
+    case get_field(changeset, :subscribed, true) do
+      true ->
+        now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+        put_change(changeset, :subscribed_at, now)
+
+      false ->
+        put_change(changeset, :subscribed_at, nil)
     end
   end
 
