@@ -81,7 +81,7 @@ defmodule Level10.Accounts.User do
         now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
         put_change(changeset, :subscribed_at, now)
 
-      false ->
+      _ ->
         put_change(changeset, :subscribed_at, nil)
     end
   end

@@ -5,13 +5,14 @@ defmodule Level10Web.LobbyLive do
   """
   use Phoenix.LiveView, layout: {Level10Web.LayoutView, "live.html"}
   require Logger
+  import Level10Web.LiveHelpers
 
   alias Level10.Games
   alias Games.{Player, Settings}
   alias Level10Web.LobbyView
   alias Level10Web.Router.Helpers, as: Routes
 
-  def mount(_params, _session, socket) do
+  def mount(_params, session, socket) do
     initial_assigns = [
       action: :none,
       is_creator: nil,
@@ -20,10 +21,16 @@ defmodule Level10Web.LobbyLive do
       player_id: nil,
       players: nil,
       presence: nil,
-      settings: Settings.default()
+      settings: Settings.default(),
+      show_menu: false
     ]
 
-    {:ok, assign(socket, initial_assigns)}
+    socket =
+      socket
+      |> fetch_current_user(session)
+      |> assign(initial_assigns)
+
+    {:ok, socket}
   end
 
   def handle_params(params = %{"action" => "wait"}, _url, socket) do
@@ -170,6 +177,10 @@ defmodule Level10Web.LobbyLive do
   def handle_event("start_game", _params, socket) do
     Games.start_game(socket.assigns.join_code)
     {:noreply, assign(socket, starting: true)}
+  end
+
+  def handle_event("toggle_menu", _params, socket) do
+    {:noreply, assign(socket, show_menu: !socket.assigns.show_menu)}
   end
 
   def handle_event("toggle_setting", %{"setting" => "skip_next_player"}, socket) do

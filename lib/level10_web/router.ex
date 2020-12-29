@@ -50,34 +50,29 @@ defmodule Level10Web.Router do
   end
 
   scope "/", Level10Web do
-    pipe_through [:browser, :require_authenticated_user]
-
-    get "/users/settings", UserSettingsController, :edit
-    put "/users/settings", UserSettingsController, :update
-    get "/users/settings/confirm_email/:token", UserSettingsController, :confirm_email
-  end
-
-  scope "/", Level10Web do
     pipe_through [:browser]
 
     delete "/users/log_out", UserSessionController, :delete
     get "/users/confirm", UserConfirmationController, :new
     post "/users/confirm", UserConfirmationController, :create
     get "/users/confirm/:token", UserConfirmationController, :confirm
-  end
-
-  ## Game routes
-
-  scope "/", Level10Web do
-    pipe_through :browser
 
     live "/display", DisplayLive
     live "/display/:join_code", DisplayLive
 
+    live "/", LobbyLive
+  end
+
+  scope "/", Level10Web do
+    pipe_through [:browser, :require_authenticated_user]
+
+    get "/users/settings", UserSettingsController, :edit
+    put "/users/settings", UserSettingsController, :update
+    get "/users/settings/confirm_email/:token", UserSettingsController, :confirm_email
+
     live "/game/:join_code", GameLive
     live "/scores/:join_code", ScoringLive
 
-    live "/", LobbyLive
     live "/:action", LobbyLive
     live "/:action/:join_code", LobbyLive
   end
