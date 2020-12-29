@@ -5,7 +5,7 @@ defmodule Level10.AccountsFixtures do
   """
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
-  def valid_user_password, do: "hello world!"
+  def valid_user_password, do: "h3ll0 w0rld!"
 
   def user_fixture(attrs \\ %{}) do
     {:ok, user} =

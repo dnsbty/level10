@@ -11,9 +11,9 @@ defmodule Level10Web.UserSessionControllerTest do
     test "renders log in page", %{conn: conn} do
       conn = get(conn, Routes.user_session_path(conn, :new))
       response = html_response(conn, 200)
-      assert response =~ "<h1>Log in</h1>"
-      assert response =~ "Log in</button>"
-      assert response =~ "Register</a>"
+      assert response =~ "Sign in to your account"
+      assert response =~ "Sign in</button>"
+      assert response =~ "create a new one</a>"
     end
 
     test "redirects if already logged in", %{conn: conn, user: user} do
@@ -23,7 +23,6 @@ defmodule Level10Web.UserSessionControllerTest do
   end
 
   describe "POST /users/log_in" do
-    @tag :skip
     test "logs the user in", %{conn: conn, user: user} do
       conn =
         post(conn, Routes.user_session_path(conn, :create), %{
@@ -37,8 +36,8 @@ defmodule Level10Web.UserSessionControllerTest do
       conn = get(conn, "/")
       response = html_response(conn, 200)
       assert response =~ user.email
-      assert response =~ "Settings</a>"
-      assert response =~ "Log out</a>"
+      assert response =~ "Account settings</a>"
+      assert response =~ "Sign out</a>"
     end
 
     test "logs the user in with remember me", %{conn: conn, user: user} do
@@ -76,7 +75,7 @@ defmodule Level10Web.UserSessionControllerTest do
         })
 
       response = html_response(conn, 200)
-      assert response =~ "<h1>Log in</h1>"
+      assert response =~ "Sign in to your account"
       assert response =~ "Invalid email or password"
     end
   end
