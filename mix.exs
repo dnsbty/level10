@@ -42,6 +42,7 @@ defmodule Level10.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:bcrypt_elixir, "~> 2.0"},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:delta_crdt, "~> 0.5"},
       {:ecto, "~> 3.5"},
@@ -50,7 +51,8 @@ defmodule Level10.MixProject do
       {:horde, "~> 0.8.0-rc.1"},
       {:jason, "~> 1.0"},
       {:libcluster, "~> 3.2"},
-      {:phoenix, "~> 1.5"},
+      {:phoenix,
+       git: "https://github.com/phoenixframework/phoenix", tag: "e5516de", override: true},
       {:phoenix_ecto, "~> 4.1"},
       {:phoenix_html, "~> 2.11"},
       {:phoenix_live_dashboard, "~> 0.4"},
