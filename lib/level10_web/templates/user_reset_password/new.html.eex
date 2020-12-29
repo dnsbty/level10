@@ -9,7 +9,7 @@
 
       <div class="mt-8">
         <div class="mt-6">
-          <%= form_for :user, Routes.user_reset_password_path(@conn, :create), [as: :user, class: "space-y-6"], fn f -> %>
+          <%= form_for :user, Routes.user_reset_password_path(@conn, :create), [class: "space-y-6"], fn f -> %>
             <div>
               <%= label f, :email, "Email address", class: "block text-sm font-medium leading-5 text-gray-300" %>
               <div class="mt-1">
