@@ -28,12 +28,12 @@
           </p>
         </div>
         <ul class="py-1 list-none" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
-          <li><%= link "Account settings", to: Routes.user_settings_path(@socket, :edit), role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %></li>
-          <li><%= link "Sign out", to: Routes.user_session_path(@socket, :delete), method: :delete, role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %></li>
+          <li><%= link "Account settings", to: Routes.user_settings_path(Level10Web.Endpoint, :edit), role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %></li>
+          <li><%= link "Sign out", to: Routes.user_session_path(Level10Web.Endpoint, :delete), method: :delete, role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %></li>
       <% else %>
         <ul class="py-1 list-none" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
-          <li><%= link "Create account", to: Routes.user_registration_path(@socket, :new), role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %></li>
-          <li><%= link "Sign in", to: Routes.user_session_path(@socket, :new), role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %></li>
+          <li><%= link "Create account", to: Routes.user_registration_path(Level10Web.Endpoint, :new), role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %></li>
+          <li><%= link "Sign in", to: Routes.user_session_path(Level10Web.Endpoint, :new), role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %></li>
       <% end %>
       </ul>
     </div>
