@@ -22,10 +22,12 @@ defmodule Level10Web.UserRegistrationControllerTest do
     @tag :capture_log
     test "creates account and logs the user in", %{conn: conn} do
       email = unique_user_email()
+      password = valid_user_password()
+      username = unique_username()
 
       conn =
         post(conn, Routes.user_registration_path(conn, :create), %{
-          "user" => %{"email" => email, "password" => valid_user_password()}
+          "user" => %{"email" => email, "password" => password, "username" => username}
         })
 
       assert get_session(conn, :user_token)

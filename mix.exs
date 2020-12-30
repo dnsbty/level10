@@ -46,6 +46,7 @@ defmodule Level10.MixProject do
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:delta_crdt, "~> 0.5"},
       {:ecto, "~> 3.5"},
+      {:ecto_network, "~> 1.3"},
       {:ecto_sql, "~> 3.5"},
       {:gettext, "~> 0.11"},
       {:horde, "~> 0.8.0-rc.1"},
@@ -61,6 +62,7 @@ defmodule Level10.MixProject do
       {:phoenix_pubsub, "~> 2.0"},
       {:plug_cowboy, "~> 2.2"},
       {:postgrex, ">= 0.0.0"},
+      {:remote_ip, "~> 0.2"},
       {:telemetry_metrics, "~> 0.5"},
       {:telemetry_poller, "~> 0.5"}
     ]

@@ -11,6 +11,8 @@ defmodule Level10Web.UserRegistrationController do
   end
 
   def create(conn, %{"user" => user_params}) do
+    user_params = Map.merge(user_params, %{"ip_address" => conn.remote_ip})
+
     case Accounts.register_user(user_params) do
       {:ok, user} ->
         {:ok, _} =

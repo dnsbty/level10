@@ -85,7 +85,12 @@ defmodule Level10.AccountsTest do
 
     test "registers users with a hashed password" do
       email = unique_user_email()
-      {:ok, user} = Accounts.register_user(%{email: email, password: valid_user_password()})
+      password = valid_user_password()
+      username = unique_username()
+
+      params = %{email: email, password: password, username: username}
+      {:ok, user} = Accounts.register_user(params)
+
       assert user.email == email
       assert is_binary(user.hashed_password)
       assert is_nil(user.confirmed_at)
@@ -96,15 +101,16 @@ defmodule Level10.AccountsTest do
   describe "change_user_registration/2" do
     test "returns a changeset" do
       assert %Ecto.Changeset{} = changeset = Accounts.change_user_registration(%User{})
-      assert changeset.required == [:password, :email]
+      assert changeset.required == [:username, :password, :email]
     end
 
     test "allows fields to be set" do
       email = unique_user_email()
       password = valid_user_password()
+      username = unique_username()
 
-      changeset =
-        Accounts.change_user_registration(%User{}, %{"email" => email, "password" => password})
+      params = %{"email" => email, "password" => password, "username" => username}
+      changeset = Accounts.change_user_registration(%User{}, params)
 
       assert changeset.valid?
       assert get_change(changeset, :email) == email

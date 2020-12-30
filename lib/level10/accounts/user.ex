@@ -8,9 +8,11 @@ defmodule Level10.Accounts.User do
   import Ecto.Changeset
 
   schema "users" do
+    field :username, :string
     field :email, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
+    field :ip_address, EctoNetwork.INET
     field :confirmed_at, :naive_datetime
     field :subscribed_at, :naive_datetime
     field :subscribed, :boolean, virtual: true
@@ -37,9 +39,10 @@ defmodule Level10.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :password, :subscribed])
+    |> cast(attrs, [:email, :ip_address, :password, :subscribed, :username])
     |> validate_email()
     |> validate_password(opts)
+    |> validate_username()
     |> set_subscribed_at()
   end
 
@@ -60,6 +63,13 @@ defmodule Level10.Accounts.User do
     |> validate_format(:password, ~r/[0-9]/, message: "at least one number")
     |> validate_format(:password, ~r([!-/:-@\[-`{-~]), message: "at least one symbol")
     |> maybe_hash_password(opts)
+  end
+
+  defp validate_username(changeset) do
+    changeset
+    |> validate_required([:username])
+    |> validate_length(:username, max: 16)
+    |> unique_constraint(:username)
   end
 
   defp maybe_hash_password(changeset, opts) do

@@ -5,6 +5,7 @@ defmodule Level10.AccountsFixtures do
   """
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
+  def unique_username, do: "user#{String.slice("#{System.unique_integer()}", -11, 11)}"
   def valid_user_password, do: "h3ll0 w0rld!"
 
   def user_fixture(attrs \\ %{}) do
@@ -12,7 +13,8 @@ defmodule Level10.AccountsFixtures do
       attrs
       |> Enum.into(%{
         email: unique_user_email(),
-        password: valid_user_password()
+        password: valid_user_password(),
+        username: unique_username()
       })
       |> Level10.Accounts.register_user()
 
