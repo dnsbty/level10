@@ -35,6 +35,7 @@ defmodule Level10Web.LobbyLive do
 
   def handle_params(params = %{"action" => "wait"}, _url, socket) do
     with %{"join_code" => join_code, "player_id" => player_id} <- params do
+      socket = require_authenticated_user(socket)
       Games.subscribe(join_code, player_id)
 
       assigns = %{
@@ -56,6 +57,8 @@ defmodule Level10Web.LobbyLive do
       join_code: params["join_code"] || socket.assigns.join_code,
       player_id: params["player_id"] || socket.assigns.player_id
     }
+
+    socket = if assigns.action == :none, do: socket, else: require_authenticated_user(socket)
 
     {:noreply, assign(socket, assigns)}
   end
