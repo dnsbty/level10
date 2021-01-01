@@ -6,6 +6,7 @@ defmodule Level10.Accounts.User do
 
   use Ecto.Schema
   import Ecto.Changeset
+  alias Ecto.UUID
 
   schema "users" do
     field :username, :string
@@ -16,6 +17,7 @@ defmodule Level10.Accounts.User do
     field :confirmed_at, :naive_datetime
     field :subscribed_at, :naive_datetime
     field :subscribed, :boolean, virtual: true
+    field :uid, Ecto.UUID
 
     timestamps()
   end
@@ -40,10 +42,15 @@ defmodule Level10.Accounts.User do
   def registration_changeset(user, attrs, opts \\ []) do
     user
     |> cast(attrs, [:email, :ip_address, :password, :subscribed, :username])
+    |> add_uid()
     |> validate_email()
     |> validate_password(opts)
     |> validate_username()
     |> set_subscribed_at()
+  end
+
+  defp add_uid(changeset) do
+    put_change(changeset, :uid, UUID.generate())
   end
 
   defp validate_email(changeset) do

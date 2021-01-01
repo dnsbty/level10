@@ -5,6 +5,7 @@ defmodule Level10.Repo.Migrations.CreateUsersAuthTables do
     execute "CREATE EXTENSION IF NOT EXISTS citext", ""
 
     create table(:users) do
+      add :uid, :uuid, null: false
       add :email, :citext, null: false
       add :hashed_password, :string, null: false
       add :username, :string, null: false
