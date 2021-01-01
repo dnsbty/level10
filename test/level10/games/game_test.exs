@@ -2,9 +2,13 @@ defmodule Level10.Games.GameTest do
   use ExUnit.Case, async: true
   alias Level10.Games.{Card, Game, Player, Settings}
 
-  describe "complete_round/1" do
-    @game Game.new("ABCD", Player.new("Player 1"), Settings.default())
+  @player1 %Player{id: "cecd022f-25c2-4477-adef-07d8d824a0ed", name: "Player 1"}
+  @player2 %Player{id: "ceeb95bd-3a23-4db8-a6a5-c278c470cae6", name: "Player 2"}
+  @player3 %Player{id: "0cf7943e-3256-4493-bc22-0c230eb9208e", name: "Player 3"}
 
+  @game Game.new("ABCD", @player1, Settings.default())
+
+  describe "complete_round/1" do
     @hand_nothing [
       %Card{color: :blue, value: :one},
       %Card{color: :red, value: :one},
@@ -65,23 +69,19 @@ defmodule Level10.Games.GameTest do
 
   describe "discard/2" do
     setup do
-      player1 = Player.new("Player 1")
-      player2 = Player.new("Player 2")
-      player3 = Player.new("Player 3")
-
       card = Card.new(:wild)
       hand = for _ <- 1..10, do: card
-      players = [player1, player2, player3]
+      players = [@player1, @player2, @player3]
       player_ids = Enum.map(players, & &1.id)
 
       hands =
         player_ids
         |> Enum.map(&{&1, hand})
         |> Enum.into(%{})
-        |> Map.put(player1.id, [card | hand])
+        |> Map.put(@player1.id, [card | hand])
 
       game = %Game{
-        current_player: player1,
+        current_player: @player1,
         current_round: 2,
         current_turn: 1,
         discard_pile: [],
@@ -91,13 +91,13 @@ defmodule Level10.Games.GameTest do
         skipped_players: MapSet.new()
       }
 
-      %{card: card, game: game, player1: player1, player2: player2, player3: player3}
+      %{card: card, game: game}
     end
 
     test "moves the given card from the player's hand to the discard pile", fixture do
       result = Game.discard(fixture.game, fixture.card)
 
-      assert length(result.hands[fixture.player1.id]) == 10
+      assert length(result.hands[@player1.id]) == 10
       assert result.discard_pile == [fixture.card]
     end
 
@@ -105,24 +105,24 @@ defmodule Level10.Games.GameTest do
       result = Game.discard(fixture.game, fixture.card)
 
       assert result.current_turn == 2
-      assert result.current_player == fixture.player2
+      assert result.current_player == @player2
     end
 
     test "skips over players who have left the game", fixture do
-      remaining_players = MapSet.new([fixture.player1.id, fixture.player3.id])
+      remaining_players = MapSet.new([@player1.id, @player3.id])
       game = Map.put(fixture.game, :remaining_players, remaining_players)
       result = Game.discard(game, fixture.card)
 
       assert result.current_turn == 3
-      assert result.current_player == fixture.player3
+      assert result.current_player == @player3
     end
 
     test "skips over players who have been skipped", fixture do
-      game = Map.put(fixture.game, :skipped_players, MapSet.new([fixture.player2.id]))
+      game = Map.put(fixture.game, :skipped_players, MapSet.new([@player2.id]))
       result = Game.discard(game, fixture.card)
 
       assert result.current_turn == 3
-      assert result.current_player == fixture.player3
+      assert result.current_player == @player3
     end
 
     test "returns an error when the current user hasn't drawn yet" do
@@ -134,29 +134,24 @@ defmodule Level10.Games.GameTest do
 
   describe "next_player/2" do
     setup do
-      player1 = Player.new("Player 1")
-      player2 = Player.new("Player 2")
-      player3 = Player.new("Player 3")
-      players = [player1, player2, player3]
+      players = [@player1, @player2, @player3]
       remaining_players = players |> Enum.map(& &1.id) |> MapSet.new()
       game = %Game{players: players, remaining_players: remaining_players}
-      %{game: game, player1: player1, player2: player2, player3: player3}
+      %{game: game}
     end
 
     test "returns the player whose turn will be after the specified player", fixtures do
-      assert Game.next_player(fixtures.game, fixtures.player1.id) == fixtures.player2
+      assert Game.next_player(fixtures.game, @player1.id) == @player2
     end
 
     test "doesn't return players who have left the game", fixtures do
-      remaining_players = MapSet.delete(fixtures.game.remaining_players, fixtures.player2.id)
+      remaining_players = MapSet.delete(fixtures.game.remaining_players, @player2.id)
       game = %{fixtures.game | remaining_players: remaining_players}
-      assert Game.next_player(game, fixtures.player1.id) == fixtures.player3
+      assert Game.next_player(game, @player1.id) == @player3
     end
   end
 
   describe "skip_player/2" do
-    @game Game.new("ABCD", Player.new("Player 1"), Settings.default())
-
     test "adds the given player ID into the set of skipped players" do
       game = %Game{skipped_players: MapSet.new()}
       result = Game.skip_player(game, "4ebc0075-c609-49e3-9dcf-d5befff8fe72")
@@ -171,8 +166,6 @@ defmodule Level10.Games.GameTest do
   end
 
   describe "start_game/1" do
-    @game Game.new("ABCD", Player.new("Player 1"), Settings.default())
-
     test "fails when the game only has a single player" do
       assert :single_player == Game.start_game(@game)
     end
@@ -180,7 +173,7 @@ defmodule Level10.Games.GameTest do
     test "increments the current_round" do
       assert @game.current_round == 0
 
-      {:ok, game} = Game.put_player(@game, Player.new("Player 2"))
+      {:ok, game} = Game.put_player(@game, @player2)
       {:ok, game} = Game.start_game(game)
 
       assert game.current_round == 1
@@ -189,19 +182,17 @@ defmodule Level10.Games.GameTest do
     test "gives each player a hand with 10 cards" do
       assert @game.hands == %{}
 
-      {:ok, game} = Game.put_player(@game, Player.new("Player 2"))
+      {:ok, game} = Game.put_player(@game, @player2)
       {:ok, game} = Game.start_game(game)
 
-      [player1, player2] = game.players
-
-      assert length(game.hands[player1.id]) == 10
-      assert length(game.hands[player2.id]) == 10
+      assert length(game.hands[@player1.id]) == 10
+      assert length(game.hands[@player2.id]) == 10
     end
 
     test "attaches a new deck with 108 cards - 21 (for 2 hands and discard pile)" do
       assert @game.draw_pile == []
 
-      {:ok, game} = Game.put_player(@game, Player.new("Player 2"))
+      {:ok, game} = Game.put_player(@game, @player2)
       {:ok, game} = Game.start_game(game)
 
       assert length(game.draw_pile) == 87
@@ -210,7 +201,7 @@ defmodule Level10.Games.GameTest do
     test "puts the top card in the discard pile" do
       assert @game.discard_pile == []
 
-      {:ok, game} = Game.put_player(@game, Player.new("Player 2"))
+      {:ok, game} = Game.put_player(@game, @player2)
       {:ok, game} = Game.start_game(game)
 
       assert length(game.discard_pile) == 1

@@ -9,6 +9,7 @@ defmodule Level10.Games do
   the distributed registry and supervisor, or with Phoenix Presence or PubSub.
   """
 
+  alias Level10.Accounts.User
   alias Level10.Presence
   alias Level10.Games.{Game, GameRegistry, GameServer, GameSupervisor, Levels, Player, Settings}
   require Logger
@@ -49,9 +50,9 @@ defmodule Level10.Games do
   @doc """
   Create a new game with the player named as its creator.
   """
-  @spec create_game(String.t(), Settings.t()) :: {:ok, Game.join_code(), Player.id()} | :error
-  def create_game(player_name, settings) do
-    player = Player.new(player_name)
+  @spec create_game(User.t(), Settings.t()) :: {:ok, Game.join_code(), Player.id()} | :error
+  def create_game(user, settings) do
+    player = Player.new(user)
     do_create_game(player, settings, @max_creation_attempts)
   end
 
@@ -389,10 +390,10 @@ defmodule Level10.Games do
       iex> join_game("ABCD", "Player One")
       :not_found
   """
-  @spec join_game(Game.join_code(), String.t(), timeout()) ::
-          {:ok, Player.id()} | :already_started | :full | :not_found
-  def join_game(join_code, player_name, timeout \\ 5000) do
-    player = Player.new(player_name)
+  @spec join_game(Game.join_code(), User.t(), timeout()) ::
+          :ok | :already_started | :full | :not_found
+  def join_game(join_code, user, timeout \\ 5000) do
+    player = Player.new(user)
 
     if exists?(join_code) do
       GenServer.call(via(join_code), {:join, player}, timeout)
@@ -560,7 +561,7 @@ defmodule Level10.Games do
   # Private
 
   @spec do_create_game(Player.t(), Settings.t(), non_neg_integer()) ::
-          {:ok, Game.join_code(), Player.id()} | :error
+          {:ok, Game.join_code()} | :error
   defp do_create_game(player, settings, attempts_remaining)
 
   defp do_create_game(_player, _settings, 0) do
@@ -580,7 +581,7 @@ defmodule Level10.Games do
     case Horde.DynamicSupervisor.start_child(GameSupervisor, game) do
       {:ok, _pid} ->
         Logger.info(["Created game ", join_code])
-        {:ok, join_code, player.id}
+        {:ok, join_code}
 
       {:error, {:already_started, _pid}} ->
         do_create_game(player, settings, attempts_remaining - 1)

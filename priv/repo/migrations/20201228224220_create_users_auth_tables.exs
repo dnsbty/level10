@@ -8,7 +8,7 @@ defmodule Level10.Repo.Migrations.CreateUsersAuthTables do
       add :uid, :uuid, null: false
       add :email, :citext, null: false
       add :hashed_password, :string, null: false
-      add :username, :string, null: false
+      add :username, :citext, null: false
       add :ip_address, :inet
       add :confirmed_at, :naive_datetime
       add :subscribed_at, :naive_datetime

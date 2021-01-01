@@ -16,8 +16,10 @@ defmodule Level10.Accounts.User do
     field :ip_address, EctoNetwork.INET
     field :confirmed_at, :naive_datetime
     field :subscribed_at, :naive_datetime
-    field :subscribed, :boolean, virtual: true
     field :uid, Ecto.UUID
+
+    field :display_name, :string, virtual: true
+    field :subscribed, :boolean, virtual: true
 
     timestamps()
   end

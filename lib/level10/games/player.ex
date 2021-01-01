@@ -1,16 +1,21 @@
 defmodule Level10.Games.Player do
   @moduledoc """
-  Represents a player within a game. Each player will have a randomly generated
-  ID and their name. Eventually these may be stored in a database for
-  persistent record keeping and other things.
+  Represents a player within a game.
   """
+
+  @type t :: %__MODULE__{id: String.t(), name: String.t()}
 
   defstruct [:id, :name]
 
-  def new(name) do
+  @doc """
+  Takes in a user struct from the user's session and returns a player struct
+  with just the information needed for playing a game.
+  """
+  @spec new(User.t()) :: __MODULE__.t()
+  def new(user) do
     %__MODULE__{
-      id: Ecto.UUID.generate(),
-      name: name
+      id: user.uid,
+      name: user.display_name || user.username
     }
   end
 end

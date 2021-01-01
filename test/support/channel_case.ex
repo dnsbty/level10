@@ -17,17 +17,26 @@ defmodule Level10Web.ChannelCase do
 
   use ExUnit.CaseTemplate
 
+  alias Ecto.Adapters.SQL.Sandbox
+
   using do
     quote do
       # Import conveniences for testing with channels
       import Phoenix.ChannelTest
+      import Level10Web.ChannelCase
 
       # The default endpoint for testing
       @endpoint Level10Web.Endpoint
     end
   end
 
-  setup _tags do
+  setup tags do
+    :ok = Sandbox.checkout(Level10.Repo)
+
+    unless tags[:async] do
+      Sandbox.mode(Level10.Repo, {:shared, self()})
+    end
+
     :ok
   end
 end

@@ -58,7 +58,7 @@ defmodule Level10Web.Router do
     get "/users/confirm/:token", UserConfirmationController, :confirm
 
     live "/display", DisplayLive, :join
-    live "/display/:join_code", DisplayLive, :display
+    live "/display/:join_code", DisplayLive, :observe
 
     live "/", LobbyLive, :none
   end
@@ -71,7 +71,7 @@ defmodule Level10Web.Router do
     get "/users/settings/confirm_email/:token", UserSettingsController, :confirm_email
 
     live "/game/:join_code", GameLive, :play
-    live "/scores/:join_code", ScoringLive, :observe
+    live "/scores/:join_code", ScoringLive, :display
 
     live "/create", LobbyLive, :create
     live "/join", LobbyLive, :join

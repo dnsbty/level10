@@ -48,9 +48,9 @@ let csrfToken = document
 
 let Hooks = {};
 
-Hooks.NameInput = {
+Hooks.SelectOnMount = {
   mounted() {
-    this.el.focus();
+    this.el.select();
   },
 };
 

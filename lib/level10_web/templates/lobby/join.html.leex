@@ -9,10 +9,10 @@
     <%= f = form_for :info, "#", [phx_change: :validate, phx_submit: "join_game"] %>
       <div>
         <label for="name" class="block text-sm font-medium leading-5 text-gray-300">
-          Your name
+          Display name
         </label>
         <div class="mt-1 rounded-md shadow-sm">
-          <%= text_input f, :name, required: true, value: @name, phx_hook: "NameInput", class: "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 transition duration-150 ease-in-out sm:text-sm sm:leading-5" %>
+          <%= text_input f, :display_name, required: true, value: @display_name, phx_hook: "SelectOnMount", class: "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 transition duration-150 ease-in-out sm:text-sm sm:leading-5" %>
         </div>
       </div>
       <div class="mt-6">
