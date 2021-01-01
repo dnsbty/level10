@@ -7,7 +7,7 @@ defmodule Level10Web.GameLive do
 
   alias Level10.Games
   alias Games.{Card, Levels}
-  alias Level10Web.{Endpoint, GameView, ScoringLive}
+  alias Level10Web.GameView
   alias Level10Web.Router.Helpers, as: Routes
 
   def mount(params, _session, socket) do
@@ -167,7 +167,7 @@ defmodule Level10Web.GameLive do
 
   def handle_event("show_scores", _params, socket) do
     %{join_code: join_code, player_id: player_id} = socket.assigns
-    path = Routes.live_path(Endpoint, ScoringLive, join_code, player_id: player_id)
+    path = Routes.scoring_path(socket, :display, join_code, player_id: player_id)
 
     {:noreply, push_redirect(socket, to: path)}
   end

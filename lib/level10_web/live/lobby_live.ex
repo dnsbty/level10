@@ -14,7 +14,6 @@ defmodule Level10Web.LobbyLive do
 
   def mount(_params, session, socket) do
     initial_assigns = [
-      action: :none,
       is_creator: nil,
       join_code: "",
       name: "",
@@ -33,13 +32,12 @@ defmodule Level10Web.LobbyLive do
     {:ok, socket}
   end
 
-  def handle_params(params = %{"action" => "wait"}, _url, socket) do
+  def handle_params(params, _url, socket = %{assigns: %{live_action: :wait}}) do
     with %{"join_code" => join_code, "player_id" => player_id} <- params do
       socket = require_authenticated_user(socket)
       Games.subscribe(join_code, player_id)
 
       assigns = %{
-        action: :wait,
         is_creator: socket.assigns.is_creator || Games.creator(join_code).id == player_id,
         join_code: join_code,
         player_id: player_id,
@@ -53,25 +51,25 @@ defmodule Level10Web.LobbyLive do
 
   def handle_params(params, _url, socket) do
     assigns = %{
-      action: action(params["action"]),
       join_code: params["join_code"] || socket.assigns.join_code,
       player_id: params["player_id"] || socket.assigns.player_id
     }
 
-    socket = if assigns.action == :none, do: socket, else: require_authenticated_user(socket)
+    action = socket.assigns.live_action
+    socket = if action == :none, do: socket, else: require_authenticated_user(socket)
 
     {:noreply, assign(socket, assigns)}
   end
 
   def render(assigns) do
-    LobbyView.render("#{assigns.action}.html", assigns)
+    LobbyView.render("#{assigns.live_action}.html", assigns)
   end
 
   def handle_event("cancel", _params, socket) do
     socket =
       socket
-      |> assign(action: :none, join_code: "")
-      |> push_patch(to: Routes.live_path(socket, __MODULE__, ""))
+      |> assign(join_code: "")
+      |> push_patch(to: Routes.lobby_path(socket, :none))
 
     {:noreply, socket}
   end
@@ -82,10 +80,9 @@ defmodule Level10Web.LobbyLive do
         players = [%Player{id: player_id, name: socket.assigns.name}]
         presence = Games.list_presence(join_code)
         Games.subscribe(join_code, player_id)
-        new_url = Routes.live_path(socket, __MODULE__, "wait", join_code, player_id: player_id)
+        new_url = Routes.lobby_path(socket, :wait, join_code, player_id: player_id)
 
         assigns = %{
-          action: :wait,
           is_creator: true,
           join_code: join_code,
           player_id: player_id,
@@ -117,10 +114,9 @@ defmodule Level10Web.LobbyLive do
         players = Games.get_players(join_code)
         presence = Games.list_presence(join_code)
         Games.subscribe(join_code, player_id)
-        new_url = Routes.live_path(socket, __MODULE__, "wait", join_code, player_id: player_id)
+        new_url = Routes.lobby_path(socket, :wait, join_code, player_id: player_id)
 
         assigns = %{
-          action: :wait,
           player_id: player_id,
           players: players,
           presence: presence
@@ -155,8 +151,8 @@ defmodule Level10Web.LobbyLive do
 
         socket =
           socket
-          |> assign(action: :none, join_code: "")
-          |> push_patch(to: Routes.live_path(socket, __MODULE__, ""))
+          |> assign(join_code: "")
+          |> push_patch(to: Routes.lobby_path(socket, :none))
 
         {:noreply, socket}
 
@@ -201,8 +197,7 @@ defmodule Level10Web.LobbyLive do
     join_code = socket.assigns.join_code
     player_id = socket.assigns.player_id
 
-    path =
-      Routes.live_path(Level10Web.Endpoint, Level10Web.GameLive, join_code, player_id: player_id)
+    path = Routes.game_path(socket, :play, join_code, player_id: player_id)
 
     {:noreply, push_redirect(socket, to: path)}
   end
@@ -227,12 +222,4 @@ defmodule Level10Web.LobbyLive do
   def handle_info(%{event: "presence_diff"}, socket) do
     {:noreply, assign(socket, presence: Games.list_presence(socket.assigns.join_code))}
   end
-
-  # Private
-
-  @spec action(String.t() | nil) :: :create | :join | :none | :wait
-  defp action("create"), do: :create
-  defp action("join"), do: :join
-  defp action("wait"), do: :wait
-  defp action(_), do: :none
 end

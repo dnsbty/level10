@@ -7,8 +7,8 @@ defmodule Level10Web.ScoringLive do
 
   alias Level10.Games
   alias Games.{Game, Player}
-  alias Level10Web.{Endpoint, GameLive, ScoringView}
   alias Level10Web.Router.Helpers, as: Routes
+  alias Level10Web.ScoringView
 
   def mount(params, _session, socket) do
     join_code = params["join_code"]
@@ -108,7 +108,7 @@ defmodule Level10Web.ScoringLive do
 
   @spec redirect_to_game(Socket.t(), Game.join_code(), Player.id()) :: Socket.t()
   defp redirect_to_game(socket, join_code, player_id) do
-    path = Routes.live_path(Endpoint, GameLive, join_code, player_id: player_id)
+    path = Routes.game_path(socket, :play, join_code, player_id: player_id)
     push_redirect(socket, to: path)
   end
 end

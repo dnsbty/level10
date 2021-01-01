@@ -18,7 +18,7 @@ defmodule Level10Web.DisplayLive do
   @impl true
   def handle_event("begin_observing", _params, socket) do
     %{join_code: join_code} = socket.assigns
-    path = Routes.live_path(socket, __MODULE__, join_code)
+    path = Routes.display_path(socket, :observe, join_code)
     {:noreply, push_patch(socket, to: path)}
   end
 

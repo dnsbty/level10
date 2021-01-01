@@ -57,10 +57,10 @@ defmodule Level10Web.Router do
     post "/users/confirm", UserConfirmationController, :create
     get "/users/confirm/:token", UserConfirmationController, :confirm
 
-    live "/display", DisplayLive
-    live "/display/:join_code", DisplayLive
+    live "/display", DisplayLive, :join
+    live "/display/:join_code", DisplayLive, :display
 
-    live "/", LobbyLive
+    live "/", LobbyLive, :none
   end
 
   scope "/", Level10Web do
@@ -70,10 +70,12 @@ defmodule Level10Web.Router do
     put "/users/settings", UserSettingsController, :update
     get "/users/settings/confirm_email/:token", UserSettingsController, :confirm_email
 
-    live "/game/:join_code", GameLive
-    live "/scores/:join_code", ScoringLive
+    live "/game/:join_code", GameLive, :play
+    live "/scores/:join_code", ScoringLive, :observe
 
-    live "/:action", LobbyLive
-    live "/:action/:join_code", LobbyLive
+    live "/create", LobbyLive, :create
+    live "/join", LobbyLive, :join
+    live "/join/:join_code", LobbyLive, :join
+    live "/wait/:join_code", LobbyLive, :wait
   end
 end
