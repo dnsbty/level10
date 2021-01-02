@@ -61,7 +61,7 @@ defmodule Level10Web.ConnCase do
   It returns an updated `conn`.
   """
   def log_in_user(conn, user) do
-    token = Level10.Accounts.generate_user_session_token(user, {127, 0, 0, 1})
+    token = Level10.Accounts.generate_user_session_token(user, {127, 0, 0, 1}, "test")
 
     conn
     |> Phoenix.ConnTest.init_test_session(%{})

@@ -47,7 +47,7 @@ defmodule Level10Web.UserAuthTest do
 
   describe "logout_user/1" do
     test "erases session and cookies", %{conn: conn, user: user} do
-      user_token = Accounts.generate_user_session_token(user, {127, 0, 0, 1})
+      user_token = Accounts.generate_user_session_token(user, {127, 0, 0, 1}, nil)
 
       conn =
         conn
@@ -87,7 +87,7 @@ defmodule Level10Web.UserAuthTest do
 
   describe "fetch_current_user/2" do
     test "authenticates user from session", %{conn: conn, user: user} do
-      user_token = Accounts.generate_user_session_token(user, {127, 0, 0, 1})
+      user_token = Accounts.generate_user_session_token(user, {127, 0, 0, 1}, nil)
       conn = conn |> put_session(:user_token, user_token) |> UserAuth.fetch_current_user([])
       assert conn.assigns.current_user.id == user.id
     end
@@ -109,7 +109,7 @@ defmodule Level10Web.UserAuthTest do
     end
 
     test "does not authenticate if data is missing", %{conn: conn, user: user} do
-      _ = Accounts.generate_user_session_token(user, {127, 0, 0, 1})
+      _ = Accounts.generate_user_session_token(user, {127, 0, 0, 1}, nil)
       conn = UserAuth.fetch_current_user(conn, [])
       refute get_session(conn, :user_token)
       refute conn.assigns.current_user

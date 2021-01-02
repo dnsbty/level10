@@ -216,8 +216,8 @@ defmodule Level10.Accounts do
   @doc """
   Generates a session token.
   """
-  def generate_user_session_token(user, ip_address) do
-    {token, user_token} = UserToken.build_session_token(user, ip_address)
+  def generate_user_session_token(user, ip_address, user_agent) do
+    {token, user_token} = UserToken.build_session_token(user, ip_address, user_agent)
     Repo.insert!(user_token)
     token
   end
