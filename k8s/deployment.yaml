@@ -56,28 +56,33 @@ spec:
             initialDelaySeconds: 2
             periodSeconds: 3
           env:
-            - name: PORT
-              value: "4000"
-            - name: RELEASE_COOKIE
-              valueFrom:
-                secretKeyRef:
-                  name: level10
-                  key: cookie
-            - name: POD_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
-            - name: RELEASE_NAME
-              value: "level10@$(POD_IP)"
-            - name: RELEASE_DISTRIBUTION
-              value: "name"
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: level10
                   key: databaseUrl
+            - name: PORT
+              value: "4000"
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: RELEASE_COOKIE
+              valueFrom:
+                secretKeyRef:
+                  name: level10
+                  key: cookie
+            - name: RELEASE_DISTRIBUTION
+              value: "name"
+            - name: RELEASE_NAME
+              value: "level10@$(POD_IP)"
             - name: SECRET_KEY_BASE
               valueFrom:
                 secretKeyRef:
                   name: level10
                   key: secretKeyBase
+            - name: SENDGRID_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: level10
+                  key: sendgridApiKey

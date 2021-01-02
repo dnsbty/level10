@@ -24,8 +24,13 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:game_id, :player_id, :request_id]
 
+config :logger, compile_time_purge_matching: [[application: :remote_ip]]
+
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
+
+# Use Bamboo's local adapter for viewing sent emails in development
+config :level10, Level10.Mailer, adapter: Bamboo.LocalAdapter
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

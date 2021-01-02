@@ -15,6 +15,7 @@ import "../css/app.scss"
 import 'phoenix_html';
 import {Socket} from 'phoenix';
 import LiveSocket from 'phoenix_live_view';
+import 'alpinejs';
 
 // Resize viewport units based on innerHeight rather than max height of the browser
 window.onresize = () => {
@@ -47,13 +48,20 @@ let csrfToken = document
 
 let Hooks = {};
 
-Hooks.NameInput = {
+Hooks.SelectOnMount = {
   mounted() {
-    this.el.focus();
+    this.el.select();
   },
 };
 
 let liveSocket = new LiveSocket('/live', Socket, {
+  dom: {
+    onBeforeElUpdated(from, to) {
+      if (from.__x) {
+        window.Alpine.clone(from.__x, to)
+      }
+    }
+  },
   hooks: Hooks,
   params: {_csrf_token: csrfToken},
 });

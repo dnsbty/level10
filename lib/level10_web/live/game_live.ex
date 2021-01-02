@@ -3,18 +3,24 @@ defmodule Level10Web.GameLive do
   Live view for gameplay
   """
   use Phoenix.LiveView, layout: {Level10Web.LayoutView, "live.html"}
+  import Level10Web.LiveHelpers
   require Logger
 
   alias Level10.Games
   alias Games.{Card, Levels}
-  alias Level10Web.{Endpoint, GameView, ScoringLive}
+  alias Level10Web.GameView
   alias Level10Web.Router.Helpers, as: Routes
 
-  def mount(params, _session, socket) do
-    join_code = params["join_code"]
-    player_id = params["player_id"]
+  def mount(params, session, socket) do
+    socket =
+      socket
+      |> fetch_current_user(session)
+      |> require_authenticated_user()
 
-    with true <- Games.exists?(join_code),
+    with %{redirected: nil} <- socket,
+         player_id = socket.assigns.current_user.uid,
+         %{"join_code" => join_code} <- params,
+         true <- Games.exists?(join_code),
          true <- Games.started?(join_code),
          true <- Games.player_exists?(join_code, player_id),
          remaining = Games.remaining_players(join_code),
@@ -51,7 +57,7 @@ defmodule Level10Web.GameLive do
         join_code: params["join_code"],
         levels: levels,
         next_player_id: next_player.id,
-        player_id: params["player_id"],
+        player_id: player_id,
         player_level: player_level,
         player_table: player_table,
         players: players,
@@ -68,8 +74,8 @@ defmodule Level10Web.GameLive do
 
       {:ok, assign(socket, assigns)}
     else
-      _ ->
-        {:ok, push_redirect(socket, to: "/")}
+      %{__struct__: Phoenix.LiveView.Socket} = socket -> {:ok, socket}
+      _ -> {:ok, push_redirect(socket, to: "/")}
     end
   end
 
@@ -167,7 +173,7 @@ defmodule Level10Web.GameLive do
 
   def handle_event("show_scores", _params, socket) do
     %{join_code: join_code, player_id: player_id} = socket.assigns
-    path = Routes.live_path(Endpoint, ScoringLive, join_code, player_id: player_id)
+    path = Routes.scoring_path(socket, :display, join_code, player_id: player_id)
 
     {:noreply, push_redirect(socket, to: path)}
   end

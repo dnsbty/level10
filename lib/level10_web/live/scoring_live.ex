@@ -4,17 +4,22 @@ defmodule Level10Web.ScoringLive do
   """
 
   use Phoenix.LiveView, layout: {Level10Web.LayoutView, "live.html"}
+  import Level10Web.LiveHelpers
 
-  alias Level10.Games
-  alias Games.{Game, Player}
-  alias Level10Web.{Endpoint, GameLive, ScoringView}
+  alias Level10.{Games, Games.Game}
   alias Level10Web.Router.Helpers, as: Routes
+  alias Level10Web.ScoringView
 
-  def mount(params, _session, socket) do
-    join_code = params["join_code"]
-    player_id = params["player_id"]
+  def mount(params, session, socket) do
+    socket =
+      socket
+      |> fetch_current_user(session)
+      |> require_authenticated_user()
 
-    with %Game{} = game <- Games.get(join_code),
+    with %{redirected: nil} <- socket,
+         player_id = socket.assigns.current_user.uid,
+         %{"join_code" => join_code} <- params,
+         %Game{} = game <- Games.get(join_code),
          stage when stage in [:finish, :score] <- game.current_stage,
          true <- Games.player_exists?(game, player_id) do
       Games.subscribe(join_code, player_id)
@@ -40,8 +45,9 @@ defmodule Level10Web.ScoringLive do
 
       {:ok, assign(socket, assigns)}
     else
-      error when error in [nil, false] -> {:ok, push_redirect(socket, to: "/")}
-      stage when stage in [:play, :lobby] -> {:ok, redirect_to_game(socket, join_code, player_id)}
+      %{__struct__: Phoenix.LiveView.Socket} = socket -> {:ok, socket}
+      stage when stage in [:play, :lobby] -> {:ok, redirect_to_game(socket, params["join_code"])}
+      _ -> {:ok, push_redirect(socket, to: "/")}
     end
   end
 
@@ -96,8 +102,7 @@ defmodule Level10Web.ScoringLive do
   end
 
   def handle_info({:round_started, _}, socket) do
-    %{join_code: join_code, player_id: player_id} = socket.assigns
-    {:noreply, redirect_to_game(socket, join_code, player_id)}
+    {:noreply, redirect_to_game(socket, socket.assigns.join_code)}
   end
 
   def handle_info(%{event: "presence_diff"}, socket) do
@@ -106,9 +111,9 @@ defmodule Level10Web.ScoringLive do
 
   # Private
 
-  @spec redirect_to_game(Socket.t(), Game.join_code(), Player.id()) :: Socket.t()
-  defp redirect_to_game(socket, join_code, player_id) do
-    path = Routes.live_path(Endpoint, GameLive, join_code, player_id: player_id)
+  @spec redirect_to_game(Socket.t(), Game.join_code()) :: Socket.t()
+  defp redirect_to_game(socket, join_code) do
+    path = Routes.game_path(socket, :play, join_code)
     push_redirect(socket, to: path)
   end
 end

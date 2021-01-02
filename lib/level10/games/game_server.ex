@@ -133,7 +133,7 @@ defmodule Level10.Games.GameServer do
     with {:ok, updated_game} <- Game.put_player(game, player),
          true <- length(updated_game.players) <= @max_players do
       broadcast(game.join_code, :players_updated, updated_game.players)
-      {:reply, {:ok, player.id}, updated_game}
+      {:reply, :ok, updated_game}
     else
       :already_started ->
         {:reply, :already_started, game}

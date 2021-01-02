@@ -1,3 +1,4 @@
+<%= render Level10Web.LayoutView, "_user_menu.html", assigns %>
 <div class="flex-1 mt-8 sm:mx-auto sm:w-full sm:max-w-md">
   <h2 class="pt-32 text-center text-4xl leading-9 font-extrabold text-gray-100">
     Level 10
@@ -7,7 +8,7 @@
   <div class="py-8 px-4 sm:rounded-lg sm:px-10">
     <div class="mt-6">
       <span class="block w-full rounded-md shadow-sm">
-        <%= live_patch to: Routes.live_path(@socket, Level10Web.LobbyLive, :create), replace: true do %>
+        <%= live_patch to: Routes.lobby_path(@socket, :create), replace: true do %>
           <button class="w-full flex justify-center py-2 px-4 border border-transparent text-lg font-medium rounded-md text-white bg-purple-600 hover:bg-purple-500 focus:outline-none focus:border-purple-700 focus:shadow-outline-purple active:bg-purple-700 transition duration-150 ease-in-out">
             Create Game
           </button>
@@ -28,7 +29,7 @@
     </div>
     <div class="mt-6">
       <span class="block w-full rounded-md shadow-sm">
-        <%= live_patch to: Routes.live_path(@socket, Level10Web.LobbyLive, :join), replace: true do %>
+        <%= live_patch to: Routes.lobby_path(@socket, :join), replace: true do %>
           <button class="w-full flex justify-center py-2 px-4 border border-transparent text-xl font-bold rounded-md text-white bg-red-600 hover:bg-red-500 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-700 transition duration-150 ease-in-out">
             Join Game
           </button>

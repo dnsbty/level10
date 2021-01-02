@@ -1,0 +1,56 @@
+defmodule Level10Web.UserRegistrationControllerTest do
+  use Level10Web.ConnCase, async: true
+
+  import Level10.AccountsFixtures
+
+  describe "GET /users/register" do
+    test "renders registration page", %{conn: conn} do
+      conn = get(conn, Routes.user_registration_path(conn, :new))
+      response = html_response(conn, 200)
+      assert response =~ "Create an account"
+      assert response =~ "sign in to an existing one</a>"
+      assert response =~ "Create account</button>"
+    end
+
+    test "redirects if already logged in", %{conn: conn} do
+      conn = conn |> log_in_user(user_fixture()) |> get(Routes.user_registration_path(conn, :new))
+      assert redirected_to(conn) == "/"
+    end
+  end
+
+  describe "POST /users/register" do
+    @tag :capture_log
+    test "creates account and logs the user in", %{conn: conn} do
+      email = unique_user_email()
+      password = valid_user_password()
+      username = unique_username()
+
+      conn =
+        post(conn, Routes.user_registration_path(conn, :create), %{
+          "user" => %{"email" => email, "password" => password, "username" => username}
+        })
+
+      assert get_session(conn, :user_token)
+      assert redirected_to(conn) =~ "/"
+
+      # Now do a logged in request and assert on the menu
+      conn = get(conn, "/")
+      response = html_response(conn, 200)
+      assert response =~ email
+      assert response =~ "Account settings</a>"
+      assert response =~ "Sign out</a>"
+    end
+
+    test "render errors for invalid data", %{conn: conn} do
+      conn =
+        post(conn, Routes.user_registration_path(conn, :create), %{
+          "user" => %{"email" => "with spaces", "password" => "short"}
+        })
+
+      response = html_response(conn, 200)
+      assert response =~ "Create an account"
+      assert response =~ "must have the @ sign and no spaces"
+      assert response =~ "should be at least 8 character"
+    end
+  end
+end

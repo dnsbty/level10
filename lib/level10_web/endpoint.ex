@@ -39,6 +39,8 @@ defmodule Level10Web.Endpoint do
     plug Phoenix.CodeReloader
   end
 
+  plug RemoteIp
+
   # Enable request logging for the LiveDashboard
   plug Phoenix.LiveDashboard.RequestLogger, param_key: "request_logger"
 
