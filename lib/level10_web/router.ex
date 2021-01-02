@@ -28,6 +28,10 @@ defmodule Level10Web.Router do
     live_dashboard "/dashboard", metrics: Level10.Telemetry
   end
 
+  if Application.get_env(:level10, :include_sent_email_route?, false) do
+    forward "/sent_emails", Bamboo.SentEmailViewerPlug
+  end
+
   scope "/", Level10Web do
     pipe_through :api
 

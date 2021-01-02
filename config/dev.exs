@@ -74,6 +74,9 @@ config :phoenix, :stacktrace_depth, 20
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
 
+# Show the sent emails in development
+config :level10, include_sent_email_route?: true
+
 # Attach to the cluster of any other nodes running on this host
 if Node.self() != :nonode@nohost do
   config :level10,
