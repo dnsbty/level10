@@ -2,12 +2,7 @@ defmodule Level10Web.Router do
   use Level10Web, :router
 
   import Level10Web.UserAuth
-  import Plug.BasicAuth
   import Phoenix.LiveDashboard.Router
-
-  pipeline :admins_only do
-    plug :basic_auth, username: "admin", password: "dennisisthebest"
-  end
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -24,7 +19,7 @@ defmodule Level10Web.Router do
   end
 
   scope "/admin" do
-    pipe_through [:browser, :admins_only]
+    pipe_through [:browser, :require_authenticated_user, :require_admin_role]
     live_dashboard "/dashboard", metrics: Level10.Telemetry
   end
 

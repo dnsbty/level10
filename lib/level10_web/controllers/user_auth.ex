@@ -149,4 +149,18 @@ defmodule Level10Web.UserAuth do
   defp maybe_store_return_to(conn), do: conn
 
   defp signed_in_path(_conn), do: "/"
+
+  @doc """
+  Used for routes that require the user to be an admin
+  """
+  def require_admin_role(conn, _opts) do
+    if conn.assigns.current_user.role == :admin do
+      conn
+    else
+      conn
+      |> put_flash(:error, "You must be an admin to access that page.")
+      |> redirect(to: Routes.lobby_path(conn, :none))
+      |> halt()
+    end
+  end
 end
