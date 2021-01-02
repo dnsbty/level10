@@ -24,5 +24,10 @@ spec:
               secretKeyRef:
                 name: level10
                 key: secretKeyBase
+          - name: SENDGRID_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: level10
+                key: sendgridApiKey
       restartPolicy: Never
   backoffLimit: 4
