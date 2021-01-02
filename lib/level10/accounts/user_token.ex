@@ -21,6 +21,8 @@ defmodule Level10.Accounts.UserToken do
     field :token, :binary
     field :context, :string
     field :sent_to, :string
+    field :ip_address, EctoNetwork.INET
+
     belongs_to :user, Level10.Accounts.User
 
     timestamps(updated_at: false)
@@ -31,9 +33,23 @@ defmodule Level10.Accounts.UserToken do
   such as session or cookie. As they are signed, those
   tokens do not need to be hashed.
   """
-  def build_session_token(user) do
+  def build_session_token(user, ip_address) do
     token = :crypto.strong_rand_bytes(@rand_size)
-    {token, %Level10.Accounts.UserToken{token: token, context: "session", user_id: user.id}}
+
+    ip_address =
+      case EctoNetwork.INET.cast(ip_address) do
+        {:ok, inet} -> inet
+        _ -> nil
+      end
+
+    user_token = %__MODULE__{
+      token: token,
+      context: "session",
+      ip_address: ip_address,
+      user_id: user.id
+    }
+
+    {token, user_token}
   end
 
   @doc """

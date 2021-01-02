@@ -24,6 +24,7 @@ defmodule Level10.Repo.Migrations.CreateUsersAuthTables do
       add :token, :binary, null: false
       add :context, :string, null: false
       add :sent_to, :string
+      add :ip_address, :inet
 
       timestamps(updated_at: false)
     end

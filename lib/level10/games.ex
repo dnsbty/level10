@@ -403,6 +403,22 @@ defmodule Level10.Games do
   end
 
   @doc """
+  Returns a list of all of the join codes for games that are currently active.
+  This can then be used for things like monitoring and garbage collection.
+
+  ## Examples
+
+      iex> list_join_codes()
+      ["ABCD", "EFGH"]
+  """
+  @spec list_join_codes :: list(Game.join_code())
+  def list_join_codes do
+    for {_, pid, _, _} <- Supervisor.which_children(GameSupervisor) do
+      Horde.Registry.keys(GameRegistry, pid)
+    end
+  end
+
+  @doc """
   Get the list of players currently present in the specified game.
   """
   @spec list_presence(Game.join_code()) :: %{optional(Player.id()) => map()}

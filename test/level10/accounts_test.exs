@@ -258,7 +258,7 @@ defmodule Level10.AccountsTest do
 
   describe "update_user_password/3" do
     setup do
-      %{user: user_fixture()}
+      %{ip: {127, 0, 0, 1}, user: user_fixture()}
     end
 
     test "validates password", %{user: user} do
@@ -300,8 +300,8 @@ defmodule Level10.AccountsTest do
       assert Accounts.get_user_by_email_and_password(user.email, "new valid p4$$word")
     end
 
-    test "deletes all tokens for the given user", %{user: user} do
-      _ = Accounts.generate_user_session_token(user)
+    test "deletes all tokens for the given user", %{ip: ip, user: user} do
+      _ = Accounts.generate_user_session_token(user, ip)
 
       {:ok, _} =
         Accounts.update_user_password(user, valid_user_password(), %{
@@ -314,19 +314,21 @@ defmodule Level10.AccountsTest do
 
   describe "generate_user_session_token/1" do
     setup do
-      %{user: user_fixture()}
+      %{ip: {127, 0, 0, 2}, user: user_fixture()}
     end
 
-    test "generates a token", %{user: user} do
-      token = Accounts.generate_user_session_token(user)
+    test "generates a token", %{ip: ip, user: user} do
+      token = Accounts.generate_user_session_token(user, ip)
       assert user_token = Repo.get_by(UserToken, token: token)
       assert user_token.context == "session"
+      assert user_token.ip_address.address == {127, 0, 0, 2}
 
       # Creating the same token for another user should fail
       assert_raise Ecto.ConstraintError, fn ->
         Repo.insert!(%UserToken{
           token: user_token.token,
           user_id: user_fixture().id,
+          ip_address: %Postgrex.INET{address: {127, 0, 0, 1}, netmask: 32},
           context: "session"
         })
       end
@@ -336,7 +338,7 @@ defmodule Level10.AccountsTest do
   describe "get_user_by_session_token/1" do
     setup do
       user = user_fixture()
-      token = Accounts.generate_user_session_token(user)
+      token = Accounts.generate_user_session_token(user, {127, 0, 0, 1})
       %{user: user, token: token}
     end
 
@@ -358,7 +360,7 @@ defmodule Level10.AccountsTest do
   describe "delete_session_token/1" do
     test "deletes the token" do
       user = user_fixture()
-      token = Accounts.generate_user_session_token(user)
+      token = Accounts.generate_user_session_token(user, {127, 0, 0, 1})
       assert Accounts.delete_session_token(token) == :ok
       refute Accounts.get_user_by_session_token(token)
     end
@@ -496,7 +498,7 @@ defmodule Level10.AccountsTest do
     end
 
     test "deletes all tokens for the given user", %{user: user} do
-      _ = Accounts.generate_user_session_token(user)
+      _ = Accounts.generate_user_session_token(user, {127, 0, 0, 1})
       {:ok, _} = Accounts.reset_user_password(user, %{password: "new valid p4$$word"})
       refute Repo.get_by(UserToken, user_id: user.id)
     end
