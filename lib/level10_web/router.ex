@@ -20,7 +20,7 @@ defmodule Level10Web.Router do
 
   scope "/admin" do
     pipe_through [:browser, :require_authenticated_user, :require_admin_role]
-    live_dashboard "/dashboard", metrics: Level10.Telemetry
+    live_dashboard "/dashboard", metrics: Level10.Telemetry, ecto_repos: [Level10.Repo]
   end
 
   if Application.get_env(:level10, :include_sent_email_route?, false) do

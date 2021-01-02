@@ -48,6 +48,7 @@ defmodule Level10.MixProject do
       {:delta_crdt, "~> 0.5"},
       {:ecto, "~> 3.5"},
       {:ecto_network, "~> 1.3"},
+      {:ecto_psql_extras, "~> 0.4"},
       {:ecto_sql, "~> 3.5"},
       {:gettext, "~> 0.11"},
       {:horde, "~> 0.8.0-rc.1"},
