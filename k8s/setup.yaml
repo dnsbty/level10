@@ -1,0 +1,41 @@
+---
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: internal-pod
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: internal-pod
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - endpoints
+    verbs:
+      - list
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: rolebinding-name
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: internal-pod
+subjects:
+  - kind: ServiceAccount
+    name: internal-pod
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: level10
+type: Opaque
+data:
+  cookie: BASE64-ENCODED-COOKIE
+  secretKeyBase: BASE64-ENCODED-SECRET-KEY-BASE
+  databaseUrl: BASE64-ENCODED-DATABASE-URL
+  sendGridApiKey: BASE64-ENCODED-SENDGRID-API-KEY
