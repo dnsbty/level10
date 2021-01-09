@@ -27,7 +27,9 @@ config :logger, :console,
 config :logger, compile_time_purge_matching: [[application: :remote_ip]]
 
 # Use Jason for JSON parsing in Phoenix
-config :phoenix, :json_library, Jason
+config :phoenix,
+  json_library: Jason,
+  logger: false
 
 # Use Bamboo's local adapter for viewing sent emails in development
 config :level10, Level10.Mailer, adapter: Bamboo.LocalAdapter

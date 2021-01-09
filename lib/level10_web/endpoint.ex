@@ -41,6 +41,8 @@ defmodule Level10Web.Endpoint do
 
   plug RemoteIp
 
+  plug Uinta.Plug, ignored_paths: ["/health"]
+
   # Enable request logging for the LiveDashboard
   plug Phoenix.LiveDashboard.RequestLogger, param_key: "request_logger"
 

@@ -66,7 +66,8 @@ defmodule Level10.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:remote_ip, "~> 0.2"},
       {:telemetry_metrics, "~> 0.5"},
-      {:telemetry_poller, "~> 0.5"}
+      {:telemetry_poller, "~> 0.5"},
+      {:uinta, "~> 0.5"}
     ]
   end
 
