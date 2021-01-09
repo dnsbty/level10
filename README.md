@@ -19,6 +19,22 @@ After cloning the repo:
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
+### Simulate clustering
+
+Level 10 takes advantage of Erlang clustering for scale and uptime purposes.
+While in development mode, the application uses Libcluster's Gossip strategy if
+a node name is provided when starting the application.
+
+Thus, clustering can be simulated by starting up the application as follows:
+
+```sh
+# In one terminal window
+PORT=4000 iex --cookie level10 --name 4000 -S mix phx.server
+
+# In a different terminal window
+PORT=4001 iex --cookie level10 --name 4001 -S mix phx.server
+```
+
 ## Production
 
 You can build a docker image that can run anywhere docker images can with `docker build .`
