@@ -1,4 +1,5 @@
-alias Level10.{Games, StateHandoff}
+alias Level10.{Accounts, Games, Repo, StateHandoff}
+alias Accounts.{User, UserToken, UserAuth}
 alias Games.{Card, Game, GameRegistry, GameServer, GameSupervisor, Levels, Player}
 
 join_code = "ABCD"

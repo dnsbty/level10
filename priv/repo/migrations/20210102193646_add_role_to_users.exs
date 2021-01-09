@@ -1,19 +1,13 @@
 defmodule Level10.Repo.Migrations.AddRoleToUsers do
   use Ecto.Migration
 
-  def up do
-    execute("create type user_role as enum ('admin', 'player')")
+  def change do
+    create_query = "create type user_role as enum ('admin', 'player')"
+    drop_query = "drop type user_role"
+    execute(create_query, drop_query)
 
     alter table(:users) do
       add :role, :user_role, null: false, default: "player"
     end
-  end
-
-  def down do
-    alter table(:users) do
-      remove :role, :user_role
-    end
-
-    execute("drop type user_role")
   end
 end
