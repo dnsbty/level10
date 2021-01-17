@@ -15,7 +15,8 @@ WORKDIR /app
 COPY mix.exs mix.lock ./
 RUN mix deps.get
 
-COPY config config
+COPY config/config.exs config/config.exs
+COPY config/prod.exs config/prod.exs
 RUN mix deps.compile
 
 COPY priv priv
@@ -50,6 +51,7 @@ FROM elixir-build AS release-build
 WORKDIR /app
 
 COPY --from=js-build /app/priv/static ./priv/static
+COPY config/releases.exs config/releases.exs
 
 RUN mix phx.digest
 RUN mix release

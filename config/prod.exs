@@ -21,6 +21,7 @@ config :level10,
     level10: [
       strategy: Cluster.Strategy.Kubernetes,
       config: [
+        kubernetes_ip_lookup_mode: :pods,
         kubernetes_namespace: "default",
         kubernetes_node_basename: "level10",
         kubernetes_selector: "app=level10"

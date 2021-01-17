@@ -26,7 +26,7 @@ defmodule Level10.Application do
     ]
 
     children =
-      if Application.get_env(:ressipy, :database_only, false) do
+      if Application.get_env(:level10, :database_only, false) do
         [Level10.Repo]
       else
         children
