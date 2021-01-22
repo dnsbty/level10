@@ -3,13 +3,15 @@
   <head>
     <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
     <title><%= assigns[:page_title] || "Level10" %></title>
     <link rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>"/>
     <%= csrf_meta_tag() %>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="<%= Routes.static_path(@conn, "/site.webmanifest") %>" />
     <script defer type="text/javascript" src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
   </head>
-  <body class="bg-purple-800 <%= if assigns[:overflow_hidden], do: "overflow-hidden" %>">
+  <body class="select-none bg-purple-800 <%= if assigns[:overflow_hidden], do: "overflow-hidden" %>">
     <%= @inner_content %>
   </body>
 </html>

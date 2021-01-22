@@ -2,6 +2,10 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+body {
+  -webkit-tap-highlight-color: transparent;
+}
+
 #main {
   height: 100vh;
   height: calc(var(--vh, 1vh) * 100);
