@@ -32,7 +32,7 @@ config :phoenix,
   logger: false
 
 # Use Bamboo's local adapter for viewing sent emails in development
-config :level10, Level10.Mailer, adapter: Bamboo.LocalAdapter
+config :level10, Level10Mailer, adapter: Bamboo.LocalAdapter
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

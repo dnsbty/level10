@@ -19,7 +19,7 @@ sendgrid_api_key =
     For example: ecto://USER:PASS@HOST/DATABASE
     """
 
-config :level10, Level10.Mailer,
+config :level10, Level10Mailer,
   adapter: Bamboo.SendGridAdapter,
   api_key: sendgrid_api_key
 

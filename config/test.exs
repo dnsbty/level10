@@ -22,7 +22,7 @@ config :level10, Level10Web.Endpoint,
   server: false
 
 # Use Bamboo's test adapter for testing sent emails
-config :level10, Level10.Mailer, adapter: Bamboo.TestAdapter
+config :level10, Level10Mailer, adapter: Bamboo.TestAdapter
 config :level10, include_sent_email_route?: true
 
 # Print only warnings and errors during test

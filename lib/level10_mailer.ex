@@ -1,4 +1,4 @@
-defmodule Level10.Mailer do
+defmodule Level10Mailer do
   @moduledoc """
   This module does all the work of sending out emails.
   """
