@@ -1,45 +1,88 @@
 <nav role="navigation" class="absolute right-4 top-4">
   <div x-data="{isOpen: false}" class="relative inline-block text-left">
     <div>
-      <button @click="isOpen = true" class="rounded-full flex items-center text-gray-300 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-300 focus:ring-red-500" id="options-menu" aria-haspopup="true" aria-expanded="true">
+      <button
+        @click="isOpen = true"
+        class="rounded-full flex items-center text-gray-300 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-300 focus:ring-red-500"
+        id="options-menu"
+        aria-haspopup="true"
+        aria-expanded="true"
+      >
         <span class="sr-only">Open options</span>
-        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+        <svg
+          class="h-5 w-5"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"
+          />
         </svg>
       </button>
     </div>
 
-    <div x-show="isOpen"
-         @click.away="isOpen = false"
-         x-transition:enter="transition ease-out duration-100 transform"
-         x-transition:enter-start="opacity-0 scale-95"
-         x-transition:enter-end="opacity-100 scale-100"
-         x-transition:leave="transition ease-in duration-75 transform"
-         x-transition:leave-start="opacity-100 scale-100"
-         x-transition:leave-end="opacity-0 scale-95"
-         class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100">
+    <div
+      x-show="isOpen"
+      @click.away="isOpen = false"
+      x-transition:enter="transition ease-out duration-100 transform"
+      x-transition:enter-start="opacity-0 scale-95"
+      x-transition:enter-end="opacity-100 scale-100"
+      x-transition:leave="transition ease-in duration-75 transform"
+      x-transition:leave-start="opacity-100 scale-100"
+      x-transition:leave-end="opacity-0 scale-95"
+      class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100"
+      style="display: none"
+    >
       <%= if @current_user do %>
         <div class="px-4 py-3">
-          <p class="text-sm">
-            Signed in as
-          </p>
+          <p class="text-sm">Signed in as</p>
           <p class="text-sm font-medium text-gray-900 truncate">
             <%= @current_user.email %>
           </p>
         </div>
-        <ul class="py-1 list-none" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
-          <li><%= link "Create game", to: Routes.lobby_path(Level10Web.Endpoint, :create), role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %></li>
-          <li><%= link "Join game", to: Routes.lobby_path(Level10Web.Endpoint, :join), role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %></li>
+        <ul
+          class="py-1 list-none"
+          role="menu"
+          aria-orientation="vertical"
+          aria-labelledby="options-menu"
+        >
+          <li>
+            <%= link "Create game", to: Routes.lobby_path(Level10Web.Endpoint, :create), role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %>
+          </li>
+          <li>
+            <%= link "Join game", to: Routes.lobby_path(Level10Web.Endpoint, :join), role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %>
+          </li>
         </ul>
-        <ul class="py-1 list-none" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
-          <li><%= link "Account settings", to: Routes.user_settings_path(Level10Web.Endpoint, :edit), role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %></li>
-          <li><%= link "Sign out", to: Routes.user_session_path(Level10Web.Endpoint, :delete), method: :delete, role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %></li>
+        <ul
+          class="py-1 list-none"
+          role="menu"
+          aria-orientation="vertical"
+          aria-labelledby="options-menu"
+        >
+          <li>
+            <%= link "Account settings", to: Routes.user_settings_path(Level10Web.Endpoint, :edit), role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %>
+          </li>
+          <li>
+            <%= link "Sign out", to: Routes.user_session_path(Level10Web.Endpoint, :delete), method: :delete, role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %>
+          </li>
+        </ul>
       <% else %>
-        <ul class="py-1 list-none" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
-          <li><%= link "Create account", to: Routes.user_registration_path(Level10Web.Endpoint, :new), role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %></li>
-          <li><%= link "Sign in", to: Routes.user_session_path(Level10Web.Endpoint, :new), role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %></li>
+        <ul
+          class="py-1 list-none"
+          role="menu"
+          aria-orientation="vertical"
+          aria-labelledby="options-menu"
+        >
+          <li>
+            <%= link "Create account", to: Routes.user_registration_path(Level10Web.Endpoint, :new), role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %>
+          </li>
+          <li>
+            <%= link "Sign in", to: Routes.user_session_path(Level10Web.Endpoint, :new), role: "menuitem", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" %>
+          </li>
+        </ul>
       <% end %>
-      </ul>
     </div>
   </div>
 </nav>
