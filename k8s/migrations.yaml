@@ -11,7 +11,8 @@ spec:
     spec:
       containers:
       - name: level10-migrator
-        image: registry.digitalocean.com/dnsbty/level10:{{IMAGE_TAG}}
+        image: registry.digitalocean.com/dnsbty/level10:latest
+        imagePullPolicy: Always
         command: ["/app/bin/level10",  "eval", "Level10.Release.migrate"]
         env:
           - name: DATABASE_URL
@@ -32,4 +33,4 @@ spec:
                 name: level10
                 key: sendgridApiKey
       restartPolicy: Never
-  backoffLimit: 4
+  backoffLimit: 0

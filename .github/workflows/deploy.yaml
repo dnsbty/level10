@@ -8,6 +8,7 @@ jobs:
     name: Build, push, and deploy
     runs-on: ubuntu-latest
     env:
+      DOCKER_BUILDKIT: 1
       REGISTRY_URL: registry.digitalocean.com/dnsbty/level10
     steps:
       - name: Checkout master
@@ -26,16 +27,22 @@ jobs:
         continue-on-error: true
 
       - name: Build container image
-        run: docker build -t ${REGISTRY_URL}:$(echo $GITHUB_SHA | head -c7) .
+        run: |
+          docker build \
+            --cache-from ${REGISTRY_URL}:latest \
+            -t ${REGISTRY_URL}:$(echo $GITHUB_SHA | head -c7) \
+            -t ${REGISTRY_URL}:latest \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            .
 
       - name: Push image to DigitalOcean Container Registry
-        run: docker push ${REGISTRY_URL}
+        run: docker push ${REGISTRY_URL} --all-tags
 
       - name: Save DigitalOcean kubeconfig
         run: doctl kubernetes cluster kubeconfig save dnsbty-k8s
 
       - name: Run database migrations
-        run: ./bin/migrate.sh $(echo $GITHUB_SHA | head -c7)
+        run: ./bin/migrate.sh
 
       - name: Deploy to DigitalOcean Kubernetes
         run: kubectl set image deployments/level10 level10=${REGISTRY_URL}:$(echo $GITHUB_SHA | head -c7)

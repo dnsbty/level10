@@ -45,7 +45,8 @@ spec:
         - name: registry-dnsbty
       containers:
         - name: level10
-          image: registry.digitalocean.com/dnsbty/level10
+          image: registry.digitalocean.com/dnsbty/level10:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 4000
               protocol: TCP
