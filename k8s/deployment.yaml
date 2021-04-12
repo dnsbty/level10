@@ -61,6 +61,8 @@ spec:
                 secretKeyRef:
                   name: level10
                   key: databaseUrl
+            - name: POOL_SIZE
+              value: "2"
             - name: PORT
               value: "4000"
             - name: POD_IP
