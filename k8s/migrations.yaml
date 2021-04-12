@@ -19,6 +19,8 @@ spec:
               secretKeyRef:
                 name: level10
                 key: databaseUrl
+          - name: POOL_SIZE
+            value: "2"
           - name: SECRET_KEY_BASE
             valueFrom:
               secretKeyRef:
