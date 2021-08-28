@@ -1,6 +1,3 @@
-erlang 23.1.5
-elixir 1.11.2-otp-23
-nodejs 14.15.3
-kubectl 1.19.3
-k9s 0.24.2
-minikube 1.16.0
+erlang 24.0.5
+elixir 1.12.2-otp-24
+nodejs 16.8.0
