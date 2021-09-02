@@ -1,19 +1,19 @@
 # Build Elixir piece
 
-FROM elixir:alpine AS elixir-build
+FROM elixir:1.12-alpine AS elixir-build
 
 RUN apk update --no-cache \
-  && apk add --no-cache build-base git openssh
+  && apk add --no-cache build-base
+
+WORKDIR /app
 
 RUN mix local.hex --force \
   && mix local.rebar --force
 
 ENV MIX_ENV=prod
 
-WORKDIR /app
-
 COPY mix.exs mix.lock ./
-RUN mix deps.get
+RUN mix deps.get --only prod
 
 COPY config/config.exs config/config.exs
 COPY config/prod.exs config/prod.exs
@@ -33,40 +33,45 @@ WORKDIR /app
 
 ENV NODE_ENV=prod
 
-COPY --from=elixir-build /app/deps deps
-WORKDIR /app/assets
-COPY assets/package.json assets/yarn.lock ./
-RUN yarn install
+COPY assets/package.json assets/package-lock.json ./assets/
+RUN npm --prefix ./assets ci --progress=false --no-audit --loglevel=error
+
+COPY assets assets
+COPY priv priv
 
 # We need the lib folder for Tailwind to be able to purge any unused classes
-COPY --from=elixir-build /app/lib /app/lib
+COPY lib lib
 
-COPY assets .
-RUN yarn run deploy
+RUN npm run --prefix ./assets deploy
 
 # Put it all together
 
 FROM elixir-build AS release-build
 
 WORKDIR /app
+RUN mix esbuild.install
 
-COPY --from=js-build /app/priv/static ./priv/static
-COPY config/releases.exs config/releases.exs
+COPY assets assets
+COPY --from=js-build /app/assets/node_modules assets/node_modules
+COPY --from=js-build /app/priv priv
 
-RUN mix phx.digest
-RUN mix release
+RUN mix esbuild default --minify
+
+COPY config/runtime.exs config/runtime.exs
+RUN mix do phx.digest, release
 
 # Put it into an empty Alpine container
 
-FROM alpine:latest
-RUN apk update --no-cache && apk add --no-cache openssl ncurses-libs
+FROM alpine:3.14 AS app
+RUN apk update --no-cache && apk add --no-cache libstdc++ openssl ncurses-libs
 ENV LANG=en_US.UTF-8
 
 WORKDIR /app
 
-COPY --from=release-build /app/_build/prod/rel/level10 .
+RUN chown nobody:nobody /app
+USER nobody:nobody
 
-EXPOSE 4000
+COPY --from=release-build --chown=nobody:nobody /app/_build/prod/rel/level10 .
 
 ENTRYPOINT ["/app/bin/level10"]
 CMD ["start"]

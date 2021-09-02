@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 # Configure the database
 config :level10, Level10.Repo,
@@ -20,13 +20,8 @@ config :level10, Level10Web.Endpoint,
   code_reloader: true,
   check_origin: false,
   watchers: [
-    node: [
-      "node_modules/webpack/bin/webpack.js",
-      "--mode",
-      "development",
-      "--watch-stdin",
-      cd: Path.expand("../assets", __DIR__)
-    ]
+    esbuild: {Esbuild, :install_and_run, [:default, ~w[--sourcemap=inline --watch]]},
+    npm: ["run", "watch", cd: Path.expand("../assets", __DIR__)]
   ]
 
 # ## SSL Support

@@ -2,6 +2,10 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+[x-cloak] {
+  display: none !important;
+}
+
 body {
   -webkit-tap-highlight-color: transparent;
 }

@@ -70,42 +70,37 @@ defmodule Level10.StateHandoff do
 
   @doc false
   def handle_call(:clear, _from, state) do
-    for {key, _} <- DeltaCrdt.read(Crdt) do
-      DeltaCrdt.mutate(Crdt, :remove, [key])
+    for {key, _} <- DeltaCrdt.to_map(Crdt) do
+      DeltaCrdt.delete(Crdt, key)
     end
 
     {:reply, :ok, state}
   end
 
   def handle_call(:get, _from, state) do
-    crdt = DeltaCrdt.read(Crdt)
+    crdt = DeltaCrdt.to_map(Crdt)
     {:reply, crdt, state}
   end
 
   def handle_call({:handoff, join_code, game}, _from, state) do
     Logger.debug(fn ->
-      "[StateHandoff] Adding game #{join_code} to the CRDT with current stage: #{
-        game.current_stage
-      }"
+      "[StateHandoff] Adding game #{join_code} to the CRDT with current stage: #{game.current_stage}"
     end)
 
-    case DeltaCrdt.read(Crdt) do
-      %{^join_code => _game} ->
-        Logger.debug(fn -> "[StateHandoff] Game #{join_code} already exists in the CRDT" end)
-
-      _ ->
-        DeltaCrdt.mutate(Crdt, :add, [join_code, game])
+    case DeltaCrdt.get(Crdt, join_code) do
+      nil ->
+        DeltaCrdt.put(Crdt, join_code, game)
         Logger.debug(fn -> "[StateHandoff] Added game #{join_code} to CRDT" end)
+
+      _game ->
+        Logger.debug(fn -> "[StateHandoff] Game #{join_code} already exists in the CRDT" end)
     end
 
     {:reply, :ok, state}
   end
 
   def handle_call({:pickup, join_code}, _from, state) do
-    game =
-      Crdt
-      |> DeltaCrdt.read()
-      |> Map.get(join_code, nil)
+    game = DeltaCrdt.get(Crdt, join_code)
 
     cond do
       is_nil(game) ->
@@ -116,7 +111,7 @@ defmodule Level10.StateHandoff do
 
       true ->
         Logger.debug(fn -> "[StateHandoff] Picked up game #{join_code}" end)
-        DeltaCrdt.mutate(Crdt, :remove, [join_code])
+        DeltaCrdt.delete(Crdt, join_code)
     end
 
     {:reply, game, state}

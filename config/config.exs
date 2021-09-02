@@ -1,11 +1,4 @@
-# This file is responsible for configuring your application
-# and its dependencies with the aid of the Mix.Config module.
-#
-# This configuration file is loaded before any dependency and
-# is restricted to this project.
-
-# General application configuration
-use Mix.Config
+import Config
 
 config :level10,
   ecto_repos: [Level10.Repo]
@@ -18,6 +11,15 @@ config :level10, Level10Web.Endpoint,
   render_errors: [view: Level10Web.ErrorView, accepts: ~w(html json), layout: false],
   pubsub_server: Level10.PubSub,
   live_view: [signing_salt: "HjUnOT+E"]
+
+# Configure esbuild (the version is required)
+config :esbuild,
+  version: "0.12.18",
+  default: [
+    args: ~w(js/app.js --bundle --target=es2016 --outdir=../priv/static/assets),
+    cd: Path.expand("../assets", __DIR__),
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+  ]
 
 # Configures Elixir's Logger
 config :logger, :console,
