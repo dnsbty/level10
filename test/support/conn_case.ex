@@ -6,17 +6,9 @@ defmodule Level10Web.ConnCase do
   Such tests rely on `Phoenix.ConnTest` and also
   import other functionality to make it easier
   to build common data structures and query the data layer.
-
-  Finally, if the test case interacts with the database,
-  we enable the SQL sandbox, so changes done to the database
-  are reverted at the end of every test. If you are using
-  PostgreSQL, you can even run database tests asynchronously
-  by setting `use Level10Web.ConnCase, async: true`, although
-  this option is not recommended for other databases.
   """
 
   use ExUnit.CaseTemplate
-  alias Ecto.Adapters.SQL.Sandbox
 
   using do
     quote do
@@ -32,13 +24,7 @@ defmodule Level10Web.ConnCase do
     end
   end
 
-  setup tags do
-    :ok = Sandbox.checkout(Level10.Repo)
-
-    unless tags[:async] do
-      Sandbox.mode(Level10.Repo, {:shared, self()})
-    end
-
+  setup _tags do
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 
@@ -51,7 +37,7 @@ defmodule Level10Web.ConnCase do
   test context.
   """
   def register_and_log_in_user(%{conn: conn}) do
-    user = Level10.AccountsFixtures.user_fixture()
+    user = %{id: "d3e8bcef-bb3c-4460-8e6b-4ea4bdc0ec1d", name: "test"}
     %{conn: log_in_user(conn, user), user: user}
   end
 
@@ -61,10 +47,9 @@ defmodule Level10Web.ConnCase do
   It returns an updated `conn`.
   """
   def log_in_user(conn, user) do
-    token = Level10.Accounts.generate_user_session_token(user, {127, 0, 0, 1}, "test")
-
     conn
     |> Phoenix.ConnTest.init_test_session(%{})
-    |> Plug.Conn.put_session(:user_token, token)
+    |> Plug.Conn.put_session(:user_id, user.id)
+    |> Plug.Conn.put_session(:user_name, user.name)
   end
 end

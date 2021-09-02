@@ -3,6 +3,7 @@ defmodule Level10Web.LobbyLive do
   This module handles the UI for allowing users to create or join a game, as
   well as see the users that are currently in the same game lobby.
   """
+
   use Phoenix.LiveView, layout: {Level10Web.LayoutView, "live.html"}
   require Logger
   import Level10Web.LiveHelpers
@@ -13,12 +14,13 @@ defmodule Level10Web.LobbyLive do
   alias Level10Web.Router.Helpers, as: Routes
 
   def mount(_params, session, socket) do
-    socket = fetch_current_user(socket, session)
+    socket = fetch_user(socket, session)
+    IO.inspect(socket.assigns.user)
 
     initial_assigns = [
       is_creator: nil,
       join_code: "",
-      display_name: "",
+      display_name: socket.assigns.user.name,
       players: nil,
       presence: nil,
       settings: Settings.default(),
@@ -33,11 +35,8 @@ defmodule Level10Web.LobbyLive do
   end
 
   def handle_params(params, _url, socket = %{assigns: %{live_action: :wait}}) do
-    socket = require_authenticated_user(socket)
-
-    with nil <- socket.redirected,
-         %{"join_code" => join_code} <- params do
-      user_id = socket.assigns.current_user.uid
+    with %{"join_code" => join_code} <- params do
+      user_id = socket.assigns.user.id
       Games.subscribe(join_code, user_id)
 
       assigns = %{
@@ -54,18 +53,8 @@ defmodule Level10Web.LobbyLive do
   end
 
   def handle_params(params, _url, socket) do
-    socket = require_authenticated_user(socket)
-
-    if socket.redirected do
-      {:noreply, socket}
-    else
-      assigns = %{
-        display_name: socket.assigns.current_user.username,
-        join_code: params["join_code"] || socket.assigns.join_code
-      }
-
-      {:noreply, assign(socket, assigns)}
-    end
+    join_code = params["join_code"] || socket.assigns.join_code
+    {:noreply, assign(socket, join_code: join_code)}
   end
 
   def render(assigns) do
@@ -82,24 +71,30 @@ defmodule Level10Web.LobbyLive do
   end
 
   def handle_event("create_game", _params, socket) do
-    %{current_user: current_user, display_name: display_name, settings: settings} = socket.assigns
-    user_with_display_name = %{current_user | display_name: display_name}
+    %{display_name: display_name, settings: settings, user: user} = socket.assigns
+    user = %{user | name: display_name}
 
-    case Games.create_game(user_with_display_name, settings) do
+    case Games.create_game(user, settings) do
       {:ok, join_code} ->
-        players = [Player.new(user_with_display_name)]
+        players = [Player.new(user)]
         presence = Games.list_presence(join_code)
-        Games.subscribe(join_code, current_user.uid)
+        Games.subscribe(join_code, user.id)
         new_url = Routes.lobby_path(socket, :wait, join_code)
 
         assigns = %{
+          user: user,
           is_creator: true,
           join_code: join_code,
           players: players,
           presence: presence
         }
 
-        {:noreply, socket |> assign(assigns) |> push_patch(to: new_url)}
+        socket =
+          socket
+          |> assign(assigns)
+          |> push_patch(to: new_url)
+
+        {:noreply, socket}
 
       :error ->
         socket =
@@ -114,18 +109,16 @@ defmodule Level10Web.LobbyLive do
   end
 
   def handle_event("join_game", _params, socket) do
-    %{current_user: current_user, display_name: display_name, join_code: join_code} =
-      socket.assigns
+    %{display_name: display_name, join_code: join_code, user: user} = socket.assigns
+    user = %{user | name: display_name}
 
-    user_with_display_name = %{current_user | display_name: display_name}
-
-    case Games.join_game(join_code, user_with_display_name) do
+    case Games.join_game(join_code, user) do
       :ok ->
         Logger.info(["Joined game ", join_code])
 
         players = Games.get_players(join_code)
         presence = Games.list_presence(join_code)
-        Games.subscribe(join_code, current_user.uid)
+        Games.subscribe(join_code, user.id)
         new_url = Routes.lobby_path(socket, :wait, join_code)
 
         assigns = %{
@@ -153,12 +146,12 @@ defmodule Level10Web.LobbyLive do
   end
 
   def handle_event("leave", _params, socket) do
-    %{current_user: current_user, join_code: join_code} = socket.assigns
+    %{join_code: join_code, user: user} = socket.assigns
 
-    case Games.delete_player(join_code, current_user.uid) do
+    case Games.delete_player(join_code, user.id) do
       :ok ->
         Logger.info(["Left game ", join_code])
-        Games.unsubscribe(join_code, current_user.uid)
+        Games.unsubscribe(join_code, user.id)
 
         socket =
           socket
@@ -213,7 +206,7 @@ defmodule Level10Web.LobbyLive do
 
   def handle_info({:players_updated, players}, socket) do
     creator = List.last(players)
-    is_creator = creator.id == socket.assigns.current_user.uid
+    is_creator = creator.id == socket.assigns.user.id
     {:noreply, assign(socket, is_creator: is_creator, players: players)}
   end
 

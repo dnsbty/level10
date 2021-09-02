@@ -42,20 +42,14 @@ defmodule Level10.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:bamboo, "~> 1.6"},
-      {:bcrypt_elixir, "~> 2.0"},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
-      {:delta_crdt, "~> 0.6"},
-      {:ecto_network, "~> 1.3"},
-      {:ecto_psql_extras, "~> 0.4"},
-      {:ecto_sql, "~> 3.6"},
+      {:delta_crdt, github: "dnsbty/delta_crdt_ex", ref: "471b374", override: true},
       {:esbuild, "~> 0.2", runtime: Mix.env() == :dev},
       {:gettext, "~> 0.18"},
       {:horde, "~> 0.8.4"},
       {:jason, "~> 1.2"},
       {:libcluster, "~> 3.2"},
-      {:phoenix, "~> 1.6.0-rc.0", override: true},
-      {:phoenix_ecto, "~> 4.4"},
+      {:phoenix, "~> 1.6.0-pre", override: true},
       {:phoenix_html, "~> 3.0"},
       {:phoenix_live_dashboard, "~> 0.5"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
@@ -73,10 +67,7 @@ defmodule Level10.MixProject do
 
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup", "cmd npm install --prefix assets"],
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
+      setup: ["deps.get", "cmd npm install --prefix assets"]
     ]
   end
 end

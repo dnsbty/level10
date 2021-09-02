@@ -38,5 +38,3 @@ type: Opaque
 data:
   cookie: bWZzcGltSXVmcDYrRmc5UTRKRVZyLzVTeXFGZFNwcHY= # base64 encoded cookie
   secretKeyBase: M0JXb3ZqQXJtbG5ZL1lYTkNSWXA5VG5VNHVyajVQQ0NsSUJ4Q0poTUVlTVZPblZuaXlXaWdTcXkzclBHbkozRA== # base64 encoded secret key base
-  databaseUrl: cG9zdGdyZXM6Ly9wb3N0Z3JlczpAcG9zdGdyZXM6NTQzMi9sZXZlbDEwX2Rldg== # base64 encoded database url
-  sendgridApiKey: ZmFrZS1zZW5kZ3JpZC1hcGkta2V5 # base64 encoded sendgrid api key

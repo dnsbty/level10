@@ -3,7 +3,7 @@
 FROM elixir:1.12-alpine AS elixir-build
 
 RUN apk update --no-cache \
-  && apk add --no-cache build-base
+  && apk add --no-cache build-base openssh git
 
 WORKDIR /app
 

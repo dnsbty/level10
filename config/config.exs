@@ -1,8 +1,5 @@
 import Config
 
-config :level10,
-  ecto_repos: [Level10.Repo]
-
 # Configures the endpoint
 config :level10, Level10Web.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT") || "4000")],
@@ -32,9 +29,6 @@ config :logger, compile_time_purge_matching: [[application: :remote_ip]]
 config :phoenix,
   json_library: Jason,
   logger: false
-
-# Use Bamboo's local adapter for viewing sent emails in development
-config :level10, Level10Mailer, adapter: Bamboo.LocalAdapter
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

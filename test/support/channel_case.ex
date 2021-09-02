@@ -6,18 +6,9 @@ defmodule Level10Web.ChannelCase do
   Such tests rely on `Phoenix.ChannelTest` and also
   import other functionality to make it easier
   to build common data structures and query the data layer.
-
-  Finally, if the test case interacts with the database,
-  we enable the SQL sandbox, so changes done to the database
-  are reverted at the end of every test. If you are using
-  PostgreSQL, you can even run database tests asynchronously
-  by setting `use Level10Web.ChannelCase, async: true`, although
-  this option is not recommended for other databases.
   """
 
   use ExUnit.CaseTemplate
-
-  alias Ecto.Adapters.SQL.Sandbox
 
   using do
     quote do
@@ -28,15 +19,5 @@ defmodule Level10Web.ChannelCase do
       # The default endpoint for testing
       @endpoint Level10Web.Endpoint
     end
-  end
-
-  setup tags do
-    :ok = Sandbox.checkout(Level10.Repo)
-
-    unless tags[:async] do
-      Sandbox.mode(Level10.Repo, {:shared, self()})
-    end
-
-    :ok
   end
 end

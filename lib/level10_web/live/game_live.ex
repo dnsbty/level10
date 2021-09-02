@@ -12,13 +12,10 @@ defmodule Level10Web.GameLive do
   alias Level10Web.Router.Helpers, as: Routes
 
   def mount(params, session, socket) do
-    socket =
-      socket
-      |> fetch_current_user(session)
-      |> require_authenticated_user()
+    socket = fetch_user(socket, session)
 
     with %{redirected: nil} <- socket,
-         player_id = socket.assigns.current_user.uid,
+         player_id = socket.assigns.user.id,
          %{"join_code" => join_code} <- params,
          true <- Games.exists?(join_code),
          true <- Games.started?(join_code),

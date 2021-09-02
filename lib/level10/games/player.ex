@@ -14,8 +14,8 @@ defmodule Level10.Games.Player do
   @spec new(User.t()) :: __MODULE__.t()
   def new(user) do
     %__MODULE__{
-      id: user.uid,
-      name: user.display_name || user.username
+      id: user.id,
+      name: user.name
     }
   end
 end

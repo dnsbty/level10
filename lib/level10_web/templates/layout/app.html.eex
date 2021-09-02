@@ -1,5 +1,4 @@
 <main role="main" class="<%= Enum.at(@conn.path_info, 0) %>">
-  <%= render Level10Web.LayoutView, "_user_menu.html", assigns %>
   <div class="min-h-screen flex">
     <div class="flex-1 md:flex flex-col justify-center py-12">
       <div class="mx-auto w-full max-w-sm lg:w-96">

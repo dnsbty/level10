@@ -1,14 +1,5 @@
 import Config
 
-# Configure the database
-config :level10, Level10.Repo,
-  username: "postgres",
-  password: "postgres",
-  database: "level10_dev",
-  hostname: "localhost",
-  show_sensitive_data_on_connection_error: true,
-  pool_size: 10
-
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #
@@ -68,9 +59,6 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
-
-# Show the sent emails in development
-config :level10, include_sent_email_route?: true
 
 # Attach to the cluster of any other nodes running on this host
 if Node.self() != :nonode@nohost do

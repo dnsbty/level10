@@ -41,9 +41,6 @@ jobs:
       - name: Save DigitalOcean kubeconfig
         run: doctl kubernetes cluster kubeconfig save dnsbty-k8s
 
-      - name: Run database migrations
-        run: ./bin/migrate.sh
-
       - name: Deploy to DigitalOcean Kubernetes
         run: kubectl set image deployments/level10 level10=${REGISTRY_URL}:$(echo $GITHUB_SHA | head -c7)
 
