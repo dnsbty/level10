@@ -13,18 +13,4 @@ config :level10, Level10Web.Endpoint,
   cache_static_manifest: "priv/static/cache_manifest.json"
 
 # Do not print debug messages in production
-# config :logger, level: :info
-
-# Configure clustering
-config :level10,
-  cluster_topologies: [
-    level10: [
-      strategy: Cluster.Strategy.Kubernetes,
-      config: [
-        kubernetes_ip_lookup_mode: :pods,
-        kubernetes_namespace: "default",
-        kubernetes_node_basename: "level10",
-        kubernetes_selector: "app=level10"
-      ]
-    ]
-  ]
+config :logger, level: :info

@@ -55,6 +55,7 @@ COPY assets assets
 COPY --from=js-build /app/assets/node_modules assets/node_modules
 COPY --from=js-build /app/priv priv
 
+COPY rel rel
 RUN mix esbuild default --minify
 
 COPY config/runtime.exs config/runtime.exs

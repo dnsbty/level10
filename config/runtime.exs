@@ -15,4 +15,21 @@ if config_env() == :prod do
     secret_key_base: secret_key_base
 
   config :level10, Level10Web.Endpoint, server: true
+
+  app_name =
+    System.get_env("FLY_APP_NAME") ||
+      raise "FLY_APP_NAME not available"
+
+  # Configure clustering
+  config :level10,
+    cluster_topologies: [
+      level10: [
+        strategy: Cluster.Strategy.DNSPoll,
+        config: [
+          polling_interval: 5_000,
+          query: "#{app_name}.internal",
+          node_basename: app_name
+        ]
+      ]
+    ]
 end
