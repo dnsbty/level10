@@ -43,8 +43,8 @@ defmodule Level10.MixProject do
   defp deps do
     [
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
-      {:delta_crdt, github: "dnsbty/delta_crdt_ex", ref: "471b374", override: true},
-      {:esbuild, "~> 0.2", runtime: Mix.env() == :dev},
+      {:delta_crdt, "~> 0.6.3"},
+      {:esbuild, "~> 0.3", runtime: Mix.env() == :dev},
       {:gettext, "~> 0.18"},
       {:horde, "~> 0.8.4"},
       {:jason, "~> 1.2"},
@@ -57,7 +57,6 @@ defmodule Level10.MixProject do
       {:phoenix_pubsub, "~> 2.0"},
       {:plug_cowboy, "~> 2.5"},
       {:postgrex, ">= 0.0.0"},
-      {:remote_ip, "~> 0.2"},
       {:telemetry, "~> 1.0", override: true},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0", override: true},

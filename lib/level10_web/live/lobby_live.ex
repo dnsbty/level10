@@ -15,7 +15,6 @@ defmodule Level10Web.LobbyLive do
 
   def mount(_params, session, socket) do
     socket = fetch_user(socket, session)
-    IO.inspect(socket.assigns.user)
 
     initial_assigns = [
       is_creator: nil,
@@ -35,20 +34,22 @@ defmodule Level10Web.LobbyLive do
   end
 
   def handle_params(params, _url, socket = %{assigns: %{live_action: :wait}}) do
-    with %{"join_code" => join_code} <- params do
-      user_id = socket.assigns.user.id
-      Games.subscribe(join_code, user_id)
+    case params do
+      %{"join_code" => join_code} ->
+        user_id = socket.assigns.user.id
+        Games.subscribe(join_code, user_id)
 
-      assigns = %{
-        is_creator: socket.assigns.is_creator || Games.creator(join_code).id == user_id,
-        join_code: join_code,
-        players: socket.assigns.players || Games.get_players(join_code),
-        presence: socket.assigns.presence || Games.list_presence(join_code)
-      }
+        assigns = %{
+          is_creator: socket.assigns.is_creator || Games.creator(join_code).id == user_id,
+          join_code: join_code,
+          players: socket.assigns.players || Games.get_players(join_code),
+          presence: socket.assigns.presence || Games.list_presence(join_code)
+        }
 
-      {:noreply, assign(socket, assigns)}
-    else
-      _ -> {:noreply, socket}
+        {:noreply, assign(socket, assigns)}
+
+      _ ->
+        {:noreply, socket}
     end
   end
 
