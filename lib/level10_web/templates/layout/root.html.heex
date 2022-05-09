@@ -10,8 +10,9 @@
     <link rel="manifest" href={Routes.static_path(@conn, "/site.webmanifest")} />
     <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")}/>
     <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js")}></script>
+    <script src="//unpkg.com/alpinejs" defer></script>
   </head>
-  <body class={hide_overflow("select-none bg-purple-800", assigns)}>
+  <body class={hide_overflow("select-none bg-violet-800", assigns)}>
     <%= @inner_content %>
   </body>
 </html>

@@ -44,7 +44,7 @@ defmodule Level10.MixProject do
     [
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:delta_crdt, "~> 0.6.3"},
-      {:esbuild, "~> 0.3", runtime: Mix.env() == :dev},
+      {:esbuild, "~> 0.4", runtime: Mix.env() == :dev},
       {:gettext, "~> 0.18"},
       {:horde, "~> 0.8.4"},
       {:jason, "~> 1.2"},
@@ -57,6 +57,7 @@ defmodule Level10.MixProject do
       {:phoenix_pubsub, "~> 2.0"},
       {:plug_cowboy, "~> 2.5"},
       {:postgrex, ">= 0.0.0"},
+      {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
       {:telemetry, "~> 1.0", override: true},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0", override: true},
@@ -66,7 +67,13 @@ defmodule Level10.MixProject do
 
   defp aliases do
     [
-      setup: ["deps.get", "cmd npm install --prefix assets"]
+      compile: "compile --warnings-as-errors",
+      setup: ["deps.get", "cmd --cd assets npm install"],
+      "assets.deploy": [
+        "tailwind default --minify",
+        "esbuild default --minify",
+        "phx.digest"
+      ]
     ]
   end
 end

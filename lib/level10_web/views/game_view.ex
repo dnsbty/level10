@@ -73,7 +73,7 @@ defmodule Level10Web.GameView do
   def discard_styles(%Card{}), do: ""
 
   def discard_styles(nil) do
-    "text-xs py-5 border border-purple-400 text-purple-400"
+    "text-xs py-5 border border-violet-400 text-violet-400"
   end
 
   @doc """

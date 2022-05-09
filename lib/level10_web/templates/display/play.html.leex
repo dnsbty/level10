@@ -23,7 +23,7 @@
             <%= if player.id in Map.keys(@presence) do %>
               <div class="text-sm text-green-500 mr-2 cursor-default" title="online">●</div>
             <% else %>
-              <div class="text-sm text-purple-500 mr-2 cursor-default" title="offline">○</div>
+              <div class="text-sm text-violet-500 mr-2 cursor-default" title="offline">○</div>
             <% end %>
             <div class="flex-1 text-white text-3xl font-semibold"><%= player.name %></div>
           </div>
@@ -38,17 +38,17 @@
         <%= if is_nil(@game.table[player.id]) do %>
           <div class="flex flex-1 h-full flex-wrap">
             <%= for group <- @levels[player.id] do %>
-              <div class="flex flex-row items-center flex-1 mr-2 h-full bg-purple-900 rounded-lg py-2">
-                <p class="flex-1 text-purple-700 text-center text-4xl"><%= level_group_name(group) %></p>
+              <div class="flex flex-row items-center flex-1 mr-2 h-full bg-violet-900 rounded-lg py-2">
+                <p class="flex-1 text-violet-700 text-center text-4xl"><%= level_group_name(group) %></p>
               </div>
             <% end %>
           </div>
         <% else %>
           <div class="flex flex-1 h-full flex-wrap">
             <%= for {group, position} <- Enum.with_index(@levels[player.id]) do %>
-              <div phx-click="add_to_table" onclick="" phx-value-player_id="<%= player.id %>" phx-value-position="<%= position %>" class="flex flex-wrap flex-1 h-full bg-purple-900 mr-2 rounded-lg p-1">
-                <p class="w-full text-purple-400 text-center text-lg"><%= level_group_name(group) %></p>
-                <div class="flex flex-row flex-1 text-purple-400 <%= card_height(@game.players) %> justify-center">
+              <div phx-click="add_to_table" onclick="" phx-value-player_id="<%= player.id %>" phx-value-position="<%= position %>" class="flex flex-wrap flex-1 h-full bg-violet-900 mr-2 rounded-lg p-1">
+                <p class="w-full text-violet-400 text-center text-lg"><%= level_group_name(group) %></p>
+                <div class="flex flex-row flex-1 text-violet-400 <%= card_height(@game.players) %> justify-center">
                   <%= for card <- @game.table[player.id][position] do %>
                     <div class="mr-1 h-full">
                       <%= render_card(card) %>

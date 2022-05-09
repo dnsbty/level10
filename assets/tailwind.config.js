@@ -1,11 +1,6 @@
 module.exports = {
-  mode: "jit",
-  purge: ["../lib/*_web/**/*.*ex", "./js/**/*.js"],
-  darkMode: false, // or 'media' or 'class'
+  content: ["./js/**/*.js", "../lib/*_web.ex", "../lib/*_web/**/*.*ex"],
   theme: {
-    extend: {},
-  },
-  variants: {
     extend: {},
   },
   plugins: [require("@tailwindcss/forms")],

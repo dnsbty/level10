@@ -1,7 +1,6 @@
 import "phoenix_html";
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
-import Alpine from "alpinejs";
 
 // Resize viewport units based on innerHeight rather than max height of the browser
 window.onresize = () => {
@@ -27,8 +26,6 @@ window.openSmsInvite = (joinCode) => {
   location.href = smsLink(message);
 };
 
-window.Alpine = Alpine;
-
 // Set up the LiveView
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
@@ -45,7 +42,7 @@ Hooks.SelectOnMount = {
 let liveSocket = new LiveSocket("/live", Socket, {
   dom: {
     onBeforeElUpdated(from, to) {
-      if (from.nodeType !== 1) return;
+      if (!window.Alpine || from.nodeType !== 1) return;
       if (from._x_dataStack) {
         window.Alpine.clone(from, to);
       }
@@ -55,5 +52,3 @@ let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
 });
 liveSocket.connect();
-
-Alpine.start();
