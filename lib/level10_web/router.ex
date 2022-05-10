@@ -2,7 +2,6 @@ defmodule Level10Web.Router do
   use Level10Web, :router
 
   import Phoenix.LiveDashboard.Router
-  import Plug.BasicAuth
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -19,7 +18,7 @@ defmodule Level10Web.Router do
   end
 
   pipeline :admin do
-    plug :basic_auth, Application.get_env(:level10, :admin_credentials)
+    plug Level10Web.AdminAuth
   end
 
   scope "/admin" do

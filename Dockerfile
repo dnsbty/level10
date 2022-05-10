@@ -35,7 +35,7 @@ RUN mix release
 ### Final Stage - Separate image to keep it smaller
 ###
 FROM alpine:3.14 AS app
-RUN apk update --no-cache
+RUN apk update --no-cache \
   && apk add --no-cache libstdc++ openssl ncurses-libs
 
 ENV LANG=en_US.UTF-8
