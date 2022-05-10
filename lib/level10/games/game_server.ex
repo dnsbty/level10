@@ -289,7 +289,7 @@ defmodule Level10.Games.GameServer do
   end
 
   def handle_cast({:update, fun}, state) do
-    {:noreply, apply(fun, [state])}
+    {:noreply, fun.(state)}
   end
 
   @impl true
