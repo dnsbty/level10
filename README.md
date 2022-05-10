@@ -35,6 +35,19 @@ PORT=4000 iex --cookie level10 --name 4000 -S mix phx.server
 PORT=4001 iex --cookie level10 --name 4001 -S mix phx.server
 ```
 
+#### State Handoff
+
+Whenever a node is terminated gracefully with a SIGTERM (as would occur with a
+normal rolling deploy), any game processes hosted on that node will be handed
+off to one of the other nodes in the cluster via the `Level10.StateHandoff`
+module. In order to simulate this with a cluster running on your local machine,
+you can use the following command inside of iex for whichever node you'd like to
+terminate:
+
+```
+:init.stop()
+```
+
 ## Production
 
 You can build a docker image that can run anywhere docker images can with `docker build .`

@@ -40,6 +40,13 @@ config :phoenix,
   json_library: Jason,
   logger: false
 
+# Configure default credentials for the live dashboard
+config :level10,
+  admin_credentials: [
+    username: "admin",
+    password: "password"
+  ]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"

@@ -49,19 +49,18 @@ defmodule Level10.MixProject do
       {:horde, "~> 0.8.4"},
       {:jason, "~> 1.2"},
       {:libcluster, "~> 3.2"},
-      {:phoenix, "~> 1.6.0-pre", override: true},
-      {:phoenix_html, "~> 3.0"},
-      {:phoenix_live_dashboard, "~> 0.5"},
+      {:phoenix, "~> 1.6"},
+      {:phoenix_html, "~> 3.2"},
+      {:phoenix_live_dashboard, "~> 0.6"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 0.16.0"},
+      {:phoenix_live_view, "~> 0.17.0"},
       {:phoenix_pubsub, "~> 2.0"},
       {:plug_cowboy, "~> 2.5"},
-      {:postgrex, ">= 0.0.0"},
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
       {:telemetry, "~> 1.0", override: true},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0", override: true},
-      {:uinta, "~> 0.5"}
+      {:uinta, "~> 0.9"}
     ]
   end
 
