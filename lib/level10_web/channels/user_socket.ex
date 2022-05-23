@@ -2,7 +2,7 @@ defmodule Level10Web.UserSocket do
   use Phoenix.Socket
 
   ## Channels
-  # channel "room:*", Level10Web.RoomChannel
+  channel "game:*", Level10Web.GameChannel
 
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After
@@ -16,8 +16,19 @@ defmodule Level10Web.UserSocket do
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
   @impl true
-  def connect(_params, socket, _connect_info) do
-    {:ok, socket}
+  def connect(%{"token" => token}, socket, _connect_info) do
+    case Phoenix.Token.verify(socket, "user auth", token) do
+      {:ok, user_id} ->
+        socket = assign(socket, :user_id, user_id)
+        {:ok, socket}
+
+      {:error, _} ->
+        :error
+    end
+  end
+
+  def connect(_params, _socket, _connect_info) do
+    :error
   end
 
   # Socket id's are topics that allow you to identify all sockets for a given user:
@@ -31,5 +42,5 @@ defmodule Level10Web.UserSocket do
   #
   # Returning `nil` makes this socket anonymous.
   @impl true
-  def id(_socket), do: nil
+  def id(socket), do: "user_socket:#{socket.assigns.user_id}"
 end

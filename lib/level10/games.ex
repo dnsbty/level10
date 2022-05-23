@@ -39,6 +39,30 @@ defmodule Level10.Games do
   end
 
   @doc """
+  Attempts to connect to a game that has already been joined. Will return an ok
+  atom if connecting is successful, or an atom with a reason if not.
+
+  ## Examples
+
+      iex> connect("ABCD", "d202dc1b-70c9-412d-a3d0-bb8ea6213b8c")
+      :ok
+
+      iex> connect("ABCD", "d202dc1b-70c9-412d-a3d0-bb8ea6213b8c")
+      :game_not_found
+
+      iex> connect("ABCD", "d202dc1b-70c9-412d-a3d0-bb8ea6213b8c")
+      :player_not_found
+  """
+  @spec connect(Game.join_code(), Player.id()) :: :ok | :game_not_found | :player_not_found
+  def connect(join_code, player_id) do
+    cond do
+      !exists?(join_code) -> :game_not_found
+      !player_exists?(join_code, player_id) -> :player_not_found
+      true -> :ok
+    end
+  end
+
+  @doc """
   Get the current count of active games in play.
   """
   @spec count() :: non_neg_integer()
@@ -533,13 +557,13 @@ defmodule Level10.Games do
   @doc """
   Susbscribe a process to updates for the specified game.
   """
-  @spec subscribe(String.t(), Player.id()) :: :ok | {:error, term()}
-  def subscribe(game_code, player_id) do
+  @spec subscribe(String.t(), Player.id(), Phoenix.Socket.t() | nil) :: :ok | {:error, term()}
+  def subscribe(game_code, player_id, socket \\ nil) do
     topic = "game:" <> game_code
 
     with :ok <- Phoenix.PubSub.subscribe(Level10.PubSub, topic),
-         {:ok, _} <- Presence.track_player(game_code, player_id) do
-      if player_id != :display, do: Presence.track_user(player_id, game_code)
+         {:ok, _} <- Presence.track_player(socket || game_code, player_id) do
+      # if player_id != :display, do: Presence.track_user(player_id, game_code)
       :ok
     end
   end

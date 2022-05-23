@@ -30,6 +30,8 @@ defmodule Level10Web.Router do
     pipe_through :api
 
     get "/health", HealthController, :index
+
+    post "/users", UserController, :create
   end
 
   scope "/", Level10Web do

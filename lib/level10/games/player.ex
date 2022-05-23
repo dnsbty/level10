@@ -5,6 +5,7 @@ defmodule Level10.Games.Player do
 
   @type t :: %__MODULE__{id: String.t(), name: String.t()}
 
+  @derive Jason.Encoder
   defstruct [:id, :name]
 
   @doc """

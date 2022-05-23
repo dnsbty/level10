@@ -35,7 +35,12 @@ defmodule Level10.Presence do
   @doc """
   Track the presence of a user within a game
   """
-  @spec track_player(Game.join_code(), Player.id()) :: :ok | {:error, term()}
+  @spec track_player(Phoenix.Socket.t() | Game.join_code(), Player.id()) ::
+          {:ok, binary()} | {:error, term()}
+  def track_player(socket = %Phoenix.Socket{}, player_id) do
+    track(socket, player_id, %{})
+  end
+
   def track_player(join_code, player_id) do
     track(self(), "game:" <> join_code, player_id, %{})
   end
