@@ -2,6 +2,7 @@ defmodule Level10Web.GameChannel do
   @moduledoc false
   use Level10Web, :channel
   alias Level10.Games
+  alias Level10.Games.Game
   alias Level10.Games.Settings
   require Logger
 
@@ -81,16 +82,35 @@ defmodule Level10Web.GameChannel do
   def handle_info(:after_join, socket) do
     %{join_code: join_code, user_id: user_id} = socket.assigns
     Games.subscribe(join_code, user_id, socket)
-
-    players = Games.get_players(join_code)
-    push(socket, "players_updated", %{players: players})
+    game = Games.get(join_code)
 
     presence = Games.list_presence(join_code)
     push(socket, "presence_state", presence)
 
     is_creator = Games.creator(join_code).id == user_id
 
-    {:noreply, assign(socket, is_creator: is_creator, players: players)}
+    case game.current_stage do
+      :lobby ->
+        push(socket, "players_updated", %{players: game.players})
+
+      :play ->
+        state = %{
+          current_player: game.current_player.id,
+          discard_top: List.first(game.discard_pile),
+          hand: game.hands[user_id],
+          hand_counts: Game.hand_counts(game),
+          levels: Games.format_levels(game.levels),
+          players: game.players
+        }
+
+        push(socket, "latest_state", state)
+
+      other ->
+        # TODO: Implement after-join for finish and score states
+        Logger.warn("After-join hasn't been implemented for stage #{other}")
+    end
+
+    {:noreply, assign(socket, is_creator: is_creator, players: game.players)}
   end
 
   def handle_info({:game_started, _}, socket) do
@@ -106,6 +126,16 @@ defmodule Level10Web.GameChannel do
     }
 
     push(socket, "game_started", state)
+    {:noreply, socket}
+  end
+
+  def handle_info({:hand_counts_updated, hand_counts}, socket) do
+    push(socket, "hand_counts_updated", %{hand_counts: hand_counts})
+    {:noreply, socket}
+  end
+
+  def handle_info({:new_discard_top, card}, socket) do
+    push(socket, "new_discard_top", %{discard_top: card})
     {:noreply, socket}
   end
 
