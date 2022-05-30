@@ -24,6 +24,7 @@ defmodule Level10.Games.Card do
   @single_digit ~W[one two three four five six seven eight nine]a
   @double_digit ~W[ten eleven twelve]a
 
+  @derive Jason.Encoder
   defstruct [:color, :value]
 
   @doc """

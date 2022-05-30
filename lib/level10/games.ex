@@ -193,6 +193,33 @@ defmodule Level10.Games do
   end
 
   @doc """
+  Get the requirements for each player's level using a map with their user ID
+  as the key and their level number as the value.
+
+  ## Examples
+
+      iex> format_levels(%{
+      ...>   "04ba446e-0b2a-49f2-8dbf-7d9742548842" => 3,
+      ...>   "86800484-8e73-4408-bd15-98a57871694f" => 4
+      ...> })
+      %{
+        "04ba446e-0b2a-49f2-8dbf-7d9742548842" => [set: 4, run: 4],
+        "86800484-8e73-4408-bd15-98a57871694f" => [run: 7]
+      }
+  """
+  @spec format_levels(map()) :: %{optional(Player.t()) => Levels.level()}
+  def format_levels(levels) do
+    for {player_id, level_number} <- levels, into: %{} do
+      groups =
+        for {type, count} <- Levels.by_number(level_number) do
+          %{type: type, count: count}
+        end
+
+      {player_id, groups}
+    end
+  end
+
+  @doc """
   Returns the game with the specified join code.
 
   ## Examples

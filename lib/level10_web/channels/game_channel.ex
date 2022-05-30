@@ -65,6 +65,19 @@ defmodule Level10Web.GameChannel do
     end
   end
 
+  def handle_in("start_game", _params, socket) do
+    %{is_creator: is_creator, join_code: join_code} = socket.assigns
+
+    if is_creator do
+      Logger.info("Starting game #{join_code}")
+      Games.start_game(join_code)
+    else
+      Logger.warn("Non-creator tried to start game #{join_code}")
+    end
+
+    {:noreply, socket}
+  end
+
   def handle_info(:after_join, socket) do
     %{join_code: join_code, user_id: user_id} = socket.assigns
     Games.subscribe(join_code, user_id, socket)
@@ -75,7 +88,25 @@ defmodule Level10Web.GameChannel do
     presence = Games.list_presence(join_code)
     push(socket, "presence_state", presence)
 
-    {:noreply, assign(socket, :players, players)}
+    is_creator = Games.creator(join_code).id == user_id
+
+    {:noreply, assign(socket, is_creator: is_creator, players: players)}
+  end
+
+  def handle_info({:game_started, _}, socket) do
+    %{join_code: join_code, user_id: user_id} = socket.assigns
+    game = Games.get(join_code)
+
+    state = %{
+      current_player: game.current_player.id,
+      discard_top: List.first(game.discard_pile),
+      hand: game.hands[user_id],
+      levels: Games.format_levels(game.levels),
+      players: game.players
+    }
+
+    push(socket, "game_started", state)
+    {:noreply, socket}
   end
 
   def handle_info({:players_updated, players}, socket) do
