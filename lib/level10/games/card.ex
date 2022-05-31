@@ -28,6 +28,21 @@ defmodule Level10.Games.Card do
   defstruct [:color, :value]
 
   @doc """
+  Returns the color atom for the specified string.
+
+  ## Examples
+
+      iex> color_from_string("red")
+      :red
+  """
+  @spec color_from_string(String.t()) :: color()
+  def color_from_string("black"), do: :black
+  def color_from_string("blue"), do: :blue
+  def color_from_string("green"), do: :green
+  def color_from_string("red"), do: :red
+  def color_from_string("yellow"), do: :yellow
+
+  @doc """
   Compare one card to another. This function should typically only be called by
   a sorting function.
 
@@ -75,6 +90,25 @@ defmodule Level10.Games.Card do
   def from_number(10), do: :ten
   def from_number(11), do: :eleven
   def from_number(12), do: :twelve
+
+  @doc """
+  Return a Card struct from a map containing color and value keys.
+
+  Returns nil if either of the fields isn't set to a valid value.
+
+  ## Examples
+
+      iex> from_json(%{"color" => "green", "value" => "three"})
+      %Card{color: :green, value: :three}
+  """
+  @spec from_json(map()) :: t() | nil
+  def from_json(%{"color" => color, "value" => value}) do
+    if is_nil(color) || is_nil(value) do
+      nil
+    else
+      %__MODULE__{color: color_from_string(color), value: value_from_string(value)}
+    end
+  end
 
   @doc """
   Convenience function for creating a new Wild or Skip card struct
@@ -294,6 +328,33 @@ defmodule Level10.Games.Card do
     value = value_string(value)
     "#{color} #{value}"
   end
+
+  @doc """
+  Returns the value atom for the string provided.
+
+  ## Examples
+
+      iex> value_from_string("wild")
+      :wild
+
+      iex> value_from_string("three")
+      :three
+  """
+  @spec value_from_string(String.t()) :: value()
+  def value_from_string("wild"), do: :wild
+  def value_from_string("one"), do: :one
+  def value_from_string("two"), do: :two
+  def value_from_string("three"), do: :three
+  def value_from_string("four"), do: :four
+  def value_from_string("five"), do: :five
+  def value_from_string("six"), do: :six
+  def value_from_string("seven"), do: :seven
+  def value_from_string("eight"), do: :eight
+  def value_from_string("nine"), do: :nine
+  def value_from_string("ten"), do: :ten
+  def value_from_string("eleven"), do: :eleven
+  def value_from_string("twelve"), do: :twelve
+  def value_from_string("skip"), do: :skip
 
   # Private
 

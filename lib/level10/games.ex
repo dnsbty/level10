@@ -584,15 +584,19 @@ defmodule Level10.Games do
   @doc """
   Susbscribe a process to updates for the specified game.
   """
-  @spec subscribe(String.t(), Player.id(), Phoenix.Socket.t() | nil) :: :ok | {:error, term()}
-  def subscribe(game_code, player_id, socket \\ nil) do
+  @spec subscribe(Phoenix.Socket.t() | String.t(), Player.id()) :: :ok | {:error, term()}
+  def subscribe(game_code, player_id) when is_binary(game_code) do
     topic = "game:" <> game_code
 
     with :ok <- Phoenix.PubSub.subscribe(Level10.PubSub, topic),
-         {:ok, _} <- Presence.track_player(socket || game_code, player_id) do
+         {:ok, _} <- Presence.track_player(game_code, player_id) do
       # if player_id != :display, do: Presence.track_user(player_id, game_code)
       :ok
     end
+  end
+
+  def subscribe(socket, player_id) do
+    with {:ok, _} <- Presence.track_player(socket, player_id), do: :ok
   end
 
   @doc """
