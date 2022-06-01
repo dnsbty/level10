@@ -321,9 +321,12 @@ defmodule Level10.Games.GameServer do
   # Called when a SIGTERM is received to begin the handoff process for moving
   # game state to other nodes
   def terminate(_reason, game = %{join_code: join_code}) do
-    IO.puts("Terminating game #{join_code}")
+    Logger.debug(fn -> "Terminating game #{join_code}" end)
     StateHandoff.handoff(join_code, game)
-    Process.sleep(10)
+
+    # Sleep to make sure the state handoff CRDT has time to sync before
+    # shutting down
+    Process.sleep(500)
     :ok
   end
 

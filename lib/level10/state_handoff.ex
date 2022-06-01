@@ -56,7 +56,7 @@ defmodule Level10.StateHandoff do
 
   @doc false
   def init(_) do
-    opts = [name: Crdt, sync_interval: 3]
+    opts = [name: Crdt, sync_interval: 300]
     DeltaCrdt.start_link(DeltaCrdt.AWLWWMap, opts)
 
     # Register to receive messages when nodes enter and leave the cluster
