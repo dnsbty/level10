@@ -43,6 +43,22 @@ defmodule Level10Web.GameChannel do
 
   # Handle incoming messages from the websocket
 
+  def handle_in("add_to_table", params, socket) do
+    %{join_code: join_code, user_id: user_id} = socket.assigns
+
+    with %{"cards" => cards, "player_id" => table_id, "position" => position} <- params,
+         cards <- Enum.map(cards, &Card.from_json/1),
+         :ok <- Games.add_to_table(join_code, user_id, table_id, position, cards) do
+      {:reply, :ok, socket}
+    else
+      :invalid_group -> {:reply, {:error, :invalid_group}, socket}
+      :level_incomplete -> {:reply, {:error, :level_incomplete}, socket}
+      :needs_to_draw -> {:reply, {:error, :needs_to_draw}, socket}
+      :not_your_turn -> {:reply, {:error, :not_your_turn}, socket}
+      _ -> {:reply, {:error, :bad_request}, socket}
+    end
+  end
+
   def handle_in("create_game", params, socket) do
     user = %{id: socket.assigns.user_id, name: Map.get(params, "displayName", "")}
     settings = %Settings{skip_next_player: Map.get(params, "skipNextPlayer", false)}
@@ -56,13 +72,13 @@ defmodule Level10Web.GameChannel do
     end
   end
 
-  def handle_in("discard", %{"card" => card}, socket) do
+  def handle_in("discard", params = %{"card" => card}, socket) do
     %{join_code: join_code, user_id: user_id} = socket.assigns
 
     with %Card{} = card <- Card.from_json(card),
-         :ok <- Games.discard_card(join_code, user_id, card) do
+         :ok <- discard(card, socket.assigns, params) do
       hand = Games.get_hand_for_player(join_code, user_id)
-      {:reply, {:ok, %{hand: Card.sort(hand)}}, socket}
+      {:reply, {:ok, %{hand: hand}}, socket}
     else
       nil ->
         {:reply, {:error, :no_card}, socket}
@@ -117,6 +133,21 @@ defmodule Level10Web.GameChannel do
     {:noreply, socket}
   end
 
+  def handle_in("table_cards", %{"table" => table}, socket) do
+    %{join_code: join_code, user_id: user_id} = socket.assigns
+
+    table =
+      table
+      |> Enum.with_index(fn group, index -> {index, Enum.map(group, &Card.from_json/1)} end)
+      |> Enum.into(%{})
+
+    case Games.table_cards(join_code, user_id, table) do
+      :ok -> {:reply, :ok, socket}
+      :invalid_level -> {:reply, {:error, :invalid_level}, socket}
+      _ -> {:reply, {:error, :bad_request}, socket}
+    end
+  end
+
   # Handle incoming messages from PubSub and other things
 
   def handle_info(:after_join, socket) do
@@ -128,6 +159,7 @@ defmodule Level10Web.GameChannel do
     push(socket, "presence_state", presence)
 
     is_creator = Games.creator(join_code).id == user_id
+    skip_next_player = game.settings.skip_next_player || MapSet.size(game.remaining_players) < 3
 
     case game.current_stage do
       :lobby ->
@@ -140,11 +172,13 @@ defmodule Level10Web.GameChannel do
         state = %{
           current_player: current_player_id,
           discard_top: List.first(game.discard_pile),
-          hand: Card.sort(game.hands[user_id]),
+          hand: game.hands[user_id],
           hand_counts: Game.hand_counts(game),
           has_drawn: has_drawn,
           levels: Games.format_levels(game.levels),
-          players: game.players
+          players: game.players,
+          skip_next_player: skip_next_player,
+          table: Games.format_table(game.table)
         }
 
         push(socket, "latest_state", state)
@@ -153,8 +187,8 @@ defmodule Level10Web.GameChannel do
         Logger.warn("After-join hasn't been implemented for stage #{other}")
     end
 
-    socket = assign(socket, is_creator: is_creator, players: game.players)
-    {:noreply, socket}
+    assigns = %{is_creator: is_creator, players: game.players, skip_next_player: skip_next_player}
+    {:noreply, assign(socket, assigns)}
   end
 
   def handle_info({:game_finished, winner}, socket) do
@@ -169,7 +203,7 @@ defmodule Level10Web.GameChannel do
     state = %{
       current_player: game.current_player.id,
       discard_top: List.first(game.discard_pile),
-      hand: Card.sort(game.hands[user_id]),
+      hand: game.hands[user_id],
       levels: Games.format_levels(game.levels),
       players: game.players
     }
@@ -209,7 +243,7 @@ defmodule Level10Web.GameChannel do
   end
 
   def handle_info({:table_updated, table}, socket) do
-    push(socket, "table_updated", %{table: table})
+    push(socket, "table_updated", %{table: Games.format_table(table)})
     {:noreply, socket}
   end
 
@@ -223,4 +257,36 @@ defmodule Level10Web.GameChannel do
   @spec atomic_source(String.t()) :: :draw_pile | :discard_pile
   defp atomic_source("draw_pile"), do: :draw_pile
   defp atomic_source("discard_pile"), do: :discard_pile
+
+  @spec discard(Card.t(), map(), map()) ::
+          :ok
+          | {:already_skipped, Player.t()}
+          | :choose_skip_target
+          | :not_your_turn
+          | :needs_to_draw
+  defp discard(%{value: :skip}, assigns, params) do
+    %{join_code: join_code, skip_next_player: skip_next, user_id: user_id} = assigns
+
+    cond do
+      skip_next ->
+        next_player = Games.get_next_player(join_code, user_id)
+        Games.skip_player(join_code, user_id, next_player.id)
+
+      params["player_id"] == nil ->
+        :choose_skip_target
+
+      params["player_id"] in Games.get_skipped_players(join_code) ->
+        players = Games.get_players(join_code)
+        player = Enum.find(players, &(&1.id == params["player_id"]))
+        {:already_skipped, player}
+
+      true ->
+        Games.skip_player(join_code, user_id, params["player_id"])
+    end
+  end
+
+  defp discard(card, assigns, _) do
+    %{join_code: join_code, user_id: user_id} = assigns
+    Games.discard_card(join_code, user_id, card)
+  end
 end

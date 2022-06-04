@@ -220,6 +220,48 @@ defmodule Level10.Games do
   end
 
   @doc """
+  Formats the table as a map of arrays instead of a map of maps.
+
+  ## Examples
+
+      iex> format_table(%{
+      ...>   "04ba446e-0b2a-49f2-8dbf-7d9742548842" => %{
+      ...>     0 => [
+      ...>       %Card{color: :red, value: :one},
+      ...>       %Card{color: :green, value: :one},
+      ...>       %Card{color: :blue, value: :one},
+      ...>     ],
+      ...>     2 => [
+      ...>       %Card{color: :black, value: :wild},
+      ...>       %Card{color: :yellow, value: :three},
+      ...>       %Card{color: :green, value: :three},
+      ...>     ]
+      ...>   }
+      ...> })
+      %{
+        "04ba446e-0b2a-49f2-8dbf-7d9742548842" => [
+          [
+            %Card{color: :red, value: :one},
+            %Card{color: :green, value: :one},
+            %Card{color: :blue, value: :one},
+          ],
+          [
+            %Card{color: :black, value: :wild},
+            %Card{color: :yellow, value: :three},
+            %Card{color: :green, value: :three},
+          ]
+        ]
+      }
+  """
+  @spec format_table(map()) :: map()
+  def format_table(table) do
+    for {player_id, table_groups} <- table, into: %{} do
+      groups = for {_, cards} <- table_groups, do: cards
+      {player_id, groups}
+    end
+  end
+
+  @doc """
   Returns the game with the specified join code.
 
   ## Examples
@@ -603,7 +645,7 @@ defmodule Level10.Games do
   Set the given player's table to the given cards.
   """
   @spec table_cards(Game.join_code(), Player.id(), Game.player_table(), timeout()) ::
-          :ok | :already_set | :needs_to_draw | :not_your_turn
+          :ok | :already_set | :invalid_level | :needs_to_draw | :not_your_turn
   def table_cards(join_code, player_id, player_table, timeout \\ 5000) do
     GenServer.call(via(join_code), {:table_cards, {player_id, player_table}}, timeout)
   end
