@@ -220,6 +220,27 @@ defmodule Level10.Games do
   end
 
   @doc """
+  Formats the scores as a list of maps instead of a map of tuples.
+
+  ## Examples
+
+      iex> format_scores(%{
+      ...>   "1f98ecfe-eccf-42d5-b0fe-7023aba16357" => {2, 0},
+      ...>   "3621105e-51a1-4f8c-af51-1a97e2d5648d" => {2, 10}
+      ...> })
+      [
+        %{player_id: "1f98ecfe-eccf-42d5-b0fe-7023aba16357", level: 2, points: 0},
+        %{player_id: "3621105e-51a1-4f8c-af51-1a97e2d5648d", level: 2, points: 10}
+      ]
+  """
+  @spec format_scores(Game.scoring()) :: map()
+  def format_scores(scoring) do
+    for {player_id, {level, points}} <- scoring do
+      %{player_id: player_id, level: level, points: points}
+    end
+  end
+
+  @doc """
   Formats the table as a map of arrays instead of a map of maps.
 
   ## Examples
@@ -525,8 +546,7 @@ defmodule Level10.Games do
   """
   @spec mark_player_ready(Game.join_code(), Player.id()) :: :ok
   def mark_player_ready(join_code, player_id) do
-    result = GenServer.cast(via(join_code), {:player_ready, player_id})
-    with :game_over <- result, do: delete_game(join_code)
+    GenServer.cast(via(join_code), {:player_ready, player_id})
   end
 
   @doc """

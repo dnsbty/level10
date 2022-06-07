@@ -299,9 +299,15 @@ defmodule Level10.Games.Card do
 
   def sort_for_group(:set, cards) do
     {wild_count, cards} = pop_wilds(cards)
-    [%{value: value} | _] = cards
-    wilds = List.duplicate(new(value, :black), wild_count)
-    wilds ++ cards
+
+    case cards do
+      [] ->
+        List.duplicate(new(:wild, :black), wild_count)
+
+      [%{value: value} | _] ->
+        wilds = List.duplicate(new(value, :black), wild_count)
+        wilds ++ cards
+    end
   end
 
   @doc """

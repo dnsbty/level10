@@ -257,6 +257,17 @@ defmodule Level10.Games.Game do
   end
 
   @doc """
+  Get a player from a game using their ID.
+
+  ## Examples
+
+      iex> get_player(%Game{}, "ce1bdc3c-7e65-472c-9ccf-f926e3403450")
+      %Player{id: "ce1bdc3c-7e65-472c-9ccf-f926e3403450", name: "Dennis"}
+  """
+  @spec get_player(t(), Player.id()) :: Player.t()
+  def get_player(game, player_id), do: Enum.find(game, &(&1.id == player_id))
+
+  @doc """
   Get the number of cards in each player's hand.
 
   ## Examples
@@ -335,9 +346,6 @@ defmodule Level10.Games.Game do
     next_player(game.players, index, total_players, game.remaining_players)
   end
 
-  @spec get_player(t(), Player.id()) :: Player.t()
-  def get_player(game, player_id), do: Enum.find(game, &(&1.id == player_id))
-
   @doc """
   Checks whether or not a given player ID belongs to a player listed in the
   given game
@@ -388,6 +396,13 @@ defmodule Level10.Games.Game do
     settings = Settings.set(game.settings, setting_name, value)
     %{game | settings: settings}
   end
+
+  @doc """
+  Get the number of players remaining in the game.
+  """
+  @spec remaining_player_count(t()) :: pos_integer()
+  def remaining_player_count(game = %{remaining_players: nil}), do: length(game.players)
+  def remaining_player_count(%{remaining_players: remaining}), do: MapSet.size(remaining)
 
   @doc """
   Remove a player from a game that has started.

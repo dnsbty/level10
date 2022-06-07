@@ -12,7 +12,9 @@ defmodule Level10Web.GameChannel do
   end
 
   def join("game:" <> join_code, params, socket) do
-    case Games.connect(join_code, socket.assigns.user_id) do
+    user_id = socket.assigns.user_id
+
+    case Games.connect(join_code, user_id) do
       :ok ->
         send(self(), :after_join)
         {:ok, assign(socket, :join_code, join_code)}
@@ -21,7 +23,7 @@ defmodule Level10Web.GameChannel do
         {:error, %{reason: "Game not found"}}
 
       :player_not_found ->
-        user = %{id: socket.assigns.user_id, name: Map.get(params, "displayName", "")}
+        user = %{id: user_id, name: Map.get(params, "displayName", "")}
 
         case Games.join_game(join_code, user) do
           :ok ->
@@ -120,6 +122,13 @@ defmodule Level10Web.GameChannel do
     end
   end
 
+  def handle_in("mark_ready", _params, socket) do
+    %{join_code: join_code, user_id: user_id} = socket.assigns
+    IO.puts("Marking player ready: #{user_id}")
+    Games.mark_player_ready(join_code, user_id)
+    {:noreply, socket}
+  end
+
   def handle_in("start_game", _params, socket) do
     %{is_creator: is_creator, join_code: join_code} = socket.assigns
 
@@ -159,7 +168,8 @@ defmodule Level10Web.GameChannel do
     push(socket, "presence_state", presence)
 
     is_creator = Games.creator(join_code).id == user_id
-    skip_next_player = game.settings.skip_next_player || MapSet.size(game.remaining_players) < 3
+
+    skip_next_player = game.settings.skip_next_player || Game.remaining_player_count(game) < 3
 
     case game.current_stage do
       :lobby ->
@@ -172,11 +182,60 @@ defmodule Level10Web.GameChannel do
         state = %{
           current_player: current_player_id,
           discard_top: List.first(game.discard_pile),
+          game_over: false,
           hand: game.hands[user_id],
           hand_counts: Game.hand_counts(game),
           has_drawn: has_drawn,
           levels: Games.format_levels(game.levels),
           players: game.players,
+          round_number: game.current_round,
+          scores: Games.format_scores(game.scoring),
+          skip_next_player: skip_next_player,
+          table: Games.format_table(game.table)
+        }
+
+        push(socket, "latest_state", state)
+
+      :score ->
+        {winner_id, _} = Enum.find(game.hands, fn {_, hand} -> hand == [] end)
+        winner = Enum.find(game.players, &(&1.id == winner_id))
+
+        state = %{
+          current_player: game.current_player.id,
+          discard_top: List.first(game.discard_pile),
+          game_over: false,
+          hand: game.hands[user_id],
+          hand_counts: Game.hand_counts(game),
+          has_drawn: false,
+          levels: Games.format_levels(game.levels),
+          players: game.players,
+          players_ready: game.players_ready,
+          round_number: game.current_round,
+          round_winner: winner,
+          scores: Games.format_scores(game.scoring),
+          skip_next_player: skip_next_player,
+          table: Games.format_table(game.table)
+        }
+
+        push(socket, "latest_state", state)
+
+      :finish ->
+        {winner_id, _} = Enum.find(game.hands, fn {_, hand} -> hand == [] end)
+        winner = Enum.find(game.players, &(&1.id == winner_id))
+
+        state = %{
+          current_player: game.current_player.id,
+          discard_top: List.first(game.discard_pile),
+          game_over: true,
+          hand: game.hands[user_id],
+          hand_counts: Game.hand_counts(game),
+          has_drawn: false,
+          levels: Games.format_levels(game.levels),
+          players: game.players,
+          players_ready: game.players_ready,
+          round_number: game.current_round,
+          round_winner: winner,
+          scores: Games.format_scores(game.scoring),
           skip_next_player: skip_next_player,
           table: Games.format_table(game.table)
         }
@@ -192,7 +251,9 @@ defmodule Level10Web.GameChannel do
   end
 
   def handle_info({:game_finished, winner}, socket) do
-    push(socket, "game_finished", %{round_winner: winner})
+    game = Games.get(socket.assigns.join_code)
+    scores = Games.format_scores(game.scoring)
+    push(socket, "game_finished", %{round_winner: winner, scores: scores})
     {:noreply, socket}
   end
 
@@ -227,14 +288,42 @@ defmodule Level10Web.GameChannel do
     {:noreply, socket}
   end
 
+  def handle_info({:players_ready, players_ready}, socket) do
+    push(socket, "players_ready", %{players: players_ready})
+    {:noreply, socket}
+  end
+
   def handle_info({:players_updated, players}, socket) do
     push(socket, "players_updated", %{players: players})
     {:noreply, socket}
   end
 
   def handle_info({:round_finished, winner}, socket) do
-    push(socket, "round_finished", %{winner: winner})
+    game = Games.get(socket.assigns.join_code)
+    scores = Games.format_scores(game.scoring)
+    push(socket, "round_finished", %{scores: scores, winner: winner})
     {:noreply, socket}
+  end
+
+  def handle_info({:round_started, _}, socket) do
+    %{join_code: join_code, user_id: user_id} = socket.assigns
+    game = Games.get(join_code)
+    skip_next_player = game.settings.skip_next_player || MapSet.size(game.remaining_players) < 3
+
+    state = %{
+      current_player: game.current_player.id,
+      discard_top: List.first(game.discard_pile),
+      hand: game.hands[user_id],
+      hand_counts: Game.hand_counts(game),
+      levels: Games.format_levels(game.levels),
+      round_number: game.current_round,
+      skip_next_player: skip_next_player
+    }
+
+    push(socket, "round_started", state)
+
+    assigns = %{skip_next_player: skip_next_player}
+    {:noreply, assign(socket, assigns)}
   end
 
   def handle_info({:skipped_players_updated, skipped_players}, socket) do

@@ -238,15 +238,18 @@ defmodule Level10.Games.GameServer do
 
   @impl true
   def handle_cast({:player_ready, player_id}, game) do
-    with {:all_ready, game} <- Game.mark_player_ready(game, player_id),
+    {status, game} = Game.mark_player_ready(game, player_id)
+
+    with :all_ready <- status,
          {:ok, game} <- Game.start_round(game) do
       broadcast(game.join_code, :round_started, nil)
       {:noreply, game}
     else
       :game_over ->
-        {:noreply, game}
+        broadcast(game.join_code, :players_ready, game.players_ready)
+        {:stop, :normal, game}
 
-      {:ok, game} ->
+      :ok ->
         broadcast(game.join_code, :players_ready, game.players_ready)
         {:noreply, game}
     end
