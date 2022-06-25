@@ -27,11 +27,6 @@ jobs:
           path: _build
           key: ${{ runner.os }}-build-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
-      - name: Install deps
-        run: |
-          mix deps.get
-          (cd assets && yarn)
-
       - name: Check formatting
         run: mix format --check-formatted
 
