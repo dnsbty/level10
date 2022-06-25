@@ -124,7 +124,6 @@ defmodule Level10Web.GameChannel do
 
   def handle_in("mark_ready", _params, socket) do
     %{join_code: join_code, user_id: user_id} = socket.assigns
-    IO.puts("Marking player ready: #{user_id}")
     Games.mark_player_ready(join_code, user_id)
     {:noreply, socket}
   end
@@ -151,9 +150,15 @@ defmodule Level10Web.GameChannel do
       |> Enum.into(%{})
 
     case Games.table_cards(join_code, user_id, table) do
-      :ok -> {:reply, :ok, socket}
-      :invalid_level -> {:reply, {:error, :invalid_level}, socket}
-      _ -> {:reply, {:error, :bad_request}, socket}
+      :ok ->
+        {:reply, :ok, socket}
+
+      :invalid_level ->
+        {:reply, {:error, :invalid_level}, socket}
+
+      error ->
+        Logger.error("Error tabling cards: #{error}")
+        {:reply, {:error, :bad_request}, socket}
     end
   end
 

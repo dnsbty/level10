@@ -1,5 +1,6 @@
 defmodule Level10Web.UserSocket do
   use Phoenix.Socket
+  require Logger
 
   ## Channels
   channel "game:*", Level10Web.GameChannel
@@ -19,10 +20,11 @@ defmodule Level10Web.UserSocket do
   def connect(%{"token" => token}, socket, _connect_info) do
     case Phoenix.Token.verify(socket, "user auth", token) do
       {:ok, user_id} ->
+        Logger.debug(fn -> ["Socket connected for user ", user_id] end)
         socket = assign(socket, :user_id, user_id)
         {:ok, socket}
 
-      {:error, _} ->
+      {:error, _error} ->
         :error
     end
   end
