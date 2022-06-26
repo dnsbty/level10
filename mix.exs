@@ -55,6 +55,7 @@ defmodule Level10.MixProject do
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 0.17.0"},
       {:phoenix_pubsub, "~> 2.0"},
+      {:pigeon, "~> 2.0.0-rc.0"},
       {:plug_cowboy, "~> 2.5"},
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
       {:telemetry, "~> 1.0", override: true},

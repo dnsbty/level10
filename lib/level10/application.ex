@@ -21,6 +21,7 @@ defmodule Level10.Application do
       Level10.Presence,
       Level10.Telemetry,
       Level10.TerminationMonitor,
+      Level10.PushNotifications,
       Level10Web.Endpoint
     ]
 
