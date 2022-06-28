@@ -44,12 +44,14 @@ defmodule Level10.PushNotifications do
   end
 
   @doc """
-  Send a push notification.
+  Send a push notification in a separate process to avoid blocking.
   """
   @spec push(String.t(), String.t(), String.t() | nil) :: no_return()
   def push(device_token, message, collapse_id \\ nil) do
-    device_token
-    |> APNS.create(message, collapse_id)
-    |> APNS.push()
+    spawn(fn ->
+      device_token
+      |> APNS.create(message, collapse_id)
+      |> APNS.push()
+    end)
   end
 end
