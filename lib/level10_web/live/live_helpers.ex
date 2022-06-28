@@ -5,17 +5,18 @@ defmodule Level10Web.LiveHelpers do
   """
 
   import Phoenix.LiveView, only: [assign: 2]
+  alias Level10.Games.Player
 
   @doc """
   Gets the user identifier from the session.
   """
-  def fetch_user(socket, session) do
-    user = %{
+  def fetch_player(socket, session) do
+    player = %Player{
       id: session["user_id"] || uuid(),
       name: session["user_name"]
     }
 
-    assign(socket, user: user)
+    assign(socket, player: player)
   end
 
   @spec uuid :: <<_::288>>

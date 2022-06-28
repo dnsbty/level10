@@ -11,10 +11,10 @@ defmodule Level10Web.ScoringLive do
   alias Level10Web.ScoringView
 
   def mount(params, session, socket) do
-    socket = fetch_user(socket, session)
+    socket = fetch_player(socket, session)
 
     with %{redirected: nil} <- socket,
-         player_id = socket.assigns.user.id,
+         player_id = socket.assigns.player.id,
          %{"join_code" => join_code} <- params,
          %Game{} = game <- Games.get(join_code),
          stage when stage in [:finish, :score] <- game.current_stage,

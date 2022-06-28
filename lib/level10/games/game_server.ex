@@ -12,8 +12,12 @@ defmodule Level10.Games.GameServer do
   """
 
   use GenServer
+  alias Level10.Games.Card
+  alias Level10.Games.Game
+  alias Level10.Games.Player
+  alias Level10.Presence
+  alias Level10.PushNotifications
   alias Level10.StateHandoff
-  alias Level10.Games.{Card, Game, Player}
   require Logger
 
   @typedoc "Return values of `start*` functions"
@@ -88,6 +92,7 @@ defmodule Level10.Games.GameServer do
       else
         broadcast(game.join_code, :skipped_players_updated, game.skipped_players)
         broadcast(game.join_code, :new_turn, game.current_player)
+        notify_new_turn(game)
         {:reply, :ok, game}
       end
     else
@@ -197,6 +202,7 @@ defmodule Level10.Games.GameServer do
         {:reply, :ok, maybe_complete_round(game, player_id)}
       else
         broadcast(game.join_code, :new_turn, game.current_player)
+        notify_new_turn(game)
         {:reply, :ok, game}
       end
     else
@@ -357,6 +363,7 @@ defmodule Level10.Games.GameServer do
     with true <- Game.round_finished?(game, player_id),
          %{current_stage: :finish} = game <- Game.complete_round(game) do
       broadcast_game_complete(game, player_id)
+      notify_game_over(game)
       game
     else
       false ->
@@ -364,7 +371,44 @@ defmodule Level10.Games.GameServer do
 
       game ->
         broadcast_round_complete(game, player_id)
+        notify_round_finished(game)
         game
+    end
+  end
+
+  @spec notify_game_over(Game.t()) :: no_return
+  defp notify_game_over(game) do
+    %{players: players, join_code: join_code} = game
+    players_to_notify = Enum.reject(players, &is_nil(&1.device_token))
+
+    for %{device_token: device_token, id: player_id} <- players_to_notify do
+      if !Presence.player_connected?(join_code, player_id) do
+        message = "The game is over. Check out the final scores!"
+        PushNotifications.push(device_token, message, join_code)
+      end
+    end
+  end
+
+  @spec notify_new_turn(Game.t()) :: no_return
+  defp notify_new_turn(game) do
+    %{current_player: current_player, join_code: join_code} = game
+
+    with false <- Presence.player_connected?(join_code, current_player.id),
+         device_token when not is_nil(device_token) <- current_player.device_token do
+      PushNotifications.push(device_token, "It's your turn!", join_code)
+    end
+  end
+
+  @spec notify_round_finished(Game.t()) :: no_return
+  defp notify_round_finished(game) do
+    %{players: players, join_code: join_code} = game
+    players_to_notify = Enum.reject(players, &is_nil(&1.device_token))
+
+    for %{device_token: device_token, id: player_id} <- players_to_notify do
+      if !Presence.player_connected?(join_code, player_id) do
+        message = "The round is over. Check out the new scores!"
+        PushNotifications.push(device_token, message, join_code)
+      end
     end
   end
 end

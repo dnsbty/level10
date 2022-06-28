@@ -24,6 +24,18 @@ defmodule Level10.Presence do
   def list, do: list(@app_name)
 
   @doc """
+  Returns whether or not the specified user is currently connected to the
+  server.
+  """
+  @spec player_connected?(Game.join_code(), Player.id()) :: boolean
+  def player_connected?(join_code, player_id) do
+    case get_by_key("game:" <> join_code, player_id) do
+      [] -> false
+      _ -> true
+    end
+  end
+
+  @doc """
   Track the presence of a user for use at a global level
   """
   @spec track_user(Player.id(), Game.join_code()) :: :ok | {:error, term()}

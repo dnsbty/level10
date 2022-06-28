@@ -17,11 +17,12 @@ defmodule Level10Web.UserSocket do
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
   @impl true
-  def connect(%{"token" => token}, socket, _connect_info) do
+  def connect(params = %{"token" => token}, socket, _connect_info) do
     case Phoenix.Token.verify(socket, "user auth", token) do
-      {:ok, user_id} ->
-        Logger.debug(fn -> ["Socket connected for user ", user_id] end)
-        socket = assign(socket, :user_id, user_id)
+      {:ok, player_id} ->
+        Logger.debug(fn -> ["Socket connected for player_id ", player_id] end)
+        socket = assign(socket, :player_id, player_id)
+        socket = assign(socket, :device_token, params["device"])
         {:ok, socket}
 
       {:error, _error} ->
@@ -44,5 +45,5 @@ defmodule Level10Web.UserSocket do
   #
   # Returning `nil` makes this socket anonymous.
   @impl true
-  def id(socket), do: "user_socket:#{socket.assigns.user_id}"
+  def id(socket), do: "user_socket:#{socket.assigns.player_id}"
 end

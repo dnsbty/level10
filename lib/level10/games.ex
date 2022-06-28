@@ -9,7 +9,6 @@ defmodule Level10.Games do
   the distributed registry and supervisor, or with Phoenix Presence or PubSub.
   """
 
-  alias Level10.Accounts.User
   alias Level10.Presence
   alias Level10.Games.{Game, GameRegistry, GameServer, GameSupervisor, Levels, Player, Settings}
   require Logger
@@ -74,9 +73,8 @@ defmodule Level10.Games do
   @doc """
   Create a new game with the player named as its creator.
   """
-  @spec create_game(User.t(), Settings.t()) :: {:ok, Game.join_code(), Player.id()} | :error
-  def create_game(user, settings) do
-    player = Player.new(user)
+  @spec create_game(Player.t(), Settings.t()) :: {:ok, Game.join_code(), Player.id()} | :error
+  def create_game(player, settings) do
     do_create_game(player, settings, @max_creation_attempts)
   end
 
@@ -492,23 +490,21 @@ defmodule Level10.Games do
 
   ## Examples
 
-      iex> join_game("ABCD", "Player One")
+      iex> join_game("ABCD", %Player{})
       {:ok, "9bbfeacb-a006-4646-8776-83cca0ad03eb"}
 
-      iex> join_game("ABCD", "Player One")
+      iex> join_game("ABCD", %Player{})
       :already_started
 
-      iex> join_game("ABCD", "Player One")
+      iex> join_game("ABCD", %Player{})
       :full
 
-      iex> join_game("ABCD", "Player One")
+      iex> join_game("ABCD", %Player{})
       :not_found
   """
-  @spec join_game(Game.join_code(), User.t(), timeout()) ::
+  @spec join_game(Game.join_code(), Player.t(), timeout()) ::
           :ok | :already_started | :full | :not_found
-  def join_game(join_code, user, timeout \\ 5000) do
-    player = Player.new(user)
-
+  def join_game(join_code, player, timeout \\ 5000) do
     if exists?(join_code) do
       GenServer.call(via(join_code), {:join, player}, timeout)
     else
