@@ -25,7 +25,6 @@ defmodule Level10Web.GameChannel do
 
       :player_not_found ->
         player = %Player{
-          device_token: socket.assigns[:device_token],
           id: player_id,
           name: Map.get(params, "displayName", "")
         }
@@ -67,10 +66,9 @@ defmodule Level10Web.GameChannel do
   end
 
   def handle_in("create_game", params, socket) do
-    %{device_token: device_token, player_id: player_id} = socket.assigns
+    %{player_id: player_id} = socket.assigns
 
     player = %{
-      device_token: device_token,
       id: player_id,
       name: Map.get(params, "displayName", "")
     }
@@ -140,6 +138,12 @@ defmodule Level10Web.GameChannel do
     {:noreply, socket}
   end
 
+  def handle_in("put_device_token", %{"token" => device_token}, socket) do
+    %{join_code: join_code, player_id: player_id} = socket.assigns
+    Games.put_device_token(join_code, player_id, device_token)
+    {:noreply, socket}
+  end
+
   def handle_in("start_game", _params, socket) do
     %{is_creator: is_creator, join_code: join_code} = socket.assigns
 
@@ -187,6 +191,9 @@ defmodule Level10Web.GameChannel do
     is_creator = Games.creator(join_code).id == player_id
 
     skip_next_player = game.settings.skip_next_player || Game.remaining_player_count(game) < 3
+
+    device_token = socket.assigns[:device_token]
+    if device_token, do: Games.put_device_token(join_code, player_id, device_token)
 
     case game.current_stage do
       :lobby ->
@@ -312,6 +319,13 @@ defmodule Level10Web.GameChannel do
 
   def handle_info({:players_updated, players}, socket) do
     push(socket, "players_updated", %{players: players})
+    {:noreply, socket}
+  end
+
+  def handle_info(:put_device_token, socket) do
+    %{join_code: join_code, player_id: player_id} = socket.assigns
+    device_token = socket.assigns[:device_token]
+    if device_token, do: Games.put_device_token(join_code, player_id, device_token)
     {:noreply, socket}
   end
 

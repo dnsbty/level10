@@ -558,6 +558,14 @@ defmodule Level10.Games do
   def player_exists?(game, player_id, _), do: Game.player_exists?(game, player_id)
 
   @doc """
+  Sets the device token for the specified player.
+  """
+  @spec put_device_token(Game.join_code(), Player.id(), String.t()) :: :ok
+  def put_device_token(join_code, player_id, device_token) do
+    GenServer.cast(via(join_code), {:put_device_token, player_id, device_token})
+  end
+
+  @doc """
   Returns the set of players that remain in the game.
   """
   @spec remaining_players(Game.join_code(), timeout()) :: MapSet.t()

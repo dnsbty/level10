@@ -24,6 +24,7 @@ defmodule Level10.Games.Game do
           current_stage: stage(),
           current_turn: non_neg_integer(),
           current_turn_drawn?: boolean(),
+          device_tokens: %{optional(Player.id()) => String.t()},
           discard_pile: cards(),
           draw_pile: cards(),
           hands: %{optional(Player.id()) => cards()},
@@ -44,6 +45,7 @@ defmodule Level10.Games.Game do
     current_stage
     current_turn
     current_turn_drawn?
+    device_tokens
     discard_pile
     draw_pile
     hands
@@ -181,13 +183,6 @@ defmodule Level10.Games.Game do
     List.last(game.players)
   end
 
-  @spec generate_join_code() :: join_code()
-  def generate_join_code do
-    <<:rand.uniform(1_048_576)::40>>
-    |> Base.encode32()
-    |> binary_part(4, 4)
-  end
-
   @spec delete_player(t(), Player.id()) :: {:ok, t()} | :already_started | :empty_game
   def delete_player(game, player_id)
 
@@ -268,6 +263,21 @@ defmodule Level10.Games.Game do
   def get_player(game, player_id), do: Enum.find(game, &(&1.id == player_id))
 
   @doc """
+  Generate a random 4 character join code.
+
+  ## Examples
+
+      iex> generate_join_code()
+      "ABCD"
+  """
+  @spec generate_join_code() :: join_code()
+  def generate_join_code do
+    <<:rand.uniform(1_048_576)::40>>
+    |> Base.encode32()
+    |> binary_part(4, 4)
+  end
+
+  @doc """
   Get the number of cards in each player's hand.
 
   ## Examples
@@ -312,6 +322,7 @@ defmodule Level10.Games.Game do
       current_stage: :lobby,
       current_turn: 0,
       current_turn_drawn?: false,
+      device_tokens: %{},
       discard_pile: [],
       draw_pile: [],
       hands: %{},
@@ -386,6 +397,31 @@ defmodule Level10.Games.Game do
 
   def put_player(_game, _player) do
     :already_started
+  end
+
+  @doc """
+  Set a device token for the player so they will receive push notifications.
+
+  Removes the player from the device token map if the token is set to `nil`.
+
+  ## Examples
+
+      iex> put_player_device_token(%Game{}, "fea3c658-e7ae-4976-80ee-4e627f5879d4", "7b38d4bf-ca80-45d1-b2e8-96f3bb381c26")
+      %Game{device_tokens: %{"fea3c658-e7ae-4976-80ee-4e627f5879d4" => "7b38d4bf-ca80-45d1-b2e8-96f3bb381c26"}}
+
+      iex> game = %Game{device_tokens: %{"fea3c658-e7ae-4976-80ee-4e627f5879d4" => "7b38d4bf-ca80-45d1-b2e8-96f3bb381c26"}}
+      iex> put_player_device_token(game, "fea3c658-e7ae-4976-80ee-4e627f5879d4", nil)
+      %Game{device_tokens: %{}}
+  """
+  @spec put_player_device_token(t(), Player.id(), String.t() | nil) :: t()
+  def put_player_device_token(game, player_id, nil) do
+    device_tokens = Map.delete(game.device_tokens, player_id)
+    %{game | device_tokens: device_tokens}
+  end
+
+  def put_player_device_token(game, player_id, device_token) do
+    device_tokens = Map.put(game.device_tokens, player_id, device_token)
+    %{game | device_tokens: device_tokens}
   end
 
   @doc """

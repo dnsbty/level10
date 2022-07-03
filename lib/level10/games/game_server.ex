@@ -261,6 +261,11 @@ defmodule Level10.Games.GameServer do
     end
   end
 
+  def handle_cast({:put_device_token, player_id, device_token}, game) do
+    game = Game.put_player_device_token(game, player_id, device_token)
+    {:noreply, game}
+  end
+
   def handle_cast({:remove_player, player_id}, game) do
     game = Game.remove_player(game, player_id)
 
@@ -378,10 +383,9 @@ defmodule Level10.Games.GameServer do
 
   @spec notify_game_over(Game.t()) :: no_return
   defp notify_game_over(game) do
-    %{players: players, join_code: join_code} = game
-    players_to_notify = Enum.reject(players, &is_nil(&1.device_token))
+    %{device_tokens: device_tokens, join_code: join_code} = game
 
-    for %{device_token: device_token, id: player_id} <- players_to_notify do
+    for {player_id, device_token} <- device_tokens do
       if !Presence.player_connected?(join_code, player_id) do
         message = "The game is over. Check out the final scores!"
         PushNotifications.push(device_token, message, join_code)
@@ -401,10 +405,9 @@ defmodule Level10.Games.GameServer do
 
   @spec notify_round_finished(Game.t()) :: no_return
   defp notify_round_finished(game) do
-    %{players: players, join_code: join_code} = game
-    players_to_notify = Enum.reject(players, &is_nil(&1.device_token))
+    %{device_tokens: device_tokens, join_code: join_code} = game
 
-    for %{device_token: device_token, id: player_id} <- players_to_notify do
+    for {player_id, device_token} <- device_tokens do
       if !Presence.player_connected?(join_code, player_id) do
         message = "The round is over. Check out the new scores!"
         PushNotifications.push(device_token, message, join_code)
