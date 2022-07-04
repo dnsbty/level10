@@ -395,10 +395,10 @@ defmodule Level10.Games.GameServer do
 
   @spec notify_new_turn(Game.t()) :: no_return
   defp notify_new_turn(game) do
-    %{current_player: current_player, join_code: join_code} = game
+    %{current_player: current_player, device_tokens: device_tokens, join_code: join_code} = game
 
-    with false <- Presence.player_connected?(join_code, current_player.id),
-         device_token when not is_nil(device_token) <- current_player.device_token do
+    with device_token when not is_nil(device_token) <- device_tokens[current_player.id],
+         false <- Presence.player_connected?(join_code, current_player.id) do
       PushNotifications.push(device_token, "It's your turn!", join_code)
     end
   end

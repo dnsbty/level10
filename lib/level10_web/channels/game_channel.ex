@@ -68,7 +68,7 @@ defmodule Level10Web.GameChannel do
   def handle_in("create_game", params, socket) do
     %{player_id: player_id} = socket.assigns
 
-    player = %{
+    player = %Player{
       id: player_id,
       name: Map.get(params, "displayName", "")
     }
