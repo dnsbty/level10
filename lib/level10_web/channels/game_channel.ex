@@ -98,6 +98,9 @@ defmodule Level10Web.GameChannel do
       {:already_skipped, _player} ->
         {:reply, {:error, :already_skipped}, socket}
 
+      :choose_skip_target ->
+        {:reply, {:error, :choose_skip_target}, socket}
+
       :not_your_turn ->
         {:reply, {:error, :not_your_turn}, socket}
 
@@ -215,6 +218,7 @@ defmodule Level10Web.GameChannel do
           round_number: game.current_round,
           scores: Games.format_scores(game.scoring),
           skip_next_player: skip_next_player,
+          skipped_players: game.skipped_players,
           table: Games.format_table(game.table)
         }
 
@@ -284,17 +288,19 @@ defmodule Level10Web.GameChannel do
   def handle_info({:game_started, _}, socket) do
     %{join_code: join_code, player_id: player_id} = socket.assigns
     game = Games.get(join_code)
+    skip_next_player = game.settings.skip_next_player || MapSet.size(game.remaining_players) < 3
 
     state = %{
       current_player: game.current_player.id,
       discard_top: List.first(game.discard_pile),
       hand: game.hands[player_id],
       levels: Games.format_levels(game.levels),
-      players: game.players
+      players: game.players,
+      skip_next_player: skip_next_player
     }
 
     push(socket, "game_started", state)
-    {:noreply, socket}
+    {:noreply, assign(socket, skip_next_player: skip_next_player)}
   end
 
   def handle_info({:hand_counts_updated, hand_counts}, socket) do
