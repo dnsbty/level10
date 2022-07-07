@@ -122,7 +122,7 @@ defmodule Level10Web.GameChannel do
     end
   end
 
-  def handle_in("leave_game", _params, socket) do
+  def handle_in("leave_lobby", _params, socket) do
     %{join_code: join_code, player_id: player_id} = socket.assigns
 
     case Games.delete_player(join_code, player_id) do
@@ -133,6 +133,13 @@ defmodule Level10Web.GameChannel do
       :already_started ->
         {:reply, {:error, "Game has already started"}, socket}
     end
+  end
+
+  def handle_in("leave_game", _params, socket) do
+    %{join_code: join_code, player_id: player_id} = socket.assigns
+    Games.remove_player(join_code, player_id)
+    Logger.info(["Left game ", join_code])
+    {:stop, :normal, socket}
   end
 
   def handle_in("mark_ready", _params, socket) do
@@ -215,6 +222,7 @@ defmodule Level10Web.GameChannel do
           has_drawn: has_drawn,
           levels: Games.format_levels(game.levels),
           players: game.players,
+          remaining_players: game.remaining_players,
           round_number: game.current_round,
           scores: Games.format_scores(game.scoring),
           skip_next_player: skip_next_player,
@@ -238,6 +246,7 @@ defmodule Level10Web.GameChannel do
           levels: Games.format_levels(game.levels),
           players: game.players,
           players_ready: game.players_ready,
+          remaining_players: game.remaining_players,
           round_number: game.current_round,
           round_winner: winner,
           scores: Games.format_scores(game.scoring),
@@ -261,6 +270,7 @@ defmodule Level10Web.GameChannel do
           levels: Games.format_levels(game.levels),
           players: game.players,
           players_ready: game.players_ready,
+          remaining_players: game.remaining_players,
           round_number: game.current_round,
           round_winner: winner,
           scores: Games.format_scores(game.scoring),
@@ -279,9 +289,11 @@ defmodule Level10Web.GameChannel do
   end
 
   def handle_info({:game_finished, winner}, socket) do
-    game = Games.get(socket.assigns.join_code)
+    %{join_code: join_code, player_id: player_id} = socket.assigns
+    game = Games.get(join_code)
     scores = Games.format_scores(game.scoring)
-    push(socket, "game_finished", %{round_winner: winner, scores: scores})
+    player = Enum.find(game.players, &(&1.id == player_id))
+    push(socket, "game_finished", %{round_winner: winner || player, scores: scores})
     {:noreply, socket}
   end
 
@@ -323,6 +335,11 @@ defmodule Level10Web.GameChannel do
     {:noreply, socket}
   end
 
+  def handle_info({:player_removed, player_id}, socket) do
+    push(socket, "player_removed", %{player: player_id})
+    {:noreply, socket}
+  end
+
   def handle_info({:players_updated, players}, socket) do
     push(socket, "players_updated", %{players: players})
     {:noreply, socket}
@@ -353,6 +370,7 @@ defmodule Level10Web.GameChannel do
       hand: game.hands[player_id],
       hand_counts: Game.hand_counts(game),
       levels: Games.format_levels(game.levels),
+      remaining_players: game.remaining_players,
       round_number: game.current_round,
       skip_next_player: skip_next_player
     }
