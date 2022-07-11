@@ -22,7 +22,7 @@ defmodule Level10Web.Endpoint do
     at: "/",
     from: :level10,
     gzip: false,
-    only: ~w(assets fonts images favicon.ico robots.txt site.webmanifest)
+    only: ~w(assets fonts images .well-known favicon.ico robots.txt site.webmanifest)
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.

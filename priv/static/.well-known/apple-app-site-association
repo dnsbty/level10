@@ -1,0 +1,23 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["QQWWMCLZJZ.games.level10.Level10"],
+        "components": [
+          {
+            "/": "/",
+            "comment": "Home screen"
+          },
+          {
+            "/": "/create/*",
+            "comment": "Create game"
+          },
+          {
+            "/": "/join/*",
+            "comment": "Join game"
+          }
+        ]
+      }
+    ]
+  }
+}
