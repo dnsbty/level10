@@ -22,7 +22,8 @@ var smsLink = (message) => {
 };
 
 window.openSmsInvite = (joinCode) => {
-  var message = `Come play Level 10 with me!\nhttps://level10.games/join/${joinCode}`;
+  const { hostname, protocol } = window.location;
+  var message = `Come play Level 10 with me!\n${protocol}//${hostname}/join/${joinCode}`;
   location.href = smsLink(message);
 };
 
