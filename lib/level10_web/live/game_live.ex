@@ -126,7 +126,7 @@ defmodule Level10Web.GameLive do
         message = "You need to select a card in your hand before you can discard it silly 😄"
         {:noreply, flash_error(socket, message)}
 
-      [%Card{} | _] ->
+      [_ | _] ->
         message = "Nice try, but you can only discard one card at a time 🧐"
         {:noreply, flash_error(socket, message)}
 
