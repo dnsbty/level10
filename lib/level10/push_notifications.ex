@@ -18,7 +18,7 @@ defmodule Level10.PushNotifications do
       %Notification{
         collapse_id: collapse_id,
         device_token: device_token,
-        payload: %{"aps" => %{"alert" => message, "sound" => "default"}},
+        payload: %{"aps" => %{"alert" => message, "sound" => "notify.wav"}},
         priority: 10,
         push_type: "alert",
         topic: topic
