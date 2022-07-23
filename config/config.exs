@@ -47,7 +47,8 @@ config :level10,
     username: "admin",
     password: "password"
   ],
-  app_bundle_identifier: "games.level10.Level10"
+  app_bundle_identifier: "games.level10.Level10",
+  app_min_version: "1.0"
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

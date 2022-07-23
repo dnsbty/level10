@@ -18,20 +18,14 @@ defmodule Level10Web.UserSocket do
   # performing token verification on connect.
   @impl true
   def connect(params = %{"token" => token}, socket, _connect_info) do
-    case Phoenix.Token.verify(socket, "user auth", token) do
-      {:ok, player_id} ->
-        Logger.debug(fn -> ["Socket connected for player_id ", player_id] end)
-        socket = assign(socket, :player_id, player_id)
-        socket = assign(socket, :device_token, params["device"])
-        {:ok, socket}
-
-      {:error, _error} ->
-        :error
+    with {:ok, player_id} <- validate_token(socket, token) do
+      Logger.debug(fn -> ["Socket connected for player_id ", player_id] end)
+      socket = assign(socket, :player_id, player_id)
+      socket = assign(socket, :device_token, params["device"])
+      socket = assign(socket, :app_version, params["appVersion"])
+      socket = assign(socket, :build_number, params["buildNumber"])
+      {:ok, socket}
     end
-  end
-
-  def connect(_params, _socket, _connect_info) do
-    :error
   end
 
   # Socket id's are topics that allow you to identify all sockets for a given user:
@@ -46,4 +40,16 @@ defmodule Level10Web.UserSocket do
   # Returning `nil` makes this socket anonymous.
   @impl true
   def id(socket), do: "user_socket:#{socket.assigns.player_id}"
+
+  # Private
+
+  @spec validate_token(Phoenix.Socket.t(), String.t()) ::
+          {:ok, String.t()} | {:error, :invalid_token | :token_required}
+  defp validate_token(_socket, nil), do: {:error, :token_required}
+
+  defp validate_token(socket, token) do
+    with {:error, _error} <- Phoenix.Token.verify(socket, "user auth", token) do
+      {:error, :invalid_token}
+    end
+  end
 end

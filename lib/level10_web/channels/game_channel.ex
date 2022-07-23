@@ -9,7 +9,9 @@ defmodule Level10Web.GameChannel do
   require Logger
 
   def join("game:lobby", _params, socket) do
-    {:ok, socket}
+    with :ok <- check_app_version(socket.assigns.app_version) do
+      {:ok, socket}
+    end
   end
 
   def join("game:" <> join_code, params, socket) do
@@ -402,6 +404,30 @@ defmodule Level10Web.GameChannel do
   defp atomic_source("draw_pile"), do: :draw_pile
   defp atomic_source("discard_pile"), do: :discard_pile
 
+  @spec check_app_version(String.t()) :: :ok | {:error, :update_required}
+  defp check_app_version(app_version) do
+    min_version = Application.get_env(:level10, :app_min_version)
+
+    case compare_versions(app_version, min_version) do
+      :lt -> {:error, :update_required}
+      _ -> :ok
+    end
+  end
+
+  @spec compare_versions(String.t(), String.t()) :: :eq | :gt | :lt | :invalid
+  defp compare_versions(first, second) do
+    with {first_major, first_minor} <- parse_version(first),
+         {second_major, second_minor} <- parse_version(second) do
+      cond do
+        first_major > second_major -> :gt
+        first_major < second_major -> :lt
+        first_minor > second_minor -> :gt
+        first_minor < second_minor -> :lt
+        true -> :eq
+      end
+    end
+  end
+
   @spec discard(Card.t(), map(), map()) ::
           :ok
           | {:already_skipped, Player.t()}
@@ -432,5 +458,17 @@ defmodule Level10Web.GameChannel do
   defp discard(card, assigns, _) do
     %{join_code: join_code, player_id: player_id} = assigns
     Games.discard_card(join_code, player_id, card)
+  end
+
+  @spec parse_version(String.t()) :: {:ok, {integer, integer}} | :invalid
+  defp parse_version(version) do
+    with true <- is_binary(version),
+         [major, minor] <- String.split(version, "."),
+         {major_int, ""} <- Integer.parse(major),
+         {minor_int, ""} <- Integer.parse(minor) do
+      {major_int, minor_int}
+    else
+      _ -> :invalid
+    end
   end
 end
