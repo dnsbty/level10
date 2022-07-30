@@ -111,6 +111,13 @@ defmodule Seeds do
     Agent.update(join_code, fn _ -> game end)
   end
 
+  def stack_deck(join_code \\ "ABCD", card) do
+    Games.update(join_code, fn game ->
+      deck = game.draw_pile
+      %{game | draw_pile: [card | deck]}
+    end)
+  end
+
   def wild_hands(join_code \\ "ABCD") do
     hand = List.duplicate(Card.new(:wild, :black), 10)
 
