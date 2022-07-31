@@ -1,7 +1,7 @@
 ###
 ### Builder Stage
 ###
-FROM elixir:1.13-alpine AS builder
+FROM elixir:1.13-otp-25-alpine AS builder
 
 RUN apk update --no-cache \
   && apk add --no-cache build-base openssh git
