@@ -22,8 +22,8 @@ defmodule Level10Web.UserSocket do
       Logger.debug(fn -> ["Socket connected for player_id ", player_id] end)
       socket = assign(socket, :player_id, player_id)
       socket = assign(socket, :device_token, params["device"])
-      socket = assign(socket, :app_version, params["appVersion"])
-      socket = assign(socket, :build_number, params["buildNumber"])
+      socket = assign(socket, :app_version, params["app_version"])
+      socket = assign(socket, :build_number, params["build_number"])
       {:ok, socket}
     end
   end

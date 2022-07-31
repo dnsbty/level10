@@ -23,12 +23,12 @@ defmodule Level10Web.GameChannel do
         {:ok, assign(socket, :join_code, join_code)}
 
       :game_not_found ->
-        {:error, %{reason: "Game not found"}}
+        {:error, :not_found}
 
       :player_not_found ->
         player = %Player{
           id: player_id,
-          name: Map.get(params, "displayName", "")
+          name: Map.get(params, "display_name", "")
         }
 
         case Games.join_game(join_code, player) do
@@ -38,13 +38,13 @@ defmodule Level10Web.GameChannel do
             {:ok, assign(socket, :join_code, join_code)}
 
           :already_started ->
-            {:error, %{reason: "Game has already started"}}
+            {:error, :already_started}
 
           :full ->
-            {:error, %{reason: "Game is full"}}
+            {:error, :full}
 
           :not_found ->
-            {:error, "Game not found"}
+            {:error, :not_found}
         end
     end
   end
@@ -72,17 +72,19 @@ defmodule Level10Web.GameChannel do
 
     player = %Player{
       id: player_id,
-      name: Map.get(params, "displayName", "")
+      name: Map.get(params, "display_name", "")
     }
 
-    settings = %Settings{skip_next_player: Map.get(params, "skipNextPlayer", false)}
+    settings = %Settings{
+      skip_next_player: get_in(params, ["settings", "skip_next_player"]) || false
+    }
 
     case Games.create_game(player, settings) do
       {:ok, join_code} ->
         {:reply, {:ok, %{"joinCode" => join_code}}, socket}
 
       :error ->
-        {:reply, {:error, "Failed to create game"}, socket}
+        {:reply, {:error, :server_error}, socket}
     end
   end
 
@@ -133,7 +135,7 @@ defmodule Level10Web.GameChannel do
         {:stop, :normal, socket}
 
       :already_started ->
-        {:reply, {:error, "Game has already started"}, socket}
+        {:reply, {:error, :already_started}, socket}
     end
   end
 
@@ -227,7 +229,9 @@ defmodule Level10Web.GameChannel do
           remaining_players: game.remaining_players,
           round_number: game.current_round,
           scores: Games.format_scores(game.scoring),
-          skip_next_player: skip_next_player,
+          settings: %{
+            skip_next_player: skip_next_player
+          },
           skipped_players: game.skipped_players,
           table: Games.format_table(game.table)
         }
@@ -252,7 +256,9 @@ defmodule Level10Web.GameChannel do
           round_number: game.current_round,
           round_winner: winner,
           scores: Games.format_scores(game.scoring),
-          skip_next_player: skip_next_player,
+          settings: %{
+            skip_next_player: skip_next_player
+          },
           table: Games.format_table(game.table)
         }
 
@@ -276,7 +282,9 @@ defmodule Level10Web.GameChannel do
           round_number: game.current_round,
           round_winner: winner,
           scores: Games.format_scores(game.scoring),
-          skip_next_player: skip_next_player,
+          settings: %{
+            skip_next_player: skip_next_player
+          },
           table: Games.format_table(game.table)
         }
 
@@ -310,7 +318,9 @@ defmodule Level10Web.GameChannel do
       hand: game.hands[player_id],
       levels: Games.format_levels(game.levels),
       players: game.players,
-      skip_next_player: skip_next_player
+      settings: %{
+        skip_next_player: skip_next_player
+      }
     }
 
     push(socket, "game_started", state)
@@ -374,7 +384,9 @@ defmodule Level10Web.GameChannel do
       levels: Games.format_levels(game.levels),
       remaining_players: game.remaining_players,
       round_number: game.current_round,
-      skip_next_player: skip_next_player
+      settings: %{
+        skip_next_player: skip_next_player
+      }
     }
 
     push(socket, "round_started", state)
@@ -442,16 +454,16 @@ defmodule Level10Web.GameChannel do
         next_player = Games.get_next_player(join_code, player_id)
         Games.skip_player(join_code, player_id, next_player.id)
 
-      params["player_id"] == nil ->
+      params["player_to_skip"] == nil ->
         :choose_skip_target
 
-      params["player_id"] in Games.get_skipped_players(join_code) ->
+      params["player_to_skip"] in Games.get_skipped_players(join_code) ->
         players = Games.get_players(join_code)
-        player = Enum.find(players, &(&1.id == params["player_id"]))
+        player = Enum.find(players, &(&1.id == params["player_to_skip"]))
         {:already_skipped, player}
 
       true ->
-        Games.skip_player(join_code, player_id, params["player_id"])
+        Games.skip_player(join_code, player_id, params["player_to_skip"])
     end
   end
 
