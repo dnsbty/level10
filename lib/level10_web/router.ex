@@ -37,6 +37,8 @@ defmodule Level10Web.Router do
   scope "/", Level10Web do
     pipe_through [:browser]
 
+    get "/privacy-policy", PageController, :privacy_policy
+
     live "/display", DisplayLive, :join
     live "/display/:join_code", DisplayLive, :observe
 
