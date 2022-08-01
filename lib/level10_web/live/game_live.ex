@@ -234,6 +234,10 @@ defmodule Level10Web.GameLive do
     {:noreply, assign(socket, has_drawn_card: false, turn: player)}
   end
 
+  def handle_info({:players_ready, _}, socket) do
+    {:noreply, socket}
+  end
+
   def handle_info({:round_finished, winner}, socket) do
     {:noreply, assign(socket, round_winner: winner)}
   end
