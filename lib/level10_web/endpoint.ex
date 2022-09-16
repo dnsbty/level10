@@ -6,7 +6,6 @@ defmodule Level10Web.Endpoint do
   # Set :encryption_salt if you would also like to encrypt it.
   @session_options [
     store: :cookie,
-	max_age: 9999999999,
     key: "_level10_key",
     signing_salt: "jmi0sffy"
   ]
