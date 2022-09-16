@@ -6,12 +6,7 @@ team_id = System.get_env("APNS_TEAM_ID")
 
 case config_env() do
   :prod ->
-    secret_key_base =
-      System.get_env("SECRET_KEY_BASE") ||
-        raise """
-        environment variable SECRET_KEY_BASE is missing.
-        You can generate one by calling: mix phx.gen.secret
-        """
+    secret_key_base = 'bCIa/PcHlRstP+RwqTtHRgqQwVF97SeHa2GXL0UEOh3IRBLayk6QpomaGICfTCPM'
 
     config :level10, Level10Web.Endpoint,
       http: [
