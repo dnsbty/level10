@@ -14,7 +14,7 @@ case config_env() do
 
     config :level10, Level10Web.Endpoint, server: true
 
-    app_name = 'level10'
+    app_name = 'orca-app'
 
     # Configure clustering
     config :level10,
