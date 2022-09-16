@@ -16,7 +16,7 @@ case config_env() do
 
     config :level10, Level10Web.Endpoint, server: true
 
-    app_name = System.get_env("FLY_APP_NAME") || raise "FLY_APP_NAME not available"
+    app_name = 'level10'
 
     # Configure clustering
     config :level10,
@@ -44,16 +44,11 @@ case config_env() do
       team_id: team_id
 
     admin_username =
-      System.get_env("ADMIN_USERNAME") ||
-        raise """
-        environment variable ADMIN_USERNAME is missing.
-        """
+      'admin'
 
     admin_password =
       System.get_env("ADMIN_PASSWORD") ||
-        raise """
-        environment variable ADMIN_PASSWORD is missing.
-        """
+        'password'
 
     # Replace default credentials for the live dashboard
     config :level10,
