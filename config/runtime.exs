@@ -49,8 +49,6 @@ case config_env() do
       ]
 
   :dev ->
-    disabled = is_nil(key) || is_nil(key_identifier) || is_nil(team_id)
-
     config :level10, Level10.PushNotifications.APNS, disabled?: true
 
   :test ->
