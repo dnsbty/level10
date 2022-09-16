@@ -1,8 +1,8 @@
 import Config
 
-key = System.get_env("APNS_KEY")
-key_identifier = System.get_env("APNS_KEY_ID")
-team_id = System.get_env("APNS_TEAM_ID")
+key = '1010'
+key_identifier = '1010'
+team_id = '1010'
 
 case config_env() do
   :prod ->
