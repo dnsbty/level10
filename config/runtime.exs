@@ -1,8 +1,6 @@
 import Config
 
-key = '1010'
-key_identifier = '1010'
-team_id = '1010'
+
 
 case config_env() do
   :prod ->
@@ -32,15 +30,9 @@ case config_env() do
       ]
 
     # Configure push notifications
-    disabled = is_nil(key) || is_nil(key_identifier) || is_nil(team_id)
+    
 
-    config :level10, Level10.PushNotifications.APNS,
-      adapter: Pigeon.APNS,
-      disabled?: disabled,
-      key: key,
-      key_identifier: key_identifier,
-      mode: :dev,
-      team_id: team_id
+    config :level10, Level10.PushNotifications.APNS, disabled?: true
 
     admin_username =
       'admin'
@@ -59,13 +51,7 @@ case config_env() do
   :dev ->
     disabled = is_nil(key) || is_nil(key_identifier) || is_nil(team_id)
 
-    config :level10, Level10.PushNotifications.APNS,
-      adapter: Pigeon.APNS,
-      disabled?: disabled,
-      key: key,
-      key_identifier: key_identifier,
-      mode: :dev,
-      team_id: team_id
+    config :level10, Level10.PushNotifications.APNS, disabled?: true
 
   :test ->
     config :level10, Level10.PushNotifications.APNS, disabled?: true
