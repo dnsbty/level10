@@ -14,20 +14,8 @@ case config_env() do
 
     config :level10, Level10Web.Endpoint, server: true
 
-    app_name = 'orca-app'
+  
 
-    # Configure clustering
-    config :level10,
-      cluster_topologies: [
-        level10: [
-          strategy: Cluster.Strategy.DNSPoll,
-          config: [
-            polling_interval: 5_000,
-            query: "#{app_name}.internal",
-            node_basename: app_name
-          ]
-        ]
-      ]
 
     # Configure push notifications
     
