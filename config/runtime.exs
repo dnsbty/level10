@@ -32,15 +32,14 @@ case config_env() do
       ]
 
     # Configure push notifications
-    if is_nil(key), do: raise("environment variable APNS_KEY is missing.")
-    if is_nil(key_identifier), do: raise("environment variable APNS_KEY_ID is missing.")
-    if is_nil(team_id), do: raise("environment variable APNS_TEAM_ID is missing.")
+    disabled = is_nil(key) || is_nil(key_identifier) || is_nil(team_id)
 
     config :level10, Level10.PushNotifications.APNS,
       adapter: Pigeon.APNS,
+      disabled?: disabled,
       key: key,
       key_identifier: key_identifier,
-      mode: :prod,
+      mode: :dev,
       team_id: team_id
 
     admin_username =
