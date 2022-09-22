@@ -51,6 +51,7 @@ defmodule Level10.Games do
 
       iex> connect("ABCD", "d202dc1b-70c9-412d-a3d0-bb8ea6213b8c")
       :player_not_found
+
   """
   @spec connect(Game.join_code(), Player.id()) :: :ok | :game_not_found | :player_not_found
   def connect(join_code, player_id) do
@@ -93,6 +94,7 @@ defmodule Level10.Games do
 
       iex> current_player_has_drawn?("ABCD")
       true
+
   """
   @spec current_player_has_drawn?(Game.join_code(), timeout()) :: boolean()
   def current_player_has_drawn?(join_code, timeout \\ 5000) do
@@ -106,9 +108,19 @@ defmodule Level10.Games do
 
       iex> delete_game("ABCD")
       :ok
+
+      iex> delete_game(#PID<0.2463.0>)
+      :ok
+
   """
-  @spec delete_game(Game.join_code(), reason :: term, timeout) :: :ok
-  def delete_game(join_code, reason \\ :normal, timeout \\ :infinity) do
+  @spec delete_game(Game.join_code() | pid, reason :: term, timeout) :: :ok
+  def delete_game(join_code_or_pid, reason \\ :normal, timeout \\ :infinity)
+
+  def delete_game(pid, reason, timeout) when is_pid(pid) do
+    GenServer.stop(pid, reason, timeout)
+  end
+
+  def delete_game(join_code, reason, timeout) do
     GenServer.stop(via(join_code), reason, timeout)
   end
 
@@ -133,6 +145,7 @@ defmodule Level10.Games do
 
       iex> discard_card("ABCD", "9c34b9fe-3104-44b3-b21b-28140e2e3624", %Card{color: :green, value: :twelve})
       :ok
+
   """
   @spec discard_card(Game.join_code(), Player.id(), Card.t(), timeout()) ::
           :ok | :needs_to_draw | :not_your_turn
@@ -151,6 +164,7 @@ defmodule Level10.Games do
 
       iex> draw_card("ABCD", "9c34b9fe-3104-44b3-b21b-28140e2e3624", :discard_pile)
       %Card{color: :green, value: :twelve}
+
   """
   @spec draw_card(Game.join_code(), Player.id(), :discard_pile | :draw_pile, timeout()) ::
           Card.t() | :already_drawn | :empty_discard_pile | :not_your_turn | :skip
@@ -168,6 +182,7 @@ defmodule Level10.Games do
 
       iex> exists?("ASDF")
       false
+
   """
   @spec exists?(Game.join_code()) :: boolean()
   def exists?(join_code) do
@@ -184,6 +199,7 @@ defmodule Level10.Games do
 
       iex> finished?("ABCD")
       true
+
   """
   @spec finished?(Game.join_code(), timeout()) :: boolean()
   def finished?(join_code, timeout \\ 5000) do
@@ -204,6 +220,7 @@ defmodule Level10.Games do
         "04ba446e-0b2a-49f2-8dbf-7d9742548842" => [set: 4, run: 4],
         "86800484-8e73-4408-bd15-98a57871694f" => [run: 7]
       }
+
   """
   @spec format_levels(map()) :: %{optional(Player.t()) => Levels.level()}
   def format_levels(levels) do
@@ -230,6 +247,7 @@ defmodule Level10.Games do
         %{player_id: "1f98ecfe-eccf-42d5-b0fe-7023aba16357", level: 2, points: 0},
         %{player_id: "3621105e-51a1-4f8c-af51-1a97e2d5648d", level: 2, points: 10}
       ]
+
   """
   @spec format_scores(Game.scoring()) :: map()
   def format_scores(scoring) do
@@ -271,6 +289,7 @@ defmodule Level10.Games do
           ]
         ]
       }
+
   """
   @spec format_table(map()) :: map()
   def format_table(table) do
@@ -287,6 +306,7 @@ defmodule Level10.Games do
 
       iex> get("ABCD")
       %Game{}
+
   """
   @spec get(Game.join_code(), timeout()) :: Game.t()
   def get(join_code, timeout \\ 5000) do
@@ -300,6 +320,7 @@ defmodule Level10.Games do
 
       iex> get_current_turn("ABCD")
       %Player{id: "ffe6629a-faff-4053-b7b8-83c3a307400f", name: "Player 1"}
+
   """
   @spec get_current_turn(Game.join_code(), timeout()) :: Player.t()
   def get_current_turn(join_code, timeout \\ 5000) do
@@ -313,6 +334,7 @@ defmodule Level10.Games do
 
       iex> get_hand_counts("ABCD")
       %{"179539f0-661e-4b56-ac67-fec916214223" => 10, "000cc69a-bb7d-4d3e-ae9f-e42e3dcac23e" => 3}
+
   """
   @spec get_hand_counts(Game.join_code(), timeout()) :: %{
           optional(Player.id()) => non_neg_integer()
@@ -328,6 +350,7 @@ defmodule Level10.Games do
 
       iex> get_hand_for_player("ABCD", "557489d0-1ef2-4763-9b0b-d2ea3c80fd99")
       [%Card{color: :green, value: :twelve}, %Card{color: :blue, value: :nine}, ...]
+
   """
   @spec get_hand_for_player(Game.join_code(), Player.id(), timeout()) :: list(Card.t())
   def get_hand_for_player(join_code, player_id, timeout \\ 5000) do
@@ -344,6 +367,7 @@ defmodule Level10.Games do
         "04ba446e-0b2a-49f2-8dbf-7d9742548842" => [set: 4, run: 4],
         "86800484-8e73-4408-bd15-98a57871694f" => [run: 7],
       }
+
   """
   @spec get_levels(Game.join_code(), timeout()) :: %{optional(Player.t()) => Levels.level()}
   def get_levels(join_code, timeout \\ 5000) do
@@ -361,6 +385,7 @@ defmodule Level10.Games do
 
       iex> get_next_player("ABCD", "103b1a2c-e3fd-4cfb-bdcd-8842cf5c8012")
       %Player{id: "27aada8a-a9d4-4b00-a306-92d1e507a3cd"}
+
   """
   @spec get_next_player(Game.join_code(), Player.id(), timeout()) :: Player.t()
   def get_next_player(join_code, player_id, timeout \\ 5000) do
@@ -377,6 +402,7 @@ defmodule Level10.Games do
         %Player{id: "601a07a1-b229-47e5-ad13-dbe0599c90e9", name: "Player 1"},
         %Player{id: "a0d2ef3e-e44c-4a58-b90d-a56d88224700", name: "Player 2"}
       ]
+
   """
   @spec get_players(Game.join_code(), timeout) :: list(Player.t())
   def get_players(join_code, timeout \\ 5000) do
@@ -409,6 +435,7 @@ defmodule Level10.Games do
         "e486056e-4a01-4239-9f00-6f7f57ca8d54" => {3, 55},
         "38379e46-4d29-4a22-a245-aa7013ec3c33" => {2, 120}
       }
+
   """
   @spec get_scores(Game.join_code(), timeout()) :: Game.scores()
   def get_scores(join_code, timeout \\ 5000) do
@@ -422,6 +449,7 @@ defmodule Level10.Games do
 
       iex> get_skipped_players("ABCD")
       #MapSet<["a66f96e0-dfd9-493e-9bb9-47cb8baed530"]
+
   """
   @spec get_skipped_players(Game.join_code(), timeout()) :: MapSet.t(Player.id())
   def get_skipped_players(join_code, timeout \\ 5000) do
@@ -435,6 +463,7 @@ defmodule Level10.Games do
 
       iex> get_settings("ABCD")
       %Level10.Games.Settings{}
+
   """
   @spec get_settings(Game.join_code(), timeout()) :: Settings.t()
   def get_settings(join_code, timeout \\ 5000) do
@@ -462,6 +491,7 @@ defmodule Level10.Games do
           ]
         }
       }
+
   """
   @spec get_table(Game.join_code(), timeout()) :: Game.table()
   def get_table(join_code, timeout \\ 5000) do
@@ -478,6 +508,7 @@ defmodule Level10.Games do
 
       iex> get_top_discarded_card("ABCD")
       nil
+
   """
   @spec get_top_discarded_card(Game.join_code(), timeout()) :: Card.t() | nil
   def get_top_discarded_card(join_code, timeout \\ 5000) do
@@ -501,6 +532,7 @@ defmodule Level10.Games do
 
       iex> join_game("ABCD", %Player{})
       :not_found
+
   """
   @spec join_game(Game.join_code(), Player.t(), timeout()) ::
           :ok | :already_started | :full | :not_found
@@ -513,6 +545,24 @@ defmodule Level10.Games do
   end
 
   @doc """
+  Lists the games that haven't been updated recently (as determined by the
+  `@max_active_time` attribute in `GameServer`
+
+  ## Examples
+
+      iex> list_inactive_games()
+      [#PID<0.2131.0>, #PID<0.2543.0>, #PID<0.2653.0>]
+
+  """
+  @spec list_inactive_games :: list(pid)
+  def list_inactive_games(supervisor \\ GameSupervisor) do
+    for {_, pid, _, _} <- Supervisor.which_children(supervisor),
+        !GenServer.call(pid, :active?, 5000) do
+      pid
+    end
+  end
+
+  @doc """
   Returns a list of all of the join codes for games that are currently active.
   This can then be used for things like monitoring and garbage collection.
 
@@ -520,6 +570,7 @@ defmodule Level10.Games do
 
       iex> list_join_codes()
       ["ABCD", "EFGH"]
+
   """
   @spec list_join_codes :: list(Game.join_code())
   def list_join_codes do
@@ -591,6 +642,7 @@ defmodule Level10.Games do
 
       iex> round_started?("EFGH")
       false
+
   """
   @spec round_started?(Game.join_code(), timeout()) :: boolean()
   def round_started?(join_code, timeout \\ 5000) do
@@ -616,6 +668,7 @@ defmodule Level10.Games do
 
       iex> skip_player("ABCD", "9c34b9fe-3104-44b3-b21b-28140e2e3624", "4fabf53c-6449-4d18-ab28-11cf642dee24")
       :ok
+
   """
   @spec skip_player(Game.join_code(), Player.id(), Player.id(), timeout()) ::
           :ok | :needs_to_draw | :not_your_turn
@@ -641,6 +694,7 @@ defmodule Level10.Games do
 
       iex> started?("EFGH")
       false
+
   """
   @spec started?(Game.join_code(), timeout()) :: boolean()
   def started?(join_code, timeout \\ 5000) do

@@ -25,6 +25,7 @@ defmodule Level10.Games.GameServer do
 
   @typep event_type :: atom()
 
+  @max_active_time 60 * 60 * 24
   @max_players 6
 
   @spec start_link({Game.join_code(), Player.t(), Settings.t()}, GenServer.options()) :: on_start
@@ -41,6 +42,19 @@ defmodule Level10.Games.GameServer do
   end
 
   @impl true
+  def handle_call(:active?, _from, game = %{updated_at: updated_at})
+      when not is_nil(updated_at) do
+    oldest_active_time =
+      NaiveDateTime.utc_now() |> NaiveDateTime.add(@max_active_time * -1, :second)
+
+    case NaiveDateTime.compare(game.updated_at, oldest_active_time) do
+      :lt -> {:reply, false, game}
+      _ -> {:reply, true, game}
+    end
+  end
+
+  def handle_call(:active?, _from, game), do: {:reply, false, game}
+
   def handle_call({:add_to_table, {player_id, table_id, position, cards_to_add}}, _from, game) do
     case Game.add_to_table(game, player_id, table_id, position, cards_to_add) do
       {:ok, game} ->
