@@ -66,6 +66,7 @@ defmodule Level10.Games.GameTest do
 
       refute @card in game.hands[@player1.id]
       assert @card in game.table[@player2.id][0]
+      assert %NaiveDateTime{} = game.updated_at
     end
 
     test "returns an error if the table group is invalid" do
@@ -196,6 +197,7 @@ defmodule Level10.Games.GameTest do
       assert game.scoring["Player 1"] == {3, 45}
       assert game.scoring["Player 2"] == {2, 85}
       assert MapSet.size(game.players_ready) == 0
+      assert %NaiveDateTime{} = game.updated_at
     end
 
     test "determines whether the game was completed" do
@@ -223,6 +225,7 @@ defmodule Level10.Games.GameTest do
       game = %{@game | current_stage: :lobby, players: [@player3, @player2, @player1]}
       assert {:ok, game} = Game.delete_player(game, @player1.id)
       refute @player1 in game.players
+      assert %NaiveDateTime{} = game.updated_at
     end
 
     test "returns an error if the game already started" do
@@ -274,6 +277,7 @@ defmodule Level10.Games.GameTest do
 
       assert length(result.hands[@player1.id]) == 10
       assert result.discard_pile == [fixture.card]
+      assert %NaiveDateTime{} = result.updated_at
     end
 
     test "updates to the next player's turn", fixture do
@@ -330,6 +334,7 @@ defmodule Level10.Games.GameTest do
       game = Game.draw_card(game, @player1.id, :draw_pile)
       assert game.draw_pile == []
       assert game.hands[@player1.id] == [%Card{color: :black, value: :wild}]
+      assert %NaiveDateTime{} = game.updated_at
     end
 
     test "moves the top card from the discard pile into the current player's hand", fixture do
@@ -399,6 +404,7 @@ defmodule Level10.Games.GameTest do
       game = %{@game | players: players, remaining_players: MapSet.new(players)}
       assert {:ok, game} = Game.mark_player_ready(game, @player1)
       assert @player1 in game.players_ready
+      assert %NaiveDateTime{} = game.updated_at
     end
 
     test "returns the all ready status if all remaining players are ready" do
@@ -417,6 +423,7 @@ defmodule Level10.Games.GameTest do
     test "returns a new game" do
       settings = %Settings{skip_next_player: true}
       game = Game.new("ABCD", @player1, settings)
+      assert %NaiveDateTime{} = game.created_at
       assert game.current_player == @player1
       assert game.current_round == 0
       assert game.current_stage == :lobby
@@ -433,6 +440,7 @@ defmodule Level10.Games.GameTest do
       assert game.scoring == %{}
       assert game.settings == settings
       assert game.table == %{}
+      assert %NaiveDateTime{} = game.updated_at
     end
   end
 
@@ -528,6 +536,7 @@ defmodule Level10.Games.GameTest do
       game = %Game{current_stage: :lobby, players: []}
       assert {:ok, game} = Game.put_player(game, @player1)
       assert game.players == [@player1]
+      assert %NaiveDateTime{} = game.updated_at
     end
 
     test "returns an error if the game has already started" do
@@ -542,6 +551,7 @@ defmodule Level10.Games.GameTest do
       token = "5ea2db99-6d0a-4b75-b7bb-c708a2717d93"
       game = Game.put_player_device_token(game, @player1.id, token)
       assert game.device_tokens[@player1.id] == token
+      assert %NaiveDateTime{} = game.updated_at
     end
 
     test "deletes a player's device token when set to nil" do
@@ -571,6 +581,7 @@ defmodule Level10.Games.GameTest do
       refute @player1 in game.players_ready
       refute @player1.id in game.remaining_players
       assert game.current_stage == :play
+      assert %NaiveDateTime{} = game.updated_at
     end
 
     test "marks the game as finished if only 1 player remains" do
@@ -627,6 +638,7 @@ defmodule Level10.Games.GameTest do
       assert length(game.table[@player1.id][0]) == 3
       assert length(game.table[@player1.id][1]) == 3
       assert length(game.hands[@player1.id]) == 4
+      assert %NaiveDateTime{} = game.updated_at
     end
 
     test "returns an error if the player hasn't drawn yet" do
@@ -654,7 +666,8 @@ defmodule Level10.Games.GameTest do
     test "adds the given player ID into the set of skipped players" do
       game = %Game{skipped_players: MapSet.new()}
       result = Game.skip_player(game, "4ebc0075-c609-49e3-9dcf-d5befff8fe72")
-      assert result.skipped_players == MapSet.new(["4ebc0075-c609-49e3-9dcf-d5befff8fe72"])
+      assert MapSet.member?(result.skipped_players, "4ebc0075-c609-49e3-9dcf-d5befff8fe72")
+      assert %NaiveDateTime{} = result.updated_at
     end
 
     test "returns :already_skipped if the player was already skipped" do
@@ -676,6 +689,7 @@ defmodule Level10.Games.GameTest do
       {:ok, game} = Game.start_game(game)
 
       assert game.current_round == 1
+      assert %NaiveDateTime{} = game.updated_at
     end
 
     test "gives each player a hand with 10 cards" do
@@ -733,6 +747,7 @@ defmodule Level10.Games.GameTest do
       assert game.levels[@player2.id] == 2
       assert game.levels[@player3.id] == 4
       assert game.current_stage == :play
+      assert %NaiveDateTime{} = game.updated_at
     end
 
     test "starts round 1 if the game is in the lobby" do

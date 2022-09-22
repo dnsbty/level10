@@ -19,6 +19,7 @@ defmodule Level10.Games.Game do
   @type stage :: :finish | :lobby | :play | :score
   @type table :: %{optional(Player.id()) => player_table()}
   @type t :: %__MODULE__{
+          created_at: NaiveDateTime.t(),
           current_player: Player.t(),
           current_round: non_neg_integer(),
           current_stage: stage(),
@@ -36,10 +37,12 @@ defmodule Level10.Games.Game do
           scoring: scores(),
           settings: Settings.t(),
           skipped_players: MapSet.t(),
-          table: table()
+          table: table(),
+          updated_at: NaiveDateTime.t()
         }
 
   defstruct ~W[
+    created_at
     current_player
     current_round
     current_stage
@@ -58,6 +61,7 @@ defmodule Level10.Games.Game do
     settings
     skipped_players
     table
+    updated_at
   ]a
 
   @doc """
@@ -86,7 +90,7 @@ defmodule Level10.Games.Game do
       sorted_group = Card.sort_for_group(required_type, new_group)
       table = put_in(game.table, [group_player_id, position], sorted_group)
       hands = %{game.hands | current_player_id => game.hands[current_player_id] -- cards_to_add}
-      {:ok, %{game | hands: hands, table: table}}
+      {:ok, update(game, hands: hands, table: table)}
     else
       nil -> :invalid_group
       false -> :invalid_group
@@ -142,7 +146,7 @@ defmodule Level10.Games.Game do
   def delete_player(game, player_id)
 
   def delete_player(game = %{current_stage: :lobby, players: players}, player_id) do
-    game = %{game | players: Enum.filter(players, &(&1.id != player_id))}
+    game = update(game, players: Enum.filter(players, &(&1.id != player_id)))
     if game.players == [], do: :empty_game, else: {:ok, game}
   end
 
@@ -166,7 +170,10 @@ defmodule Level10.Games.Game do
   def discard(game = %{current_player: player, discard_pile: pile, hands: hands}, card) do
     hands = Map.update!(hands, player.id, &List.delete(&1, card))
     pile = [card | pile]
-    increment_current_turn(%{game | discard_pile: pile, hands: hands})
+
+    game
+    |> update(discard_pile: pile, hands: hands)
+    |> increment_current_turn()
   end
 
   @doc """
@@ -189,7 +196,7 @@ defmodule Level10.Games.Game do
     case pile do
       [card | pile] ->
         hands = Map.update!(hands, player_id, &[card | &1])
-        %{game | current_turn_drawn?: true, draw_pile: pile, hands: hands}
+        update(game, current_turn_drawn?: true, draw_pile: pile, hands: hands)
 
       [] ->
         game
@@ -209,7 +216,7 @@ defmodule Level10.Games.Game do
   def draw_card(game, player_id, :discard_pile) do
     %{discard_pile: [card | pile], hands: hands} = game
     hands = Map.update!(hands, player_id, &[card | &1])
-    %{game | current_turn_drawn?: true, discard_pile: pile, hands: hands}
+    update(game, current_turn_drawn?: true, discard_pile: pile, hands: hands)
   end
 
   @doc """
@@ -260,7 +267,7 @@ defmodule Level10.Games.Game do
   def mark_player_ready(game, player_id) do
     players_ready = MapSet.put(game.players_ready, player_id)
     status = if MapSet.equal?(players_ready, game.remaining_players), do: :all_ready, else: :ok
-    {status, %{game | players_ready: players_ready}}
+    {status, update(game, players_ready: players_ready)}
   end
 
   @doc """
@@ -269,6 +276,7 @@ defmodule Level10.Games.Game do
   @spec new(join_code(), Player.t(), Settings.t()) :: t()
   def new(join_code, player, settings) do
     %__MODULE__{
+      created_at: NaiveDateTime.utc_now(),
       current_player: player,
       current_round: 0,
       current_stage: :lobby,
@@ -284,7 +292,8 @@ defmodule Level10.Games.Game do
       players_ready: MapSet.new(),
       scoring: %{},
       settings: settings,
-      table: %{}
+      table: %{},
+      updated_at: NaiveDateTime.utc_now()
     }
   end
 
@@ -344,7 +353,7 @@ defmodule Level10.Games.Game do
   def put_player(game, player)
 
   def put_player(game = %{current_stage: :lobby, players: players}, player) do
-    {:ok, %{game | players: [player | players]}}
+    {:ok, update(game, players: [player | players])}
   end
 
   def put_player(_game, _player) do
@@ -368,12 +377,12 @@ defmodule Level10.Games.Game do
   @spec put_player_device_token(t(), Player.id(), String.t() | nil) :: t()
   def put_player_device_token(game, player_id, nil) do
     device_tokens = Map.delete(game.device_tokens, player_id)
-    %{game | device_tokens: device_tokens}
+    update(game, device_tokens: device_tokens)
   end
 
   def put_player_device_token(game, player_id, device_token) do
     device_tokens = Map.put(game.device_tokens, player_id, device_token)
-    %{game | device_tokens: device_tokens}
+    update(game, device_tokens: device_tokens)
   end
 
   @doc """
@@ -410,10 +419,10 @@ defmodule Level10.Games.Game do
     # the counts won't be off
     players_ready = MapSet.delete(game.players_ready, player_id)
 
-    game = %{game | players_ready: players_ready, remaining_players: remaining_players}
+    game = update(game, players_ready: players_ready, remaining_players: remaining_players)
 
     case MapSet.size(remaining_players) do
-      1 -> %{game | current_stage: :finish}
+      1 -> update(game, current_stage: :finish)
       _ -> game
     end
   end
@@ -459,7 +468,7 @@ defmodule Level10.Games.Game do
       cards_used = Enum.reduce(player_table, [], fn {_, cards}, acc -> acc ++ cards end)
       player_hand = game.hands[player_id] -- cards_used
       hands = Map.put(game.hands, player_id, player_hand)
-      %{game | hands: hands, table: table}
+      update(game, hands: hands, table: table)
     else
       player_id when is_binary(player_id) -> :not_your_turn
       false -> :invalid_level
@@ -477,7 +486,7 @@ defmodule Level10.Games.Game do
     if player_id in game.skipped_players do
       :already_skipped
     else
-      %{game | skipped_players: MapSet.put(game.skipped_players, player_id)}
+      update(game, skipped_players: MapSet.put(game.skipped_players, player_id))
     end
   end
 
@@ -519,8 +528,9 @@ defmodule Level10.Games.Game do
           |> update_levels()
           |> put_new_discard()
           |> put_stage(:play)
+          |> increment_current_turn()
 
-        {:ok, increment_current_turn(game)}
+        {:ok, game}
 
       :game_over ->
         :game_over
@@ -552,20 +562,20 @@ defmodule Level10.Games.Game do
   @spec check_complete(t()) :: t()
   defp check_complete(game) do
     if Enum.any?(game.scoring, fn {_, {level, _}} -> level == 11 end) do
-      %{game | current_stage: :finish}
+      update(game, current_stage: :finish)
     else
       game
     end
   end
 
   @spec clear_ready(t()) :: t()
-  defp clear_ready(game), do: %{game | players_ready: MapSet.new()}
+  defp clear_ready(game), do: update(game, players_ready: MapSet.new())
 
   @spec clear_skipped_players(t()) :: t()
-  defp clear_skipped_players(game), do: %{game | skipped_players: MapSet.new()}
+  defp clear_skipped_players(game), do: update(game, skipped_players: MapSet.new())
 
   @spec clear_table(t()) :: t()
-  defp clear_table(game), do: %{game | table: %{}}
+  defp clear_table(game), do: update(game, table: %{})
 
   @spec deal_hands(t()) :: t()
   defp deal_hands(game = %{draw_pile: deck, players: players}) do
@@ -580,7 +590,7 @@ defmodule Level10.Games.Game do
         end
       end)
 
-    %{game | draw_pile: deck, hands: hands}
+    update(game, draw_pile: deck, hands: hands)
   end
 
   @spec get_group(table(), Player.id(), non_neg_integer()) :: Game.cards() | nil
@@ -604,7 +614,8 @@ defmodule Level10.Games.Game do
     player_index = rem(round + new_turn, total_players)
     player = Enum.at(players, player_index)
 
-    game = %{game | current_turn: new_turn, current_turn_drawn?: false, current_player: player}
+    game =
+      update(game, current_turn: new_turn, current_turn_drawn?: false, current_player: player)
 
     cond do
       player.id not in game.remaining_players ->
@@ -612,7 +623,10 @@ defmodule Level10.Games.Game do
 
       player.id in game.skipped_players ->
         skipped_players = MapSet.delete(game.skipped_players, player.id)
-        increment_current_turn(%{game | skipped_players: skipped_players})
+
+        game
+        |> update(skipped_players: skipped_players)
+        |> increment_current_turn()
 
       true ->
         game
@@ -627,11 +641,11 @@ defmodule Level10.Games.Game do
   end
 
   defp increment_current_round(game = %{current_stage: :lobby}) do
-    {:ok, %{game | current_round: 1, current_stage: :play, current_turn: 0}}
+    {:ok, update(game, current_round: 1, current_stage: :play, current_turn: 0)}
   end
 
   defp increment_current_round(game = %{current_round: current_round}) do
-    {:ok, %{game | current_round: current_round + 1, current_turn: 0}}
+    {:ok, update(game, current_round: current_round + 1, current_turn: 0)}
   end
 
   @spec level_complete?(t(), Player.id()) :: boolean()
@@ -671,41 +685,48 @@ defmodule Level10.Games.Game do
 
   @spec put_empty_scores(t()) :: t()
   defp put_empty_scores(game = %{players: players}) do
-    %{game | scoring: Map.new(players, &{&1.id, {1, 0}})}
+    update(game, scoring: Map.new(players, &{&1.id, {1, 0}}))
   end
 
   @spec put_new_deck(t()) :: t()
   defp put_new_deck(game) do
-    %{game | draw_pile: new_deck()}
+    update(game, draw_pile: new_deck())
   end
 
   @spec put_remaining_players(t()) :: t()
   defp put_remaining_players(game = %{players: players}) do
     player_ids = Enum.map(players, & &1.id)
     remaining = MapSet.new(player_ids)
-    %{game | remaining_players: remaining}
+    update(game, remaining_players: remaining)
   end
 
   @spec put_stage(t(), stage()) :: t()
   defp put_stage(game, stage) do
-    %{game | current_stage: stage}
+    update(game, current_stage: stage)
+  end
+
+  @spec update(t, Keyword.t()) :: t
+  defp update(game, params) do
+    game
+    |> struct(params)
+    |> Map.put(:updated_at, NaiveDateTime.utc_now())
   end
 
   @spec update_levels(t()) :: t()
   defp update_levels(game = %{scoring: scores}) do
     levels = for {player_id, {level, _}} <- scores, do: {player_id, level}, into: %{}
-    %{game | levels: levels}
+    update(game, levels: levels)
   end
 
   @spec put_new_discard(Game.t()) :: Game.t()
   defp put_new_discard(game = %{draw_pile: [top_card | rest]}) do
-    %{game | discard_pile: [top_card], draw_pile: rest}
+    update(game, discard_pile: [top_card], draw_pile: rest)
   end
 
   @spec reshuffle_deck(t()) :: t()
   defp reshuffle_deck(game) do
     {discard_top, discard_pile} = List.pop_at(game.discard_pile, 0)
-    %{game | discard_pile: [discard_top], draw_pile: Enum.shuffle(discard_pile)}
+    update(game, discard_pile: [discard_top], draw_pile: Enum.shuffle(discard_pile))
   end
 
   @spec update_scoring_and_levels(t()) :: t()
@@ -730,6 +751,6 @@ defmodule Level10.Games.Game do
         end
       end)
 
-    %{game | current_stage: :score, scoring: scoring}
+    update(game, current_stage: :score, scoring: scoring)
   end
 end
