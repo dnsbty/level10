@@ -34,7 +34,7 @@ defmodule Level10.Games.Levels do
   """
   @spec by_number(integer()) :: level()
   def by_number(level_number) do
-    Map.get(@levels, level_number)
+    Map.get(@levels, level_number, [])
   end
 
   @doc """

@@ -73,14 +73,14 @@ defmodule Level10.Games.Game do
   def add_to_table(game, current_player_id, group_player_id, position, cards_to_add) do
     # get the level requirement for the specified group
     requirement = group_requirement(game, group_player_id, position)
-    {required_type, _} = requirement
 
     # make sure the player is doing this when they should and using valid cards
-    with ^current_player_id <- game.current_player.id,
+    with true <- current_player_id == game.current_player.id || :not_your_turn,
          {:current_turn_drawn?, true} <- {:current_turn_drawn?, game.current_turn_drawn?},
          {:level_complete?, true} <- {:level_complete?, level_complete?(game, current_player_id)},
          group when is_list(group) <- get_group(game.table, group_player_id, position),
          new_group = group ++ cards_to_add,
+         {required_type, _} <- group_requirement(game, group_player_id, position),
          true <- Levels.valid_group?(requirement, new_group) do
       # update the table to include the new cards and remove them from the player's hand
       sorted_group = Card.sort_for_group(required_type, new_group)
@@ -92,25 +92,9 @@ defmodule Level10.Games.Game do
       false -> :invalid_group
       {:current_turn_drawn?, _} -> :needs_to_draw
       {:level_complete?, _} -> :level_incomplete
-      player_id when is_binary(player_id) -> :not_your_turn
+      :not_your_turn -> :not_your_turn
     end
   end
-
-  @spec get_group(table(), Player.id(), non_neg_integer()) :: Game.cards() | nil
-  defp get_group(table, player_id, position) do
-    get_in(table, [player_id, position])
-  end
-
-  @spec group_requirement(t(), Player.id(), non_neg_integer()) :: Levels.group()
-  defp group_requirement(game, player_id, position) do
-    game.levels
-    |> Map.get(player_id)
-    |> Levels.by_number()
-    |> Enum.at(position)
-  end
-
-  @spec level_complete?(t(), Player.id()) :: boolean()
-  defp level_complete?(game, player_id), do: !is_nil(game.table[player_id])
 
   @doc """
   Returns whether or not all players remaining in the game have marked
@@ -118,9 +102,7 @@ defmodule Level10.Games.Game do
   """
   @spec all_ready?(t()) :: boolean()
   def all_ready?(game) do
-    players_ready = MapSet.size(game.players_ready)
-    total_players = MapSet.size(game.remaining_players)
-    players_ready == total_players
+    MapSet.equal?(game.players_ready, game.remaining_players)
   end
 
   @doc """
@@ -136,40 +118,6 @@ defmodule Level10.Games.Game do
     |> clear_ready()
   end
 
-  @spec update_scoring_and_levels(t()) :: t()
-  defp update_scoring_and_levels(game = %{scoring: scoring, table: table, hands: hands}) do
-    scoring =
-      Map.new(scoring, fn {player, {level, score}} ->
-        hand = Map.get(hands, player, [])
-
-        hand_score =
-          hand
-          |> Stream.map(&Card.score/1)
-          |> Enum.sum()
-
-        score = score + hand_score
-
-        case table do
-          %{^player => _} ->
-            {player, {level + 1, score}}
-
-          _table ->
-            {player, {level, score}}
-        end
-      end)
-
-    %{game | current_stage: :score, scoring: scoring}
-  end
-
-  @spec check_complete(t()) :: t()
-  defp check_complete(game) do
-    if Enum.any?(game.scoring, fn {_, {level, _}} -> level == 11 end) do
-      %{game | current_stage: :finish}
-    else
-      game
-    end
-  end
-
   @doc """
   Return the creator of the game
 
@@ -183,6 +131,13 @@ defmodule Level10.Games.Game do
     List.last(game.players)
   end
 
+  @doc """
+  Delete a player from the game
+
+  Should only be used while the game is still in the lobby phase, and play
+  hasn't actually begun. Once the game has started, `remove_player/2` should be
+  used instead.
+  """
   @spec delete_player(t(), Player.id()) :: {:ok, t()} | :already_started | :empty_game
   def delete_player(game, player_id)
 
@@ -198,6 +153,9 @@ defmodule Level10.Games.Game do
     :already_started
   end
 
+  @doc """
+  Discard a card from the current player's hand
+  """
   @spec discard(t(), Card.t()) :: t() | :needs_to_draw
   def discard(game, card)
 
@@ -211,6 +169,9 @@ defmodule Level10.Games.Game do
     increment_current_turn(%{game | discard_pile: pile, hands: hands})
   end
 
+  @doc """
+  Draw a card from the draw pile or discard pile into the current player's hand
+  """
   @spec draw_card(t(), Player.id(), :draw_pile | :discard_pile) ::
           {:ok | :already_drawn | :empty_discard_pile | :not_your_turn | :skip, t()}
   def draw_card(game, player_id, pile)
@@ -250,17 +211,6 @@ defmodule Level10.Games.Game do
     hands = Map.update!(hands, player_id, &[card | &1])
     %{game | current_turn_drawn?: true, discard_pile: pile, hands: hands}
   end
-
-  @doc """
-  Get a player from a game using their ID.
-
-  ## Examples
-
-      iex> get_player(%Game{}, "ce1bdc3c-7e65-472c-9ccf-f926e3403450")
-      %Player{id: "ce1bdc3c-7e65-472c-9ccf-f926e3403450", name: "Dennis"}
-  """
-  @spec get_player(t(), Player.id()) :: Player.t()
-  def get_player(game, player_id), do: Enum.find(game, &(&1.id == player_id))
 
   @doc """
   Generate a random 4 character join code.
@@ -309,14 +259,16 @@ defmodule Level10.Games.Game do
   @spec mark_player_ready(t(), Player.id()) :: {:ok | :all_ready, t()}
   def mark_player_ready(game, player_id) do
     players_ready = MapSet.put(game.players_ready, player_id)
-    total_players = MapSet.size(game.remaining_players)
-    status = if MapSet.size(players_ready) == total_players, do: :all_ready, else: :ok
+    status = if MapSet.equal?(players_ready, game.remaining_players), do: :all_ready, else: :ok
     {status, %{game | players_ready: players_ready}}
   end
 
+  @doc """
+  Create a new game
+  """
   @spec new(join_code(), Player.t(), Settings.t()) :: t()
   def new(join_code, player, settings) do
-    game = %__MODULE__{
+    %__MODULE__{
       current_player: player,
       current_round: 0,
       current_stage: :lobby,
@@ -328,15 +280,12 @@ defmodule Level10.Games.Game do
       hands: %{},
       join_code: join_code,
       levels: %{},
-      players: [],
+      players: [player],
       players_ready: MapSet.new(),
       scoring: %{},
       settings: settings,
       table: %{}
     }
-
-    {:ok, game} = put_player(game, player)
-    game
   end
 
   @doc """
@@ -388,6 +337,9 @@ defmodule Level10.Games.Game do
     end)
   end
 
+  @doc """
+  Adds a new player to the game while in the lobby stage
+  """
   @spec put_player(t(), Player.t()) :: {:ok, t()} | :already_started
   def put_player(game, player)
 
@@ -422,15 +374,6 @@ defmodule Level10.Games.Game do
   def put_player_device_token(game, player_id, device_token) do
     device_tokens = Map.put(game.device_tokens, player_id, device_token)
     %{game | device_tokens: device_tokens}
-  end
-
-  @doc """
-  Update a setting for configuring the game.
-  """
-  @spec put_setting(t(), Settings.setting(), boolean()) :: t()
-  def put_setting(game, setting_name, value) do
-    settings = Settings.set(game.settings, setting_name, value)
-    %{game | settings: settings}
   end
 
   @doc """
@@ -473,18 +416,6 @@ defmodule Level10.Games.Game do
       1 -> %{game | current_stage: :finish}
       _ -> game
     end
-  end
-
-  @doc """
-  Shuffles the discard pile to make a new draw pile. This should happen when
-  the current draw pile is empty.
-
-  Another one to make private, this time when one attempts to draw a card from
-  an empty draw pile.
-  """
-  @spec reshuffle_deck(t()) :: t()
-  def reshuffle_deck(game = %{discard_pile: discard_pile}) do
-    %{game | discard_pile: [], draw_pile: Enum.shuffle(discard_pile)}
   end
 
   @doc """
@@ -571,11 +502,6 @@ defmodule Level10.Games.Game do
     end
   end
 
-  @spec put_empty_scores(t()) :: t()
-  defp put_empty_scores(game = %{players: players}) do
-    %{game | scoring: Map.new(players, &{&1.id, {1, 0}})}
-  end
-
   @doc """
   Sets everything up to start the next round. Shuffles and deals a new deck and
   all hands.
@@ -601,11 +527,6 @@ defmodule Level10.Games.Game do
     end
   end
 
-  @spec put_stage(t(), stage()) :: t()
-  defp put_stage(game, stage) do
-    %{game | current_stage: stage}
-  end
-
   @doc """
   Returns the top card in the discard pile for the specified game. Returns nil
   if the discard pile is currently empty.
@@ -626,6 +547,17 @@ defmodule Level10.Games.Game do
     end
   end
 
+  # Private
+
+  @spec check_complete(t()) :: t()
+  defp check_complete(game) do
+    if Enum.any?(game.scoring, fn {_, {level, _}} -> level == 11 end) do
+      %{game | current_stage: :finish}
+    else
+      game
+    end
+  end
+
   @spec clear_ready(t()) :: t()
   defp clear_ready(game), do: %{game | players_ready: MapSet.new()}
 
@@ -634,6 +566,35 @@ defmodule Level10.Games.Game do
 
   @spec clear_table(t()) :: t()
   defp clear_table(game), do: %{game | table: %{}}
+
+  @spec deal_hands(t()) :: t()
+  defp deal_hands(game = %{draw_pile: deck, players: players}) do
+    {hands, deck} =
+      Enum.reduce(players, {%{}, deck}, fn %{id: player_id}, {hands, deck} ->
+        if player_id in game.remaining_players do
+          {hand, deck} = Enum.split(deck, 10)
+          hands = Map.put(hands, player_id, hand)
+          {hands, deck}
+        else
+          {hands, deck}
+        end
+      end)
+
+    %{game | draw_pile: deck, hands: hands}
+  end
+
+  @spec get_group(table(), Player.id(), non_neg_integer()) :: Game.cards() | nil
+  defp get_group(table, player_id, position) do
+    get_in(table, [player_id, position])
+  end
+
+  @spec group_requirement(t(), Player.id(), non_neg_integer()) :: Levels.group()
+  defp group_requirement(game, player_id, position) do
+    game.levels
+    |> Map.get(player_id)
+    |> Levels.by_number()
+    |> Enum.at(position)
+  end
 
   @spec increment_current_turn(t()) :: t()
   defp increment_current_turn(game) do
@@ -666,17 +627,15 @@ defmodule Level10.Games.Game do
   end
 
   defp increment_current_round(game = %{current_stage: :lobby}) do
-    {:ok, %{game | current_round: 1, current_stage: :play}}
+    {:ok, %{game | current_round: 1, current_stage: :play, current_turn: 0}}
   end
 
   defp increment_current_round(game = %{current_round: current_round}) do
     {:ok, %{game | current_round: current_round + 1, current_turn: 0}}
   end
 
-  @spec put_new_deck(t()) :: t()
-  defp put_new_deck(game) do
-    %{game | draw_pile: new_deck()}
-  end
+  @spec level_complete?(t(), Player.id()) :: boolean()
+  defp level_complete?(game, player_id), do: !is_nil(game.table[player_id])
 
   @spec new_deck() :: cards()
   defp new_deck do
@@ -710,20 +669,14 @@ defmodule Level10.Games.Game do
     end
   end
 
-  @spec deal_hands(t()) :: t()
-  defp deal_hands(game = %{draw_pile: deck, players: players}) do
-    {hands, deck} =
-      Enum.reduce(players, {%{}, deck}, fn %{id: player_id}, {hands, deck} ->
-        if player_id in game.remaining_players do
-          {hand, deck} = Enum.split(deck, 10)
-          hands = Map.put(hands, player_id, hand)
-          {hands, deck}
-        else
-          {hands, deck}
-        end
-      end)
+  @spec put_empty_scores(t()) :: t()
+  defp put_empty_scores(game = %{players: players}) do
+    %{game | scoring: Map.new(players, &{&1.id, {1, 0}})}
+  end
 
-    %{game | draw_pile: deck, hands: hands}
+  @spec put_new_deck(t()) :: t()
+  defp put_new_deck(game) do
+    %{game | draw_pile: new_deck()}
   end
 
   @spec put_remaining_players(t()) :: t()
@@ -731,6 +684,11 @@ defmodule Level10.Games.Game do
     player_ids = Enum.map(players, & &1.id)
     remaining = MapSet.new(player_ids)
     %{game | remaining_players: remaining}
+  end
+
+  @spec put_stage(t(), stage()) :: t()
+  defp put_stage(game, stage) do
+    %{game | current_stage: stage}
   end
 
   @spec update_levels(t()) :: t()
@@ -742,5 +700,36 @@ defmodule Level10.Games.Game do
   @spec put_new_discard(Game.t()) :: Game.t()
   defp put_new_discard(game = %{draw_pile: [top_card | rest]}) do
     %{game | discard_pile: [top_card], draw_pile: rest}
+  end
+
+  @spec reshuffle_deck(t()) :: t()
+  defp reshuffle_deck(game) do
+    {discard_top, discard_pile} = List.pop_at(game.discard_pile, 0)
+    %{game | discard_pile: [discard_top], draw_pile: Enum.shuffle(discard_pile)}
+  end
+
+  @spec update_scoring_and_levels(t()) :: t()
+  defp update_scoring_and_levels(game = %{scoring: scoring, table: table, hands: hands}) do
+    scoring =
+      Map.new(scoring, fn {player, {level, score}} ->
+        hand = Map.get(hands, player, [])
+
+        hand_score =
+          hand
+          |> Stream.map(&Card.score/1)
+          |> Enum.sum()
+
+        score = score + hand_score
+
+        case table do
+          %{^player => _} ->
+            {player, {level + 1, score}}
+
+          _table ->
+            {player, {level, score}}
+        end
+      end)
+
+    %{game | current_stage: :score, scoring: scoring}
   end
 end
