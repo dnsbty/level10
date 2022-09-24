@@ -6,9 +6,30 @@ defmodule Level10.Reaper do
   games.
   """
 
+  use GenServer
+
   alias Level10.Games
   alias Level10.Games.GameSupervisor
   require Logger
+
+  @frequency 1000 * 60 * 60
+
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  end
+
+  @impl true
+  def init(state) do
+    schedule()
+    {:ok, state}
+  end
+
+  @impl true
+  def handle_info(:perform_reaping, state) do
+    perform_reaping()
+    schedule()
+    {:noreply, state}
+  end
 
   @doc """
   Deletes all inactive games.
@@ -23,4 +44,9 @@ defmodule Level10.Reaper do
     results = Task.await_many(deletion_tasks)
     Logger.info("Reaper deleted #{length(results)} inactive games")
   end
+
+  # Private
+
+  @spec schedule :: no_return
+  defp schedule, do: Process.send_after(self(), :perform_reaping, @frequency)
 end

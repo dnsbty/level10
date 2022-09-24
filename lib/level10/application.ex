@@ -20,6 +20,7 @@ defmodule Level10.Application do
       {Phoenix.PubSub, name: Level10.PubSub},
       Level10.Presence,
       Level10.Telemetry,
+      Level10.Reaper,
       Level10.TerminationMonitor,
       Level10.PushNotifications,
       Level10Web.Endpoint
