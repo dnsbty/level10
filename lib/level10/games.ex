@@ -63,6 +63,29 @@ defmodule Level10.Games do
   end
 
   @doc """
+  Returns the number of players currently connected to games.
+
+  This will not return players who may be currently on the home screen or in
+  the process of creating or joining a game.
+
+  ## Examples
+
+      iex> connected_player_count()
+      3
+
+  """
+  @spec connected_player_count :: non_neg_integer()
+  def connected_player_count do
+    join_codes = list_join_codes()
+
+    join_codes
+    |> Enum.map(fn join_code -> "game:#{join_code}" end)
+    |> Enum.map(&Presence.list/1)
+    |> Enum.map(&map_size/1)
+    |> Enum.sum()
+  end
+
+  @doc """
   Get the current count of active games in play.
   """
   @spec count() :: non_neg_integer()
@@ -575,7 +598,7 @@ defmodule Level10.Games do
   @spec list_join_codes :: list(Game.join_code())
   def list_join_codes do
     for {_, pid, _, _} <- Supervisor.which_children(GameSupervisor) do
-      Horde.Registry.keys(GameRegistry, pid)
+      GenServer.call(pid, :join_code, 5000)
     end
   end
 
@@ -710,7 +733,6 @@ defmodule Level10.Games do
 
     with :ok <- Phoenix.PubSub.subscribe(Level10.PubSub, topic),
          {:ok, _} <- Presence.track_player(game_code, player_id) do
-      # if player_id != :display, do: Presence.track_user(player_id, game_code)
       :ok
     end
   end

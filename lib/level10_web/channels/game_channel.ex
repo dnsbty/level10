@@ -10,6 +10,7 @@ defmodule Level10Web.GameChannel do
 
   def join("game:lobby", _params, socket) do
     with :ok <- check_app_version(socket.assigns.app_version) do
+      Logger.metadata(player_id: socket.assigns.player_id)
       {:ok, socket}
     end
   end
@@ -19,6 +20,7 @@ defmodule Level10Web.GameChannel do
 
     case Games.connect(join_code, player_id) do
       :ok ->
+        Logger.metadata(player_id: socket.assigns.player_id)
         send(self(), :after_join)
         {:ok, assign(socket, :join_code, join_code)}
 
@@ -33,6 +35,7 @@ defmodule Level10Web.GameChannel do
 
         case Games.join_game(join_code, player) do
           :ok ->
+            Logger.metadata(player_id: player_id)
             Logger.info(["Joined game ", join_code])
             send(self(), :after_join)
             {:ok, assign(socket, :join_code, join_code)}

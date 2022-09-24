@@ -162,6 +162,10 @@ defmodule Level10.Games.GameServer do
     end
   end
 
+  def handle_call(:join_code, _from, game) do
+    {:reply, game.join_code, game}
+  end
+
   def handle_call(:levels, _from, game) do
     {:reply, game.levels, game}
   end

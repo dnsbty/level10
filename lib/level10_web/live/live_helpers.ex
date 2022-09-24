@@ -16,6 +16,7 @@ defmodule Level10Web.LiveHelpers do
       name: session["user_name"]
     }
 
+    Logger.metadata(player_id: player.id)
     assign(socket, player: player)
   end
 

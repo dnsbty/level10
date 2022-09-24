@@ -7,21 +7,8 @@ defmodule Level10.Presence do
     otp_app: :level10,
     pubsub_server: Level10.PubSub
 
-  alias Level10.Games.{Game, Player}
-
-  @app_name "level10"
-
-  @doc """
-  Count all of the users present at a global level
-  """
-  @spec count :: non_neg_integer()
-  def count, do: list() |> map_size()
-
-  @doc """
-  List all of the users present at a global level
-  """
-  @spec list :: Phoenix.Presence.presences()
-  def list, do: list(@app_name)
+  alias Level10.Games.Game
+  alias Level10.Games.Player
 
   @doc """
   Returns whether or not the specified user is currently connected to the
@@ -33,15 +20,6 @@ defmodule Level10.Presence do
       [] -> false
       _ -> true
     end
-  end
-
-  @doc """
-  Track the presence of a user for use at a global level
-  """
-  @spec track_user(Player.id(), Game.join_code()) :: :ok | {:error, term()}
-  def track_user(player_id, join_code \\ nil) do
-    metadata = if is_nil(join_code), do: %{}, else: %{join_code: join_code}
-    track(self(), @app_name, player_id, metadata)
   end
 
   @doc """
