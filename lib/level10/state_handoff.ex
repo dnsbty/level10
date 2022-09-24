@@ -52,6 +52,11 @@ defmodule Level10.StateHandoff do
     GenServer.cast(__MODULE__, :prepare_for_shutdown)
   end
 
+  @spec size :: non_neg_integer
+  def size do
+    GenServer.call(__MODULE__, :size)
+  end
+
   # Server (Private)
 
   @doc false
@@ -91,6 +96,7 @@ defmodule Level10.StateHandoff do
       nil ->
         DeltaCrdt.put(Crdt, join_code, game)
         Logger.debug(fn -> "[StateHandoff] Added game #{join_code} to CRDT" end)
+        :telemetry.execute([:level10, :state_handoff, :added], %{}, %{join_code: join_code})
 
       _game ->
         Logger.debug(fn -> "[StateHandoff] Game #{join_code} already exists in the CRDT" end)
@@ -108,13 +114,20 @@ defmodule Level10.StateHandoff do
 
       state == :terminating ->
         Logger.debug(fn -> "[StateHandoff] Temporarily picked up game #{join_code}" end)
+        :telemetry.execute([:level10, :state_handoff, :added], %{}, %{join_code: join_code})
 
       true ->
         Logger.debug(fn -> "[StateHandoff] Picked up game #{join_code}" end)
         DeltaCrdt.delete(Crdt, join_code)
+        :telemetry.execute([:level10, :state_handoff, :pickup], %{}, %{join_code: join_code})
     end
 
     {:reply, game, state}
+  end
+
+  def handle_call(:size, _from, state) do
+    size = Crdt |> DeltaCrdt.to_map() |> map_size()
+    {:reply, size, state}
   end
 
   def handle_cast(:prepare_for_shutdown, _state) do
