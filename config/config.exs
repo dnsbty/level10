@@ -50,6 +50,16 @@ config :level10,
   app_bundle_identifier: "games.level10.Level10",
   app_min_version: "1.0"
 
+config :level10, Level10.PromEx,
+  disabled: false,
+  manual_metrics_start_delay: :no_delay,
+  drop_metrics_groups: [],
+  grafana: :disabled,
+  metrics_server: [
+    port: 9091,
+    path: "/metrics"
+  ]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"

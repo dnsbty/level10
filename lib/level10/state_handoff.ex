@@ -52,9 +52,16 @@ defmodule Level10.StateHandoff do
     GenServer.cast(__MODULE__, :prepare_for_shutdown)
   end
 
+  @doc """
+  Returns the number of games currently stored in the CRDT.
+  """
   @spec size :: non_neg_integer
   def size do
-    GenServer.call(__MODULE__, :size)
+    try do
+      GenServer.call(__MODULE__, :size)
+    catch
+      :exit, _ -> 0
+    end
   end
 
   # Server (Private)
@@ -114,7 +121,8 @@ defmodule Level10.StateHandoff do
 
       state == :terminating ->
         Logger.debug(fn -> "[StateHandoff] Temporarily picked up game #{join_code}" end)
-        :telemetry.execute([:level10, :state_handoff, :added], %{}, %{join_code: join_code})
+        event = [:level10, :state_handoff, :temporary_pickup]
+        :telemetry.execute(event, %{}, %{join_code: join_code})
 
       true ->
         Logger.debug(fn -> "[StateHandoff] Picked up game #{join_code}" end)

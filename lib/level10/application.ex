@@ -7,6 +7,7 @@ defmodule Level10.Application do
     topologies = Application.get_env(:level10, :cluster_topologies, [])
 
     children = [
+      Level10.PromEx,
       Level10.StateHandoff,
       {Horde.DynamicSupervisor,
        [

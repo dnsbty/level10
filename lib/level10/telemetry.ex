@@ -11,7 +11,6 @@ defmodule Level10.Telemetry do
 
   use Supervisor
   import Telemetry.Metrics
-  alias Level10.Telemetry.Measurements
 
   def start_link(arg) do
     Supervisor.start_link(__MODULE__, arg, name: __MODULE__)
@@ -19,7 +18,6 @@ defmodule Level10.Telemetry do
 
   def init(_arg) do
     children = [
-      {:telemetry_poller, measurements: periodic_measurements(), period: 10_000}
       # Add reporters as children of your supervision tree.
       # {Telemetry.Metrics.ConsoleReporter, metrics: metrics()}
     ]
@@ -29,11 +27,6 @@ defmodule Level10.Telemetry do
 
   def metrics do
     [
-      # Game Metrics
-      summary("level10.games.count"),
-      summary("level10.users.count"),
-      summary("level10.state_handoff.count"),
-
       # Phoenix Metrics
       summary("phoenix.endpoint.stop.duration",
         unit: {:native, :millisecond}
@@ -48,14 +41,6 @@ defmodule Level10.Telemetry do
       summary("vm.total_run_queue_lengths.total"),
       summary("vm.total_run_queue_lengths.cpu"),
       summary("vm.total_run_queue_lengths.io")
-    ]
-  end
-
-  defp periodic_measurements do
-    [
-      {Measurements, :dispatch_game_count, []},
-      {Measurements, :dispatch_user_count, []},
-      {Measurements, :dispatch_state_handoff_size, []}
     ]
   end
 end

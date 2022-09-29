@@ -3,6 +3,10 @@ app = "level10"
 kill_signal = "SIGTERM"
 kill_timeout = 5
 
+[metrics]
+port = 9091
+path = "/metrics"
+
 [env]
 
 [[services]]
