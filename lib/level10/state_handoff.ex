@@ -67,11 +67,9 @@ defmodule Level10.StateHandoff do
   """
   @spec size :: non_neg_integer
   def size do
-    try do
-      GenServer.call(__MODULE__, :size)
-    catch
-      :exit, _ -> 0
-    end
+    GenServer.call(__MODULE__, :size)
+  catch
+    :exit, _ -> 0
   end
 
   # Server (Private)

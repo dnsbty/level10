@@ -90,12 +90,10 @@ defmodule Level10.Games do
   """
   @spec count() :: non_neg_integer()
   def count do
-    try do
-      %{active: count} = Supervisor.count_children(GameSupervisor)
-      count
-    catch
-      :exit, _ -> 0
-    end
+    %{active: count} = Supervisor.count_children(GameSupervisor)
+    count
+  catch
+    :exit, _ -> 0
   end
 
   @doc """
@@ -601,13 +599,11 @@ defmodule Level10.Games do
   """
   @spec list_join_codes :: list(Game.join_code())
   def list_join_codes do
-    try do
-      for {_, pid, _, _} <- Supervisor.which_children(GameSupervisor) do
-        GenServer.call(pid, :join_code, 5000)
-      end
-    catch
-      :exit, _ -> []
+    for {_, pid, _, _} <- Supervisor.which_children(GameSupervisor) do
+      GenServer.call(pid, :join_code, 5000)
     end
+  catch
+    :exit, _ -> []
   end
 
   @doc """
