@@ -10,6 +10,8 @@ defmodule Level10.StateHandoff do
 
   alias Level10.StateHandoff.Crdt
 
+  @max_active_time 60 * 60
+
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
@@ -20,7 +22,7 @@ defmodule Level10.StateHandoff do
   Reset the current state of the CRDT
   """
   def clear do
-    GenServer.call(__MODULE__, :clear)
+    GenServer.cast(__MODULE__, :clear)
   end
 
   @doc """
@@ -53,6 +55,14 @@ defmodule Level10.StateHandoff do
   end
 
   @doc """
+  For some reason, games sometimes get stuck in the CRDT. This removes them if
+  they've been waiting to be picked up for an hour or more.
+  """
+  def reap do
+    GenServer.cast(__MODULE__, :reap)
+  end
+
+  @doc """
   Returns the number of games currently stored in the CRDT.
   """
   @spec size :: non_neg_integer
@@ -81,32 +91,24 @@ defmodule Level10.StateHandoff do
   end
 
   @doc false
-  def handle_call(:clear, _from, state) do
-    for {key, _} <- DeltaCrdt.to_map(Crdt) do
-      DeltaCrdt.delete(Crdt, key)
-    end
-
-    {:reply, :ok, state}
-  end
-
   def handle_call(:get, _from, state) do
     crdt = DeltaCrdt.to_map(Crdt)
     {:reply, crdt, state}
   end
 
   def handle_call({:handoff, join_code, game}, _from, state) do
-    Logger.debug(fn ->
+    Logger.info(
       "[StateHandoff] Adding game #{join_code} to the CRDT with current stage: #{game.current_stage}"
-    end)
+    )
 
     case DeltaCrdt.get(Crdt, join_code) do
       nil ->
-        DeltaCrdt.put(Crdt, join_code, game)
-        Logger.debug(fn -> "[StateHandoff] Added game #{join_code} to CRDT" end)
+        DeltaCrdt.put(Crdt, join_code, {game, NaiveDateTime.utc_now()})
+        Logger.info("[StateHandoff] Added game #{join_code} to CRDT")
         :telemetry.execute([:level10, :state_handoff, :added], %{}, %{join_code: join_code})
 
       _game ->
-        Logger.debug(fn -> "[StateHandoff] Game #{join_code} already exists in the CRDT" end)
+        Logger.info("[StateHandoff] Game #{join_code} already exists in the CRDT")
     end
 
     {:reply, :ok, state}
@@ -117,20 +119,22 @@ defmodule Level10.StateHandoff do
 
     cond do
       is_nil(game) ->
-        nil
+        {:reply, nil, state}
 
       state == :terminating ->
-        Logger.debug(fn -> "[StateHandoff] Temporarily picked up game #{join_code}" end)
+        Logger.info("[StateHandoff] Temporarily picked up game #{join_code}")
         event = [:level10, :state_handoff, :temporary_pickup]
         :telemetry.execute(event, %{}, %{join_code: join_code})
+        {game, _} = game
+        {:reply, game, state}
 
       true ->
-        Logger.debug(fn -> "[StateHandoff] Picked up game #{join_code}" end)
+        Logger.info("[StateHandoff] Picked up game #{join_code}")
         DeltaCrdt.delete(Crdt, join_code)
         :telemetry.execute([:level10, :state_handoff, :pickup], %{}, %{join_code: join_code})
+        {game, _} = game
+        {:reply, game, state}
     end
-
-    {:reply, game, state}
   end
 
   def handle_call(:size, _from, state) do
@@ -138,8 +142,29 @@ defmodule Level10.StateHandoff do
     {:reply, size, state}
   end
 
+  @doc false
+  def handle_cast(:clear, state) do
+    for {key, _} <- DeltaCrdt.to_map(Crdt) do
+      DeltaCrdt.delete(Crdt, key)
+    end
+
+    {:noreply, state}
+  end
+
   def handle_cast(:prepare_for_shutdown, _state) do
     {:noreply, :terminating}
+  end
+
+  def handle_cast(:reap, state) do
+    oldest_active_time =
+      NaiveDateTime.utc_now() |> NaiveDateTime.add(@max_active_time * -1, :second)
+
+    for {join_code, {_, inserted_at}} <- DeltaCrdt.to_map(Crdt),
+        :lt == NaiveDateTime.compare(inserted_at, oldest_active_time) do
+      DeltaCrdt.delete(Crdt, join_code)
+    end
+
+    {:noreply, state}
   end
 
   # Handle the message received when a new node joins the cluster

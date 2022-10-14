@@ -5,7 +5,7 @@ defmodule Level10.PromEx do
 
   use PromEx, otp_app: :level10
 
-  alias PromEx.Plugins
+  # alias PromEx.Plugins
 
   @impl true
   def plugins do

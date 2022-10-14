@@ -10,6 +10,7 @@ defmodule Level10.Reaper do
 
   alias Level10.Games
   alias Level10.Games.GameSupervisor
+  alias Level10.StateHandoff
   require Logger
 
   @frequency 1000 * 60 * 60
@@ -41,6 +42,7 @@ defmodule Level10.Reaper do
         Task.async(Games, :delete_game, [pid])
       end
 
+    StateHandoff.reap()
     results = Task.await_many(deletion_tasks)
     Logger.info("Reaper deleted #{length(results)} inactive games")
   end
