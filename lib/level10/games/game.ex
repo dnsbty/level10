@@ -72,8 +72,8 @@ defmodule Level10.Games.Game do
       iex> add_to_table(%Game{}, "1cb7cd3d-a385-4c4e-a9cf-c5477cf52ecd", "5a4ef76d-a260-4a17-8b54-bc1fa7159607", 1, [%Card{}])
       {:ok, %Game{}}
   """
-  @spec add_to_table(t(), Player.id(), Player.id(), non_neg_integer(), Game.cards()) ::
-          t() | :invalid_group | :level_incomplete | :needs_to_draw | :not_your_turn
+  @spec add_to_table(t(), Player.id(), Player.id(), non_neg_integer(), cards()) ::
+          {:ok, t()} | :invalid_group | :level_incomplete | :needs_to_draw | :not_your_turn
   def add_to_table(game, current_player_id, group_player_id, position, cards_to_add) do
     # get the level requirement for the specified group
     requirement = group_requirement(game, group_player_id, position)
@@ -180,7 +180,7 @@ defmodule Level10.Games.Game do
   Draw a card from the draw pile or discard pile into the current player's hand
   """
   @spec draw_card(t(), Player.id(), :draw_pile | :discard_pile) ::
-          {:ok | :already_drawn | :empty_discard_pile | :not_your_turn | :skip, t()}
+          t() | :already_drawn | :empty_discard_pile | :not_your_turn | :skip
   def draw_card(game, player_id, pile)
 
   def draw_card(%{current_player: %{id: current_id}}, player_id, _)
@@ -290,7 +290,9 @@ defmodule Level10.Games.Game do
       levels: %{},
       players: [player],
       players_ready: MapSet.new(),
+      remaining_players: MapSet.new(),
       scoring: %{},
+      skipped_players: MapSet.new(),
       settings: settings,
       table: %{},
       updated_at: NaiveDateTime.utc_now()
@@ -633,7 +635,7 @@ defmodule Level10.Games.Game do
     end
   end
 
-  @spec increment_current_round(t()) :: t()
+  @spec increment_current_round(t()) :: {:ok, t()} | :game_over
   defp increment_current_round(game)
 
   defp increment_current_round(%{current_stage: :finish}) do

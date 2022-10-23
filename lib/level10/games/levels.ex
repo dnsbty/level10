@@ -8,7 +8,7 @@ defmodule Level10.Games.Levels do
 
   @type type :: :color | :set | :run
   @type count :: non_neg_integer()
-  @type group :: {group(), count()}
+  @type group :: {type(), count()}
   @type level :: list(group())
 
   @levels %{

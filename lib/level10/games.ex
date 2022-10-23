@@ -274,7 +274,7 @@ defmodule Level10.Games do
       ]
 
   """
-  @spec format_scores(Game.scoring()) :: map()
+  @spec format_scores(Game.scoring()) :: list(map)
   def format_scores(scoring) do
     for {player_id, {level, points}} <- scoring do
       %{player_id: player_id, level: level, points: points}

@@ -16,8 +16,7 @@ var isIosDevice = () => {
 };
 
 var smsLink = (message) => {
-  var msg = encodeURIComponent(message),
-    href;
+  var msg = encodeURIComponent(message);
   return isIosDevice ? "sms:&body=" + msg : "sms:?body=" + msg;
 };
 

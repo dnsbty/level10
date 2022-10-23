@@ -37,6 +37,7 @@ defmodule Level10.Games.GameServer do
   def init({join_code, player, settings}) do
     Process.flag(:trap_exit, true)
     Process.put(:"$initial_call", {Game, :new, 2})
+    Logger.metadata(game_id: join_code)
 
     {:ok, {join_code, player, settings}, {:continue, :load_state}}
   end
@@ -375,7 +376,7 @@ defmodule Level10.Games.GameServer do
     broadcast(game.join_code, :game_finished, player)
   end
 
-  @spec broadcast_round_complete(Game.t(), Player.id()) :: Game.t()
+  @spec broadcast_round_complete(Game.t(), Player.id()) :: :ok | {:error, term()}
   defp broadcast_round_complete(game, player_id) do
     player = Enum.find(game.players, &(&1.id == player_id))
     broadcast(game.join_code, :round_finished, player)

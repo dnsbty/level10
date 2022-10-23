@@ -49,6 +49,6 @@ defmodule Level10.Reaper do
 
   # Private
 
-  @spec schedule :: no_return
+  @spec schedule :: reference
   defp schedule, do: Process.send_after(self(), :perform_reaping, @frequency)
 end
