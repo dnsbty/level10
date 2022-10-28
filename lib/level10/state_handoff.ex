@@ -83,7 +83,7 @@ defmodule Level10.StateHandoff do
     :net_kernel.monitor_nodes(true, node_type: :visible)
 
     # connect to the CRDTs on the other nodes
-    update_neighbours()
+    update_neighbors()
 
     {:ok, :running}
   end
@@ -167,19 +167,20 @@ defmodule Level10.StateHandoff do
 
   # Handle the message received when a new node joins the cluster
   def handle_info({:nodeup, _node, _node_type}, state) do
-    update_neighbours()
+    update_neighbors()
     {:noreply, state}
   end
 
   # Handle the message received when a node leaves the cluster
   def handle_info({:nodedown, _node, _node_type}, state) do
-    update_neighbours()
+    update_neighbors()
     {:noreply, state}
   end
 
-  defp update_neighbours do
-    neighbours = for node <- Node.list(), do: {Crdt, node}
-    Logger.debug(fn -> "[StateHandoff] Setting neighbours to #{inspect(neighbours)}" end)
-    DeltaCrdt.set_neighbours(Crdt, neighbours)
+  @spec update_neighbors :: :ok
+  defp update_neighbors do
+    neighbors = for node <- Node.list(), do: {Crdt, node}
+    Logger.debug(fn -> "[StateHandoff] Setting neighbors to #{inspect(neighbors)}" end)
+    DeltaCrdt.set_neighbours(Crdt, neighbors)
   end
 end
