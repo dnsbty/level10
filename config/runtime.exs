@@ -67,6 +67,27 @@ case config_env() do
         password: admin_password
       ]
 
+    config :logger,
+      level: :info,
+      backends: [LogflareLogger.HttpBackend]
+
+    logflare_api_key =
+      System.get_env("LOGFLARE_API_KEY") ||
+        raise """
+        environment variable LOGFLARE_API_KEY is missing.
+        """
+
+    logflare_source_id =
+      System.get_env("LOGFLARE_SOURCE_ID") ||
+        raise """
+        environment variable LOGFLARE_SOURCE_ID is missing.
+        """
+
+    config :logflare_logger_backend,
+      api_key: logflare_api_key,
+      source_id: logflare_source_id,
+      metadata: :all
+
   :dev ->
     disabled = is_nil(key) || is_nil(key_identifier) || is_nil(team_id)
 

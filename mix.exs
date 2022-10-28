@@ -50,6 +50,7 @@ defmodule Level10.MixProject do
       {:horde, "~> 0.8.4"},
       {:jason, "~> 1.2"},
       {:libcluster, "~> 3.2"},
+      {:logflare_logger_backend, "~> 0.11.0"},
       {:phoenix, "~> 1.6"},
       {:phoenix_html, "~> 3.2"},
       {:phoenix_live_dashboard, "~> 0.6"},
