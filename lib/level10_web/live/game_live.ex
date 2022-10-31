@@ -91,20 +91,24 @@ defmodule Level10Web.GameLive do
       hand = socket.assigns.hand -- cards_to_add
       {:noreply, assign(socket, hand: hand, selected_indexes: MapSet.new())}
     else
+      :invalid_group ->
+        {:noreply, flash_error(socket, "Those cards don't match the group silly 😋")}
+
+      :level_incomplete ->
+        message = "Finish up your own level before you worry about others 🤓"
+        {:noreply, flash_error(socket, message)}
+
+      :needs_to_draw ->
+        {:noreply, flash_error(socket, "You need to draw before you can do that 😂")}
+
+      :not_your_turn ->
+        {:noreply, flash_error(socket, "Watch it bud! It's not your turn yet 😠")}
+
       [] ->
         {:noreply, socket}
 
-      error ->
-        message =
-          case error do
-            :invalid_group -> "Those cards don't match the group silly 😋"
-            :level_incomplete -> "Finish up your own level before you worry about others 🤓"
-            :needs_to_draw -> "You need to draw before you can do that 😂"
-            :not_your_turn -> "Watch it bud! It's not your turn yet 😠"
-            _ -> "I'm not sure what you just did, but I don't like it 🤨"
-          end
-
-        {:noreply, flash_error(socket, message)}
+      _ ->
+        {:noreply, flash_error(socket, "I'm not sure what you just did, but I don't like it 🤨")}
     end
   end
 
