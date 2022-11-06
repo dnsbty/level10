@@ -20,7 +20,7 @@ defmodule Level10Web.GameChannel do
 
     case Games.connect(join_code, player_id) do
       :ok ->
-        Logger.metadata(player_id: socket.assigns.player_id)
+        Logger.metadata(game_id: join_code, player_id: socket.assigns.player_id)
         send(self(), :after_join)
         {:ok, assign(socket, :join_code, join_code)}
 
@@ -35,7 +35,7 @@ defmodule Level10Web.GameChannel do
 
         case Games.join_game(join_code, player) do
           :ok ->
-            Logger.metadata(player_id: player_id)
+            Logger.metadata(game_id: join_code, player_id: player_id)
             Logger.info(["Joined game ", join_code])
             send(self(), :after_join)
             {:ok, assign(socket, :join_code, join_code)}
@@ -111,8 +111,8 @@ defmodule Level10Web.GameChannel do
       :not_your_turn ->
         {:reply, {:error, :not_your_turn}, socket}
 
-      :need_to_draw ->
-        {:reply, {:error, :need_to_draw}, socket}
+      :needs_to_draw ->
+        {:reply, {:error, :needs_to_draw}, socket}
     end
   end
 
@@ -292,9 +292,6 @@ defmodule Level10Web.GameChannel do
         }
 
         push(socket, "latest_state", state)
-
-      other ->
-        Logger.warn("After-join hasn't been implemented for stage #{other}")
     end
 
     assigns = %{is_creator: is_creator, players: game.players, skip_next_player: skip_next_player}
@@ -475,7 +472,7 @@ defmodule Level10Web.GameChannel do
     Games.discard_card(join_code, player_id, card)
   end
 
-  @spec parse_version(String.t()) :: {:ok, {integer, integer}} | :invalid
+  @spec parse_version(String.t()) :: {integer, integer} | :invalid
   defp parse_version(version) do
     with true <- is_binary(version),
          [major, minor] <- String.split(version, "."),

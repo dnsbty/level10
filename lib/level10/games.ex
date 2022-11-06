@@ -99,7 +99,7 @@ defmodule Level10.Games do
   @doc """
   Create a new game with the player named as its creator.
   """
-  @spec create_game(Player.t(), Settings.t()) :: {:ok, Game.join_code(), Player.id()} | :error
+  @spec create_game(Player.t(), Settings.t()) :: {:ok, Game.join_code()} | :error
   def create_game(player, settings) do
     do_create_game(player, settings, @max_creation_attempts)
   end

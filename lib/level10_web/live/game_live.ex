@@ -144,7 +144,7 @@ defmodule Level10Web.GameLive do
         message = "What are you up to? You can't discard when it's not your turn... 🕵️‍♂️"
         {:noreply, flash_error(socket, message)}
 
-      :need_to_draw ->
+      :needs_to_draw ->
         message = "You can't discard when you haven't drawn yet. Refresh the page and try again 🤓"
         {:noreply, flash_error(socket, message)}
     end
