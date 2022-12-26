@@ -7,10 +7,10 @@ defmodule Level10Web.Router do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
+    plug :put_root_layout, {Level10Web.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug Level10Web.FetchUser
-    plug :put_root_layout, {Level10Web.LayoutView, "root.html"}
   end
 
   pipeline :api do

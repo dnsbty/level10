@@ -145,7 +145,7 @@ defmodule Level10.Games.Game do
   @spec delete_player(t(), Player.id()) :: {:ok, t()} | :already_started | :empty_game
   def delete_player(game, player_id)
 
-  def delete_player(game = %{current_stage: :lobby, players: players}, player_id) do
+  def delete_player(%{current_stage: :lobby, players: players} = game, player_id) do
     game = update(game, players: Enum.filter(players, &(&1.id != player_id)))
     if game.players == [], do: :empty_game, else: {:ok, game}
   end
@@ -167,7 +167,7 @@ defmodule Level10.Games.Game do
     :needs_to_draw
   end
 
-  def discard(game = %{current_player: player, discard_pile: pile, hands: hands}, card) do
+  def discard(%{current_player: player, discard_pile: pile, hands: hands} = game, card) do
     hands = Map.update!(hands, player.id, &List.delete(&1, card))
     pile = [card | pile]
 
@@ -192,7 +192,7 @@ defmodule Level10.Games.Game do
     :already_drawn
   end
 
-  def draw_card(game = %{draw_pile: pile, hands: hands}, player_id, :draw_pile) do
+  def draw_card(%{draw_pile: pile, hands: hands} = game, player_id, :draw_pile) do
     case pile do
       [card | pile] ->
         hands = Map.update!(hands, player_id, &[card | &1])
@@ -354,7 +354,7 @@ defmodule Level10.Games.Game do
   @spec put_player(t(), Player.t()) :: {:ok, t()} | :already_started
   def put_player(game, player)
 
-  def put_player(game = %{current_stage: :lobby, players: players}, player) do
+  def put_player(%{current_stage: :lobby, players: players} = game, player) do
     {:ok, update(game, players: [player | players])}
   end
 
@@ -391,7 +391,7 @@ defmodule Level10.Games.Game do
   Get the number of players remaining in the game.
   """
   @spec remaining_player_count(t()) :: pos_integer()
-  def remaining_player_count(game = %{remaining_players: nil}), do: length(game.players)
+  def remaining_player_count(%{remaining_players: nil} = game), do: length(game.players)
   def remaining_player_count(%{remaining_players: remaining}), do: MapSet.size(remaining)
 
   @doc """
@@ -414,7 +414,7 @@ defmodule Level10.Games.Game do
   remaining, the game's stage will also be changed to `:finish`.
   """
   @spec remove_player(t(), Player.id()) :: t()
-  def remove_player(game = %{remaining_players: remaining}, player_id) do
+  def remove_player(%{remaining_players: remaining} = game, player_id) do
     remaining_players = MapSet.delete(remaining, player_id)
 
     # Also remove the player from the list of players that are ready so that
@@ -580,7 +580,7 @@ defmodule Level10.Games.Game do
   defp clear_table(game), do: update(game, table: %{})
 
   @spec deal_hands(t()) :: t()
-  defp deal_hands(game = %{draw_pile: deck, players: players}) do
+  defp deal_hands(%{draw_pile: deck, players: players} = game) do
     {hands, deck} =
       Enum.reduce(players, {%{}, deck}, fn %{id: player_id}, {hands, deck} ->
         if player_id in game.remaining_players do
@@ -642,11 +642,11 @@ defmodule Level10.Games.Game do
     :game_over
   end
 
-  defp increment_current_round(game = %{current_stage: :lobby}) do
+  defp increment_current_round(%{current_stage: :lobby} = game) do
     {:ok, update(game, current_round: 1, current_stage: :play, current_turn: 0)}
   end
 
-  defp increment_current_round(game = %{current_round: current_round}) do
+  defp increment_current_round(%{current_round: current_round} = game) do
     {:ok, update(game, current_round: current_round + 1, current_turn: 0)}
   end
 
@@ -686,7 +686,7 @@ defmodule Level10.Games.Game do
   end
 
   @spec put_empty_scores(t()) :: t()
-  defp put_empty_scores(game = %{players: players}) do
+  defp put_empty_scores(%{players: players} = game) do
     update(game, scoring: Map.new(players, &{&1.id, {1, 0}}))
   end
 
@@ -696,7 +696,7 @@ defmodule Level10.Games.Game do
   end
 
   @spec put_remaining_players(t()) :: t()
-  defp put_remaining_players(game = %{players: players}) do
+  defp put_remaining_players(%{players: players} = game) do
     player_ids = Enum.map(players, & &1.id)
     remaining = MapSet.new(player_ids)
     update(game, remaining_players: remaining)
@@ -715,13 +715,13 @@ defmodule Level10.Games.Game do
   end
 
   @spec update_levels(t()) :: t()
-  defp update_levels(game = %{scoring: scores}) do
+  defp update_levels(%{scoring: scores} = game) do
     levels = for {player_id, {level, _}} <- scores, do: {player_id, level}, into: %{}
     update(game, levels: levels)
   end
 
   @spec put_new_discard(Game.t()) :: Game.t()
-  defp put_new_discard(game = %{draw_pile: [top_card | rest]}) do
+  defp put_new_discard(%{draw_pile: [top_card | rest]} = game) do
     update(game, discard_pile: [top_card], draw_pile: rest)
   end
 
@@ -732,7 +732,7 @@ defmodule Level10.Games.Game do
   end
 
   @spec update_scoring_and_levels(t()) :: t()
-  defp update_scoring_and_levels(game = %{scoring: scoring, table: table, hands: hands}) do
+  defp update_scoring_and_levels(%{scoring: scoring, table: table, hands: hands} = game) do
     scoring =
       Map.new(scoring, fn {player, {level, score}} ->
         hand = Map.get(hands, player, [])

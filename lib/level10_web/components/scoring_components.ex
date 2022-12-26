@@ -1,5 +1,9 @@
-defmodule Level10Web.ScoringView do
-  use Level10Web, :view
+defmodule Level10Web.ScoringComponents do
+  @moduledoc """
+  Provides UI components for the score screen.
+  """
+
+  use Phoenix.Component
 
   @spec button_text(map()) :: String.t()
   def button_text(%{finished: true}), do: "End Game"

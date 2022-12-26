@@ -395,7 +395,7 @@ defmodule Level10.Games.Card do
     put_wilds_in_run(remaining, 0, [card | run])
   end
 
-  defp put_wilds_in_run([card | remaining], wild_count, run = [last | _]) do
+  defp put_wilds_in_run([card | remaining], wild_count, [last | _] = run) do
     last_value = numeric_value(last.value)
     value = numeric_value(card.value)
 

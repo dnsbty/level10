@@ -4,15 +4,14 @@ defmodule Level10Web.LobbyLive do
   well as see the players that are currently in the same game lobby.
   """
 
-  use Phoenix.LiveView, layout: {Level10Web.LayoutView, "live.html"}
-  require Logger
+  use Level10Web, :live_view
   import Level10Web.LiveHelpers
-
   alias Level10.Games
   alias Level10.Games.Settings
-  alias Level10Web.LobbyView
-  alias Level10Web.Router.Helpers, as: Routes
+  alias Level10Web.LobbyComponents
+  require Logger
 
+  @impl true
   def mount(_params, session, socket) do
     socket = fetch_player(socket, session)
 
@@ -29,11 +28,12 @@ defmodule Level10Web.LobbyLive do
     {:ok, assign(socket, initial_assigns)}
   end
 
-  def handle_params(_params, _url, socket = %{assigns: %{live_action: :none}}) do
+  @impl true
+  def handle_params(_params, _url, %{assigns: %{live_action: :none}} = socket) do
     {:noreply, socket}
   end
 
-  def handle_params(params, _url, socket = %{assigns: %{live_action: :wait}}) do
+  def handle_params(params, _url, %{assigns: %{live_action: :wait}} = socket) do
     case params do
       %{"join_code" => join_code} ->
         player_id = socket.assigns.player.id
@@ -58,15 +58,12 @@ defmodule Level10Web.LobbyLive do
     {:noreply, assign(socket, join_code: join_code)}
   end
 
-  def render(assigns) do
-    LobbyView.render("#{assigns.live_action}.html", assigns)
-  end
-
+  @impl true
   def handle_event("cancel", _params, socket) do
     socket =
       socket
       |> assign(join_code: "")
-      |> push_patch(to: Routes.lobby_path(socket, :none))
+      |> push_patch(to: ~p"/")
 
     {:noreply, socket}
   end
@@ -80,7 +77,6 @@ defmodule Level10Web.LobbyLive do
         players = [player]
         presence = Games.list_presence(join_code)
         Games.subscribe(join_code, player.id)
-        new_url = Routes.lobby_path(socket, :wait, join_code)
 
         assigns = %{
           player: player,
@@ -93,7 +89,7 @@ defmodule Level10Web.LobbyLive do
         socket =
           socket
           |> assign(assigns)
-          |> push_patch(to: new_url)
+          |> push_patch(to: ~p"/wait/#{join_code}")
 
         {:noreply, socket}
 
@@ -120,14 +116,13 @@ defmodule Level10Web.LobbyLive do
         players = Games.get_players(join_code)
         presence = Games.list_presence(join_code)
         Games.subscribe(join_code, player.id)
-        new_url = Routes.lobby_path(socket, :wait, join_code)
 
         assigns = %{
           players: players,
           presence: presence
         }
 
-        {:noreply, socket |> assign(assigns) |> push_patch(to: new_url)}
+        {:noreply, socket |> assign(assigns) |> push_patch(to: ~p"/wait/#{join_code}")}
 
       error ->
         message =
@@ -157,7 +152,7 @@ defmodule Level10Web.LobbyLive do
         socket =
           socket
           |> assign(join_code: "")
-          |> push_patch(to: Routes.lobby_path(socket, :none))
+          |> push_patch(to: ~p"/")
 
         {:noreply, socket}
 
@@ -173,7 +168,7 @@ defmodule Level10Web.LobbyLive do
     end
   end
 
-  def handle_event("start_game", _params, socket = %{assigns: %{is_creator: false}}) do
+  def handle_event("start_game", _params, %{assigns: %{is_creator: false}} = socket) do
     Logger.warn("Non-creator tried to start game #{socket.assigns.join_code}")
     {:noreply, socket}
   end
@@ -199,10 +194,9 @@ defmodule Level10Web.LobbyLive do
     {:noreply, socket}
   end
 
+  @impl true
   def handle_info({:game_started, _}, socket) do
-    path = Routes.game_path(socket, :play, socket.assigns.join_code)
-
-    {:noreply, push_redirect(socket, to: path)}
+    {:noreply, push_redirect(socket, to: ~p"/game/#{socket.assigns.join_code}")}
   end
 
   def handle_info({:players_updated, players}, socket) do
@@ -224,5 +218,15 @@ defmodule Level10Web.LobbyLive do
 
   def handle_info(%{event: "presence_diff"}, socket) do
     {:noreply, assign(socket, presence: Games.list_presence(socket.assigns.join_code))}
+  end
+
+  @impl true
+  def render(assigns) do
+    case assigns[:live_action] do
+      :create -> LobbyComponents.create(assigns)
+      :join -> LobbyComponents.join(assigns)
+      :none -> LobbyComponents.lobby(assigns)
+      :wait -> LobbyComponents.wait(assigns)
+    end
   end
 end

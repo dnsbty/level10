@@ -3,12 +3,11 @@ defmodule Level10Web.ScoringLive do
   LiveView for displaying scores between rounds and at the end of the game.
   """
 
-  use Phoenix.LiveView, layout: {Level10Web.LayoutView, "live.html"}
+  use Level10Web, :live_view
   import Level10Web.LiveHelpers
 
-  alias Level10.{Games, Games.Game}
-  alias Level10Web.Router.Helpers, as: Routes
-  alias Level10Web.ScoringView
+  alias Level10.Games
+  alias Level10.Games.Game
 
   def mount(params, session, socket) do
     socket = fetch_player(socket, session)
@@ -48,10 +47,6 @@ defmodule Level10Web.ScoringLive do
     end
   end
 
-  def render(assigns) do
-    ScoringView.render("index.html", assigns)
-  end
-
   def handle_event("cancel_leave", _params, socket) do
     {:noreply, assign(socket, confirm_leave: false)}
   end
@@ -73,7 +68,7 @@ defmodule Level10Web.ScoringLive do
     {:noreply, assign(socket, confirm_leave: true)}
   end
 
-  def handle_event("mark_ready", _params, socket = %{assigns: %{finished: true}}) do
+  def handle_event("mark_ready", _params, %{assigns: %{finished: true}} = socket) do
     %{join_code: join_code, player_id: player_id} = socket.assigns
     Games.mark_player_ready(join_code, player_id)
     {:noreply, push_redirect(socket, to: "/")}
@@ -108,9 +103,29 @@ defmodule Level10Web.ScoringLive do
 
   # Private
 
+  @spec button_text(map()) :: String.t()
+  defp button_text(%{finished: true}), do: "End Game"
+  defp button_text(%{starting: true}), do: "Starting..."
+  defp button_text(_), do: "Next Round"
+
+  @spec level(Game.scoring(), Player.id()) :: String.t()
+  defp level(scores, player_id) do
+    {level, _} = scores[player_id]
+    if level == 11, do: " 🏆", else: " (#{level})"
+  end
+
   @spec redirect_to_game(Socket.t(), Game.join_code()) :: Socket.t()
   defp redirect_to_game(socket, join_code) do
-    path = Routes.game_path(socket, :play, join_code)
-    push_redirect(socket, to: path)
+    push_redirect(socket, to: ~p"/game/#{join_code}")
   end
+
+  @spec score(Game.scoring(), Player.id()) :: non_neg_integer()
+  defp score(scores, player_id) do
+    {_, score} = scores[player_id]
+    score
+  end
+
+  @spec winner_text(Player.t(), Player.id()) :: String.t()
+  defp winner_text(%{id: player_id}, player_id), do: "You win!"
+  defp winner_text(winner, _), do: "#{winner.name} wins"
 end

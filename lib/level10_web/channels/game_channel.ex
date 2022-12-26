@@ -91,7 +91,7 @@ defmodule Level10Web.GameChannel do
     end
   end
 
-  def handle_in("discard", params = %{"card" => card}, socket) do
+  def handle_in("discard", %{"card" => card} = params, socket) do
     %{join_code: join_code, player_id: player_id} = socket.assigns
 
     with %Card{} = card <- Card.from_json(card),

@@ -17,13 +17,17 @@ defmodule Level10Web.UserSocket do
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
   @impl true
-  def connect(params = %{"token" => token}, socket, _connect_info) do
+  def connect(%{"token" => token} = params, socket, _connect_info) do
     with {:ok, player_id} <- validate_token(socket, token) do
       Logger.debug(fn -> ["Socket connected for player_id ", player_id] end)
-      socket = assign(socket, :player_id, player_id)
-      socket = assign(socket, :device_token, params["device"])
-      socket = assign(socket, :app_version, params["app_version"])
-      socket = assign(socket, :build_number, params["build_number"])
+
+      socket =
+        socket
+        |> assign(:player_id, player_id)
+        |> assign(:device_token, params["device"])
+        |> assign(:app_version, params["app_version"])
+        |> assign(:build_number, params["build_number"])
+
       {:ok, socket}
     end
   end

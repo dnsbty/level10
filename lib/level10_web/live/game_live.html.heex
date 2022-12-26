@@ -2,7 +2,7 @@
   <!-- Player Display -->
   <div class="my-8">
     <%= for player <- @players, MapSet.member?(@remaining_players, player.id) do %>
-      <div class="flex flex-row items-center ml-4 mr-2 mb-2 <%= player_opacity(player.id, @turn.id) %>">
+      <div class={"flex flex-row items-center ml-4 mr-2 mb-2 #{player_opacity(player.id, @turn.id)}"}>
         <%= if player.id in Map.keys(@presence) do %>
           <div class="text-sm text-green-500 mr-2 cursor-default" title="online">
             ●
@@ -37,12 +37,12 @@
         <% else %>
           <div class="flex flex-grow content-center flex-wrap">
             <%= for {group, position} <- Enum.with_index(@levels[player.id]) do %>
-              <div phx-click="add_to_table" onclick="" phx-value-player_id="<%= player.id %>" phx-value-position="<%= position %>" class="<%= if @has_completed_level && MapSet.size(@selected_indexes) > 0, do: "cursor-pointer " %>flex flex-wrap flex-1 bg-violet-900 mr-2 rounded-md p-1">
+              <div phx-click="add_to_table" onclick="" phx-value-player_id={player.id} phx-value-position={position} class={if @has_completed_level && MapSet.size(@selected_indexes) > 0, do: "cursor-pointer flex flex-wrap flex-1 bg-violet-900 mr-2 rounded-md p-1", else: "flex flex-wrap flex-1 bg-violet-900 mr-2 rounded-md p-1"}>
                 <p class="w-full text-violet-400 text-center text-xs mb-2"><%= level_group_name(group) %></p>
                 <div class="flex flex-row flex-1 text-violet-400">
                   <%= for card <- @table[player.id][position] do %>
                     <div class="flex-1 mr-1">
-                      <%= render_card(card) %>
+                      <GameComponents.card card={card} />
                     </div>
                   <% end %>
                 </div>
@@ -56,11 +56,12 @@
 
   <!-- Draw and Discard Piles -->
   <div class="grid grid-cols-5 gap-2 px-4 mb-8">
-    <div phx-click="draw_card" onclick="" phx-value-source="draw_pile" class="<%= unless @has_drawn_card, do: "cursor-pointer " %>col-start-2">
-      <%= render("card_back.html") %>
+    <div phx-click="draw_card" onclick="" phx-value-source="draw_pile" class={"#{unless @has_drawn_card, do: "cursor-pointer "}col-start-2"}>
+      <GameComponents.card_back />
     </div>
-    <div <%= discard_pile_action(@turn.id == @player_id, @has_drawn_card) %>onclick="" phx-value-source="discard_pile" class="<%= if MapSet.size(@selected_indexes) > 0 || !@has_drawn_card, do: "cursor-pointer " %>col-start-4 text-center <%= discard_styles(@discard_top) %> rounded-md">
-      <%= if is_nil(@discard_top), do: "Discard Pile", else: render_card(@discard_top) %>
+    <div phx-click={discard_pile_action(@turn.id == @player_id, @has_drawn_card)} onclick="" phx-value-source="discard_pile" class={"#{if MapSet.size(@selected_indexes) > 0 || !@has_drawn_card, do: "cursor-pointer "}col-start-4 text-center #{discard_styles(@discard_top)} rounded-md"}>
+      <span :if={is_nil(@discard_top)}>Discard Pile</span>
+      <GameComponents.card :if={!is_nil(@discard_top)} card={@discard_top} />
     </div>
   </div>
 
@@ -69,7 +70,7 @@
     <div class="flex content-center flex-wrap ml-4 mr-2 mb-4">
       <%= for {group, position} <- Enum.with_index(@player_level) do %>
         <%= if is_nil(@player_table[position]) do %>
-          <div phx-click="table_cards" onclick="" phx-value-position="<%= position %>" class="<%= if MapSet.size(@selected_indexes) > 0, do: "cursor-pointer " %>flex-1 mr-2 bg-violet-900 text-violet-400 text-center rounded-md py-8">
+          <div phx-click="table_cards" onclick="" phx-value-position={position} class={"#{if MapSet.size(@selected_indexes) > 0, do: "cursor-pointer "}flex-1 mr-2 bg-violet-900 text-violet-400 text-center rounded-md py-8"}>
             <%= level_group_name(group) %>
           </div>
         <% else %>
@@ -78,7 +79,7 @@
             <div class="flex flex-row flex-1 text-violet-400">
               <%= for card <- @player_table[position] do %>
                 <div class="flex-1 mr-1 ml-1">
-                  <%= render_card(card) %>
+                  <GameComponents.card card={card} />
                 </div>
               <% end %>
             </div>
@@ -91,8 +92,8 @@
   <!-- Player Hand -->
   <div class="grid grid-cols-5 gap-2 px-4">
     <%= for {card, position} <- Enum.with_index(@hand) do %>
-      <div phx-click="toggle_selected" onclick="" phx-value-position="<%= position %>" class="<%= if @has_drawn_card, do: "cursor-pointer " %>">
-        <%= render_card(card, MapSet.member?(@selected_indexes, position)) %>
+      <div phx-click="toggle_selected" onclick="" phx-value-position={position} class={if @has_drawn_card, do: "cursor-pointer"}>
+        <GameComponents.card card={card} selected={MapSet.member?(@selected_indexes, position)} />
       </div>
     <% end %>
   </div>
@@ -144,13 +145,13 @@
             <%= for player <- @players, MapSet.member?(@remaining_players, player.id), player.id != @player_id do %>
               <%= if player.id in @skipped_players do %>
                 <div class="mt-2">
-                  <button phx-click="discard" phx-value-player_id="<%= player.id %>" class="w-full flex justify-center py-2 px-4 border border-transparent text-md font-medium rounded-md text-gray-500 bg-violet-800 hover:bg-violet-900 hover:text-gray-600 focus:outline-none focus:border-violet-700 focus:shadow-outline-violet active:bg-violet-800 transition duration-150 ease-in-out">
+                  <button phx-click="discard" phx-value-player_id={player.id} class="w-full flex justify-center py-2 px-4 border border-transparent text-md font-medium rounded-md text-gray-500 bg-violet-800 hover:bg-violet-900 hover:text-gray-600 focus:outline-none focus:border-violet-700 focus:shadow-outline-violet active:bg-violet-800 transition duration-150 ease-in-out">
                     <%= player.name %>
                   </button>
                 </div>
               <% else %>
                 <div class="mt-2">
-                  <button phx-click="discard" phx-value-player_id="<%= player.id %>" class="w-full flex justify-center py-2 px-4 border border-transparent text-md font-medium rounded-md text-gray-300 bg-violet-700 hover:bg-violet-600 focus:outline-none focus:border-violet-700 focus:shadow-outline-violet active:bg-violet-800 transition duration-150 ease-in-out">
+                  <button phx-click="discard" phx-value-player_id={player.id} class="w-full flex justify-center py-2 px-4 border border-transparent text-md font-medium rounded-md text-gray-300 bg-violet-700 hover:bg-violet-600 focus:outline-none focus:border-violet-700 focus:shadow-outline-violet active:bg-violet-800 transition duration-150 ease-in-out">
                     <%= player.name %>
                   </button>
                 </div>

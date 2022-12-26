@@ -353,7 +353,7 @@ defmodule Level10.Games.GameServer do
 
   # Called when a SIGTERM is received to begin the handoff process for moving
   # game state to other nodes
-  def terminate(reason, game = %{join_code: join_code}) do
+  def terminate(reason, %{join_code: join_code} = game) do
     Logger.info("Terminating game #{join_code} with reason #{reason}")
     StateHandoff.handoff(join_code, game)
 

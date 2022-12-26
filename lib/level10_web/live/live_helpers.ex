@@ -4,7 +4,7 @@ defmodule Level10Web.LiveHelpers do
   act similar to plugs.
   """
 
-  import Phoenix.LiveView, only: [assign: 2]
+  import Phoenix.Component, only: [assign: 2]
   alias Level10.Games.Player
 
   @doc """

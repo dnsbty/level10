@@ -2,14 +2,16 @@ defmodule Level10Web.GameLive do
   @moduledoc """
   Live view for gameplay
   """
-  use Phoenix.LiveView, layout: {Level10Web.LayoutView, "live.html"}
+  use Level10Web, :live_view
   import Level10Web.LiveHelpers
+  alias Level10.Games
+  alias Level10.Games.Card
+  alias Level10.Games.Levels
+  alias Level10Web.GameComponents
   require Logger
 
-  alias Level10.Games
-  alias Games.{Card, Levels}
-  alias Level10Web.GameView
-  alias Level10Web.Router.Helpers, as: Routes
+  @happy_emoji ~w(🎉 😄 😎 🤩 🤑 🔥)
+  @sad_emoji ~w(💥 💩 😈 🥴 😧 😑 😡 🤬 😵 😩 😢 😭 😒 😔)
 
   def mount(params, session, socket) do
     socket = fetch_player(socket, session)
@@ -74,10 +76,6 @@ defmodule Level10Web.GameLive do
       %{__struct__: Phoenix.LiveView.Socket} = socket -> {:ok, socket}
       _ -> {:ok, push_redirect(socket, to: "/")}
     end
-  end
-
-  def render(assigns) do
-    GameView.render("game.html", assigns)
   end
 
   # Handle events sent from the frontend
@@ -150,7 +148,7 @@ defmodule Level10Web.GameLive do
     end
   end
 
-  def handle_event("draw_card", %{"source" => source}, socket = %{assigns: assigns}) do
+  def handle_event("draw_card", %{"source" => source}, %{assigns: assigns} = socket) do
     player_id = assigns.player_id
     source = atomic_source(source)
 
@@ -174,12 +172,10 @@ defmodule Level10Web.GameLive do
 
   def handle_event("show_scores", _params, socket) do
     %{join_code: join_code, player_id: player_id} = socket.assigns
-    path = Routes.scoring_path(socket, :display, join_code, player_id: player_id)
-
-    {:noreply, push_redirect(socket, to: path)}
+    {:noreply, push_redirect(socket, to: ~p"/scores/#{join_code}?player_id=#{player_id}")}
   end
 
-  def handle_event("table_cards", %{"position" => position}, socket = %{assigns: assigns}) do
+  def handle_event("table_cards", %{"position" => position}, %{assigns: assigns} = socket) do
     cards_to_table = selected_cards(socket)
 
     with {position, ""} <- Integer.parse(position),
@@ -266,6 +262,18 @@ defmodule Level10Web.GameLive do
 
   # Private Functions
 
+  @spec atomic_source(String.t()) :: :draw_pile | :discard_pile
+  defp atomic_source("draw_pile"), do: :draw_pile
+  defp atomic_source("discard_pile"), do: :discard_pile
+
+  @spec complete_emoji(Game.table(), Player.id()) :: String.t()
+  defp complete_emoji(table, player_id) do
+    case table[player_id] do
+      nil -> Enum.random(@sad_emoji)
+      _ -> Enum.random(@happy_emoji)
+    end
+  end
+
   @spec discard(Card.t(), map(), map()) ::
           :ok
           | {:already_skipped, Player.t()}
@@ -302,6 +310,19 @@ defmodule Level10Web.GameLive do
     Games.discard_card(assigns.join_code, assigns.player_id, card)
   end
 
+  @spec discard_pile_action(boolean(), boolean()) :: String.t()
+  defp discard_pile_action(is_player_turn, has_drawn_card)
+  defp discard_pile_action(false, _), do: ""
+  defp discard_pile_action(true, true), do: "discard"
+  defp discard_pile_action(true, false), do: "draw_card"
+
+  @spec discard_styles(Card.t() | nil) :: String.t()
+  defp discard_styles(%Card{}), do: ""
+
+  defp discard_styles(nil) do
+    "text-xs py-5 border border-violet-400 text-violet-400"
+  end
+
   @spec empty_player_table(Levels.level()) :: Game.player_table()
   defp empty_player_table(level) do
     for index <- 0..(length(level) - 1), into: %{}, do: {index, nil}
@@ -312,6 +333,19 @@ defmodule Level10Web.GameLive do
     put_flash(socket, :error, message)
   end
 
+  @spec level_group_name(Levels.level()) :: String.t()
+  defp level_group_name({:set, count}), do: "Set of #{count}"
+  defp level_group_name({:run, count}), do: "Run of #{count}"
+  defp level_group_name({:color, count}), do: "#{count} of one Color"
+
+  @spec player_opacity(String.t(), String.t()) :: String.t()
+  defp player_opacity(player_id, player_id), do: "opacity-100"
+  defp player_opacity(_, _), do: "opacity-50"
+
+  @spec round_winner(Player.t(), Player.id()) :: String.t()
+  defp round_winner(%{id: player_id}, player_id), do: "You"
+  defp round_winner(%{name: name}, _), do: name
+
   @spec selected_cards(Socket.t()) :: Game.cards()
   defp selected_cards(%{assigns: %{hand: hand, selected_indexes: indexes}}) do
     indexes
@@ -319,12 +353,8 @@ defmodule Level10Web.GameLive do
     |> Enum.map(&Enum.at(hand, &1))
   end
 
-  @spec atomic_source(String.t()) :: :draw_pile | :discard_pile
-  defp atomic_source("draw_pile"), do: :draw_pile
-  defp atomic_source("discard_pile"), do: :discard_pile
-
   @spec toggle_selected(Socket.t(), non_neg_integer()) :: Socket.t()
-  defp toggle_selected(socket = %{assigns: %{selected_indexes: indexes}}, position) do
+  defp toggle_selected(%{assigns: %{selected_indexes: indexes}} = socket, position) do
     selected_indexes =
       if MapSet.member?(indexes, position) do
         MapSet.delete(indexes, position)

@@ -1,13 +1,13 @@
 defmodule Level10Web.DisplayLive do
   @moduledoc false
 
-  use Phoenix.LiveView, layout: {Level10Web.LayoutView, "display.html"}
+  use Level10Web, :verified_routes
+  use Phoenix.LiveView, layout: {Level10Web.Layouts, :display}
   require Logger
 
   alias Level10.Games
   alias Games.{Game, Levels}
-  alias Level10Web.DisplayView
-  alias Level10Web.Router.Helpers, as: Routes
+  alias Level10Web.DisplayComponents
 
   @impl true
   def mount(_params, _session, socket) do
@@ -17,9 +17,7 @@ defmodule Level10Web.DisplayLive do
 
   @impl true
   def handle_event("begin_observing", _params, socket) do
-    %{join_code: join_code} = socket.assigns
-    path = Routes.display_path(socket, :observe, join_code)
-    {:noreply, push_patch(socket, to: path)}
+    {:noreply, push_patch(socket, to: ~p"/display/#{socket.assigns.join_code}")}
   end
 
   def handle_event("validate", %{"game" => info}, socket) do
@@ -142,10 +140,10 @@ defmodule Level10Web.DisplayLive do
   @impl true
   def render(assigns) do
     case assigns[:stage] do
-      :join -> DisplayView.render("join.html", assigns)
-      :lobby -> DisplayView.render("lobby.html", assigns)
-      :play -> DisplayView.render("play.html", assigns)
-      :score -> DisplayView.render("score.html", assigns)
+      :join -> DisplayComponents.join(assigns)
+      :lobby -> DisplayComponents.lobby(assigns)
+      :play -> DisplayComponents.play(assigns)
+      :score -> DisplayComponents.score(assigns)
     end
   end
 end

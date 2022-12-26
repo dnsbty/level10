@@ -141,7 +141,7 @@ defmodule Level10.Games.Levels do
     if next_value(value) == next_value, do: valid_run?(next_value, rest, 0), else: false
   end
 
-  defp valid_run?(previous_value, cards = [%{value: value} | rest], wild_count) do
+  defp valid_run?(previous_value, [%{value: value} | rest] = cards, wild_count) do
     case next_value(previous_value) do
       ^value -> valid_run?(value, rest, wild_count)
       next_value -> valid_run?(next_value, cards, wild_count - 1)

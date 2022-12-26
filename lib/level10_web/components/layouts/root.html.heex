@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <.live_title>
+      <%= assigns[:page_title] || "Play Level 10!" %>
+    </.live_title>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta property="og:image" content={~p"/images/level10-preview.png"} />
+    <link rel="manifest" href={~p"/site.webmanifest"} />
+    <link rel="icon" type="image/png" href="/images/favicon.png" sizes="32x32">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}></script>
+    <script src="//unpkg.com/alpinejs" defer></script>
+  </head>
+  <body class={hide_overflow("select-none bg-violet-800", assigns)}>
+    <%= @inner_content %>
+  </body>
+</html>

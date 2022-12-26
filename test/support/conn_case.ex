@@ -12,15 +12,15 @@ defmodule Level10Web.ConnCase do
 
   using do
     quote do
+      # The default endpoint for testing
+      @endpoint Level10Web.Endpoint
+
+      use Level10Web, :verified_routes
+
       # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest
       import Level10Web.ConnCase
-
-      alias Level10Web.Router.Helpers, as: Routes
-
-      # The default endpoint for testing
-      @endpoint Level10Web.Endpoint
     end
   end
 

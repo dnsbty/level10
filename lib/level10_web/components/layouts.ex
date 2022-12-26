@@ -1,5 +1,9 @@
-defmodule Level10Web.LayoutView do
-  use Level10Web, :view
+defmodule Level10Web.Layouts do
+  @moduledoc false
+
+  use Level10Web, :html
+
+  embed_templates "layouts/*"
 
   @spec hide_overflow(String.t(), map) :: String.t()
   def hide_overflow(class, %{overflow_hidden: true}), do: class <> " overflow-hidden"
