@@ -15,106 +15,6 @@ defmodule Level10Web.CoreComponents do
   alias Phoenix.LiveView.JS
 
   @doc """
-  Renders a modal.
-
-  ## Examples
-
-      <.modal id="confirm-modal">
-        Are you sure?
-        <:confirm>OK</:confirm>
-        <:cancel>Cancel</:cancel>
-      </.modal>
-
-  JS commands may be passed to the `:on_cancel` and `on_confirm` attributes
-  for the caller to react to each button press, for example:
-
-      <.modal id="confirm" on_confirm={JS.push("delete")} on_cancel={JS.navigate(~p"/posts")}>
-        Are you sure you?
-        <:confirm>OK</:confirm>
-        <:cancel>Cancel</:cancel>
-      </.modal>
-  """
-  attr :id, :string, required: true
-  attr :show, :boolean, default: false
-  attr :on_cancel, JS, default: %JS{}
-  attr :on_confirm, JS, default: %JS{}
-
-  slot(:inner_block, required: true)
-  slot(:title)
-  slot(:subtitle)
-  slot(:confirm)
-  slot(:cancel)
-
-  def modal(assigns) do
-    ~H"""
-    <div id={@id} phx-mounted={@show && show_modal(@id)} class="relative z-50 hidden">
-      <div id={"#{@id}-bg"} class="fixed inset-0 bg-zinc-50/90 transition-opacity" aria-hidden="true" />
-      <div
-        class="fixed inset-0 overflow-y-auto"
-        aria-labelledby={"#{@id}-title"}
-        aria-describedby={"#{@id}-description"}
-        role="dialog"
-        aria-modal="true"
-        tabindex="0"
-      >
-        <div class="flex min-h-full items-center justify-center">
-          <div class="w-full max-w-3xl p-4 sm:p-6 lg:py-8">
-            <.focus_wrap
-              id={"#{@id}-container"}
-              phx-mounted={@show && show_modal(@id)}
-              phx-window-keydown={hide_modal(@on_cancel, @id)}
-              phx-key="escape"
-              phx-click-away={hide_modal(@on_cancel, @id)}
-              class="hidden relative rounded-2xl bg-white p-14 shadow-lg shadow-zinc-700/10 ring-1 ring-zinc-700/10 transition"
-            >
-              <div class="absolute top-6 right-5">
-                <button
-                  phx-click={hide_modal(@on_cancel, @id)}
-                  type="button"
-                  class="-m-3 flex-none p-3 opacity-20 hover:opacity-40"
-                  aria-label={gettext("close")}
-                >
-                  <Heroicons.x_mark solid class="h-5 w-5 stroke-current" />
-                </button>
-              </div>
-              <div id={"#{@id}-content"}>
-                <header :if={@title != []}>
-                  <h1 id={"#{@id}-title"} class="text-lg font-semibold leading-8 text-zinc-800">
-                    <%= render_slot(@title) %>
-                  </h1>
-                  <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-600">
-                    <%= render_slot(@subtitle) %>
-                  </p>
-                </header>
-                <%= render_slot(@inner_block) %>
-                <div :if={@confirm != [] or @cancel != []} class="ml-6 mb-4 flex items-center gap-5">
-                  <.button
-                    :for={confirm <- @confirm}
-                    id={"#{@id}-confirm"}
-                    phx-click={@on_confirm}
-                    phx-disable-with
-                    class="py-2 px-3"
-                  >
-                    <%= render_slot(confirm) %>
-                  </.button>
-                  <.link
-                    :for={cancel <- @cancel}
-                    phx-click={hide_modal(@on_cancel, @id)}
-                    class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
-                  >
-                    <%= render_slot(cancel) %>
-                  </.link>
-                </div>
-              </div>
-            </.focus_wrap>
-          </div>
-        </div>
-      </div>
-    </div>
-    """
-  end
-
-  @doc """
   Renders flash notices.
 
   ## Examples
@@ -140,58 +40,34 @@ defmodule Level10Web.CoreComponents do
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("#flash")}
       role="alert"
       class={[
-        "fixed hidden top-2 right-2 w-80 sm:w-96 z-50 rounded-lg p-3 shadow-md shadow-zinc-900/5 ring-1",
-        @kind == :info && "bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900",
-        @kind == :error && "bg-rose-50 p-3 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
+        "hidden z-10 fixed flex flex-row items-center top-0 inset-x-0 p-4 shadow-md text-lg text-white",
+        @kind == :warning && "bg-yellow-500 shadow-yellow-600",
+        @kind == :error && "bg-red-500 shadow-red-700"
       ]}
       {@rest}
     >
-      <p class="mt-2 text-[0.8125rem] leading-5"><%= msg %></p>
+      <p class="text-lg leading-5"><%= msg %></p>
       <button
         :if={@close}
         type="button"
-        class="group absolute top-2 right-1 p-2"
+        class="group p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-white focus:shadow-outline-red"
         aria-label={gettext("close")}
       >
-        <Heroicons.x_mark solid class="h-5 w-5 stroke-current opacity-40 group-hover:opacity-70" />
+        <Heroicons.x_mark solid class="h-5 w-5 stroke-current opacity-80 group-hover:opacity-100" />
       </button>
     </div>
     """
   end
 
   @doc """
-  Renders a simple form.
-
-  ## Examples
-
-      <.simple_form :let={f} for={:user} phx-change="validate" phx-submit="save">
-        <.input field={{f, :email}} label="Email"/>
-        <.input field={{f, :username}} label="Username" />
-        <:actions>
-          <.button>Save</.button>
-        </:actions>
-      </.simple_form>
+  Render the game logo.
   """
-  attr :for, :any, default: nil, doc: "the datastructure for the form"
-  attr :as, :any, default: nil, doc: "the server side parameter to collect all input under"
-
-  attr :rest, :global,
-    include: ~w(autocomplete name rel action enctype method novalidate target),
-    doc: "the arbitrary HTML attributes to apply to the form tag"
-
-  slot(:inner_block, required: true)
-  slot(:actions, doc: "the slot for form actions, such as a submit button")
-
-  def simple_form(assigns) do
+  @spec logo(map) :: Phoenix.LiveView.Rendered.t()
+  def logo(assigns) do
     ~H"""
-    <.form :let={f} for={@for} as={@as} {@rest}>
-      <div class="space-y-8 bg-white mt-10">
-        <%= render_slot(@inner_block, f) %>
-        <div :for={action <- @actions} class="mt-2 flex items-center justify-between gap-6">
-          <%= render_slot(action, f) %>
-        </div>
-      </div>
-    </.form>
+    <h2 class="pt-32 text-center text-6xl leading-9 font-black text-gray-100">
+      Level 10
+    </h2>
     """
   end
 
@@ -203,9 +79,11 @@ defmodule Level10Web.CoreComponents do
       <.button>Send!</.button>
       <.button phx-click="go" class="ml-2">Send!</.button>
   """
-  attr :type, :string, default: nil
   attr :class, :string, default: nil
-  attr :rest, :global, include: ~w(disabled form name value)
+  attr :disabled, :boolean, default: false
+  attr :level, :atom, default: :primary
+  attr :rest, :global, include: ~w(form name value)
+  attr :type, :string, default: nil
 
   slot(:inner_block, required: true)
 
@@ -214,16 +92,54 @@ defmodule Level10Web.CoreComponents do
     <button
       type={@type}
       class={[
-        "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
-        "text-sm font-semibold leading-6 text-white active:text-white/80",
+        "w-full flex justify-center py-3 px-4 border border-transparent text-2xl rounded-2xl",
+        "focus:outline-none transition duration-150 ease-in-out text-shadow-md",
+        button_disabled_class(@disabled),
+        button_hover_bg_color(@level, @disabled),
+        button_level_styles(@level),
         @class
       ]}
+      disabled={@disabled}
       {@rest}
     >
       <%= render_slot(@inner_block) %>
     </button>
     """
   end
+
+  @spec button_level_styles(atom) :: list(String.t())
+  defp button_level_styles(:primary) do
+    [
+      "bg-red-500 shadow-md shadow-red-700/25",
+      "font-extrabold text-white text-shadow-red-600",
+      "focus:ring-2 focus:ring-red-200 focus:shadow-outline-red active:bg-red-400"
+    ]
+  end
+
+  defp button_level_styles(:secondary) do
+    [
+      "bg-violet-400 shadow-md shadow-violet-900/25",
+      "font-bold text-white text-shadow-violet-400",
+      "focus:ring-2 focus:ring-violet-100 focus:shadow-outline-violet active:bg-violet-300"
+    ]
+  end
+
+  defp button_level_styles(:ghost) do
+    [
+      "font-bold text-violet-300 hover:text-violet-100 text-shadow-violet-300",
+      "focus:ring-2 focus:ring-violet-300 focus:shadow-outline-violet active:text-violet-100"
+    ]
+  end
+
+  @spec button_disabled_class(boolean) :: String.t()
+  defp button_disabled_class(true), do: "opacity-40 line-through decoration-2"
+  defp button_disabled_class(false), do: ""
+
+  @spec button_hover_bg_color(atom, boolean) :: String.t()
+  defp button_hover_bg_color(_, true), do: ""
+  defp button_hover_bg_color(:primary, false), do: "hover:bg-red-400"
+  defp button_hover_bg_color(:secondary, false), do: "hover:bg-violet-300"
+  defp button_hover_bg_color(:ghost, false), do: "hover:bg-violet-700"
 
   @doc """
   Renders an input with label and error messages.
@@ -240,12 +156,16 @@ defmodule Level10Web.CoreComponents do
   attr :id, :any
   attr :name, :any
   attr :label, :string, default: nil
+  attr :description, :string
+  attr :class, :string, default: nil
 
   attr :type, :string,
     default: "text",
     values: ~w(checkbox color date datetime-local email file hidden month number password
                range radio search select tel text textarea time url week)
 
+  attr :click, :string, default: nil
+  attr :setting, :string, default: nil
   attr :value, :any
   attr :field, :any, doc: "a %Phoenix.HTML.Form{}/field name tuple, for example: {f, :email}"
   attr :errors, :list
@@ -274,59 +194,37 @@ defmodule Level10Web.CoreComponents do
     assigns = assign_new(assigns, :checked, fn -> input_equals?(assigns.value, "true") end)
 
     ~H"""
-    <label phx-feedback-for={@name} class="flex items-center gap-4 text-sm leading-6 text-zinc-600">
-      <input type="hidden" name={@name} value="false" />
-      <input
-        type="checkbox"
-        id={@id || @name}
-        name={@name}
-        value="true"
-        checked={@checked}
-        class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
-        {@rest}
-      />
-      <%= @label %>
-    </label>
-    """
-  end
-
-  def input(%{type: "select"} = assigns) do
-    ~H"""
-    <div phx-feedback-for={@name}>
-      <.label for={@id}><%= @label %></.label>
-      <select
-        id={@id}
-        name={@name}
-        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-zinc-500 focus:border-zinc-500 sm:text-sm"
-        multiple={@multiple}
-        {@rest}
-      >
-        <option :if={@prompt}><%= @prompt %></option>
-        <%= Phoenix.HTML.Form.options_for_select(@options, @value) %>
-      </select>
-      <.error :for={msg <- @errors}><%= msg %></.error>
-    </div>
-    """
-  end
-
-  def input(%{type: "textarea"} = assigns) do
-    ~H"""
-    <div phx-feedback-for={@name}>
-      <.label for={@id}><%= @label %></.label>
-      <textarea
-        id={@id || @name}
-        name={@name}
+    <div class="flex items-center justify-between mt-6">
+      <button
+        type="button"
+        phx-click={@click}
+        phx-value-setting={@setting}
+        aria-pressed={!@checked}
+        aria-labelledby="toggleLabel"
         class={[
-          input_border(@errors),
-          "mt-2 block min-h-[6rem] w-full rounded-lg border-zinc-300 py-[7px] px-[11px]",
-          "text-zinc-900 focus:border-zinc-400 focus:outline-none focus:ring-4 focus:ring-zinc-800/5 sm:text-sm sm:leading-6",
-          "phx-no-feedback:border-zinc-300 phx-no-feedback:focus:border-zinc-400 phx-no-feedback:focus:ring-zinc-800/5"
+          @checked && "bg-red-500",
+          !@checked && "bg-violet-200",
+          "relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full",
+          "cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none",
+          "focus:ring-2 focus:ring-offset-2 focus:ring-violet-500"
         ]}
-        {@rest}
       >
-
-    <%= @value %></textarea>
-      <.error :for={msg <- @errors}><%= msg %></.error>
+        <span class="sr-only">Use setting</span>
+        <span
+          aria-hidden="true"
+          class={[
+            @checked && "translate-x-5",
+            !@checked && "translate-x-0",
+            "inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0",
+            "transition ease-in-out duration-200"
+          ]}
+        >
+        </span>
+      </button>
+      <span class="flex-grow flex flex-col ml-4" id="toggleLabel">
+        <span class="text-lg font-semibold text-white"><%= @label %></span>
+        <span class="text-md text-violet-300 leading-normal"><%= @description %></span>
+      </span>
     </div>
     """
   end
@@ -341,10 +239,11 @@ defmodule Level10Web.CoreComponents do
         id={@id || @name}
         value={@value}
         class={[
+          "appearance-none block w-full px-4 py-3 border border-violet-300 rounded-md",
+          "placeholder-slate-400 focus:outline-none focus:shadow-outline-violet focus:ring-2 focus:ring-violet-500",
+          "transition duration-150 ease-in-out bg-violet-200 rounded-lg text-2xl font-bold text-slate-700",
           input_border(@errors),
-          "mt-2 block w-full rounded-lg border-zinc-300 py-[7px] px-[11px]",
-          "text-zinc-900 focus:outline-none focus:ring-4 sm:text-sm sm:leading-6",
-          "phx-no-feedback:border-zinc-300 phx-no-feedback:focus:border-zinc-400 phx-no-feedback:focus:ring-zinc-800/5"
+          @class
         ]}
         {@rest}
       />
@@ -367,7 +266,7 @@ defmodule Level10Web.CoreComponents do
 
   def label(assigns) do
     ~H"""
-    <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-800">
+    <label for={@for} class="block text-xl font-bold mb-2.5 text-white">
       <%= render_slot(@inner_block) %>
     </label>
     """
@@ -385,195 +284,6 @@ defmodule Level10Web.CoreComponents do
       <%= render_slot(@inner_block) %>
     </p>
     """
-  end
-
-  @doc """
-  Renders a header with title.
-  """
-  attr :class, :string, default: nil
-
-  slot(:inner_block, required: true)
-  slot(:subtitle)
-  slot(:actions)
-
-  def header(assigns) do
-    ~H"""
-    <header class={[@actions != [] && "flex items-center justify-between gap-6", @class]}>
-      <div>
-        <h1 class="text-lg font-semibold leading-8 text-zinc-800">
-          <%= render_slot(@inner_block) %>
-        </h1>
-        <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-600">
-          <%= render_slot(@subtitle) %>
-        </p>
-      </div>
-      <div class="flex-none"><%= render_slot(@actions) %></div>
-    </header>
-    """
-  end
-
-  @doc ~S"""
-  Renders a table with generic styling.
-
-  ## Examples
-
-      <.table id="users" rows={@users}>
-        <:col :let={user} label="id"><%= user.id %></:col>
-        <:col :let={user} label="username"><%= user.username %></:col>
-      </.table>
-  """
-  attr :id, :string, required: true
-  attr :row_click, :any, default: nil
-  attr :rows, :list, required: true
-
-  slot :col, required: true do
-    attr :label, :string
-  end
-
-  slot(:action, doc: "the slot for showing user actions in the last table column")
-
-  def table(assigns) do
-    ~H"""
-    <div id={@id} class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
-      <table class="mt-11 w-[40rem] sm:w-full">
-        <thead class="text-left text-[0.8125rem] leading-6 text-zinc-500">
-          <tr>
-            <th :for={col <- @col} class="p-0 pb-4 pr-6 font-normal"><%= col[:label] %></th>
-            <th class="relative p-0 pb-4"><span class="sr-only"><%= gettext("Actions") %></span></th>
-          </tr>
-        </thead>
-        <tbody class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700">
-          <tr
-            :for={row <- @rows}
-            id={"#{@id}-#{Phoenix.Param.to_param(row)}"}
-            class="relative group hover:bg-zinc-50"
-          >
-            <td
-              :for={{col, i} <- Enum.with_index(@col)}
-              phx-click={@row_click && @row_click.(row)}
-              class={["p-0", @row_click && "hover:cursor-pointer"]}
-            >
-              <div :if={i == 0}>
-                <span class="absolute h-full w-4 top-0 -left-4 group-hover:bg-zinc-50 sm:rounded-l-xl" />
-                <span class="absolute h-full w-4 top-0 -right-4 group-hover:bg-zinc-50 sm:rounded-r-xl" />
-              </div>
-              <div class="block py-4 pr-6">
-                <span class={["relative", i == 0 && "font-semibold text-zinc-900"]}>
-                  <%= render_slot(col, row) %>
-                </span>
-              </div>
-            </td>
-            <td :if={@action != []} class="p-0 w-14">
-              <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
-                <span
-                  :for={action <- @action}
-                  class="relative ml-4 font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
-                >
-                  <%= render_slot(action, row) %>
-                </span>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    """
-  end
-
-  @doc """
-  Renders a data list.
-
-  ## Examples
-
-      <.list>
-        <:item title="Title"><%= @post.title %></:item>
-        <:item title="Views"><%= @post.views %></:item>
-      </.list>
-  """
-  slot :item, required: true do
-    attr :title, :string, required: true
-  end
-
-  def list(assigns) do
-    ~H"""
-    <div class="mt-14">
-      <dl class="-my-4 divide-y divide-zinc-100">
-        <div :for={item <- @item} class="flex gap-4 py-4 sm:gap-8">
-          <dt class="w-1/4 flex-none text-[0.8125rem] leading-6 text-zinc-500"><%= item.title %></dt>
-          <dd class="text-sm leading-6 text-zinc-700"><%= render_slot(item) %></dd>
-        </div>
-      </dl>
-    </div>
-    """
-  end
-
-  @doc """
-  Renders a back navigation link.
-
-  ## Examples
-
-      <.back navigate={~p"/posts"}>Back to posts</.back>
-  """
-  attr :navigate, :any, required: true
-  slot(:inner_block, required: true)
-
-  def back(assigns) do
-    ~H"""
-    <div class="mt-16">
-      <.link
-        navigate={@navigate}
-        class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
-      >
-        <Heroicons.arrow_left solid class="w-3 h-3 stroke-current inline" />
-        <%= render_slot(@inner_block) %>
-      </.link>
-    </div>
-    """
-  end
-
-  ## JS Commands
-
-  def show(js \\ %JS{}, selector) do
-    JS.show(js,
-      to: selector,
-      transition:
-        {"transition-all transform ease-out duration-300",
-         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
-         "opacity-100 translate-y-0 sm:scale-100"}
-    )
-  end
-
-  def hide(js \\ %JS{}, selector) do
-    JS.hide(js,
-      to: selector,
-      time: 200,
-      transition:
-        {"transition-all transform ease-in duration-200",
-         "opacity-100 translate-y-0 sm:scale-100",
-         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
-    )
-  end
-
-  def show_modal(js \\ %JS{}, id) when is_binary(id) do
-    js
-    |> JS.show(to: "##{id}")
-    |> JS.show(
-      to: "##{id}-bg",
-      transition: {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"}
-    )
-    |> show("##{id}-container")
-    |> JS.focus_first(to: "##{id}-content")
-  end
-
-  def hide_modal(js \\ %JS{}, id) do
-    js
-    |> JS.hide(
-      to: "##{id}-bg",
-      transition: {"transition-all transform ease-in duration-200", "opacity-100", "opacity-0"}
-    )
-    |> hide("##{id}-container")
-    |> JS.hide(to: "##{id}", transition: {"block", "block", "hidden"})
-    |> JS.pop_focus()
   end
 
   @doc """
@@ -605,13 +315,75 @@ defmodule Level10Web.CoreComponents do
   end
 
   @doc """
+  An indicator showing whether a user is currently online or not.
+  """
+  attr :class, :string, default: ""
+  attr :online, :boolean, required: true
+  attr :size, :atom, default: :medium
+
+  @spec status_indicator(map) :: Phoenix.LiveView.Rendered.t()
+  def status_indicator(assigns) do
+    if assigns[:online] do
+      ~H"""
+      <div class={[indicator_size(@size), "text-green-400 cursor-default", @class]} title="online">
+        ●
+      </div>
+      """
+    else
+      ~H"""
+      <div class={[indicator_size(@size), "text-slate-400 cursor-default", @class]} title="offline">
+        ○
+      </div>
+      """
+    end
+  end
+
+  @spec indicator_size(:medium | :small) :: String.t()
+  defp indicator_size(:small), do: "text-lg"
+  defp indicator_size(:medium), do: "text-xl"
+  defp indicator_size(:xlarge), do: "text-3xl"
+
+  @doc """
   Translates the errors for a field from a keyword list of errors.
   """
+  @spec translate_errors(list, atom) :: list
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end
 
+  @spec input_equals?(String.t(), String.t()) :: boolean
   defp input_equals?(val1, val2) do
     Phoenix.HTML.html_escape(val1) == Phoenix.HTML.html_escape(val2)
+  end
+
+  ## JS Commands
+
+  @spec hide(Phoenix.LiveView.JS.t(), String.t()) :: Phoenix.LiveView.JS.t()
+  def show(js \\ %JS{}, selector) do
+    JS.show(js,
+      to: selector,
+      display: "flex",
+      transition:
+        {"transition-all transform ease-out duration-300",
+         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
+         "opacity-100 translate-y-0 sm:scale-100"}
+    )
+  end
+
+  @spec hide(Phoenix.LiveView.JS.t(), String.t()) :: Phoenix.LiveView.JS.t()
+  def hide(js \\ %JS{}, selector) do
+    JS.hide(js,
+      to: selector,
+      time: 200,
+      transition:
+        {"transition-all transform ease-in duration-200",
+         "opacity-100 translate-y-0 sm:scale-100",
+         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
+    )
+  end
+
+  @spec update_theme_color(Phoenix.LiveView.JS.t(), String.t()) :: Phoenix.LiveView.JS.t()
+  def update_theme_color(js \\ %JS{}, color) do
+    JS.dispatch(js, "phx:update-theme-color", detail: %{color: color})
   end
 end

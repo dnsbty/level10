@@ -1,92 +1,77 @@
 <div class="flex-1 mt-10 sm:mx-auto sm:w-full sm:max-w-md">
-  <h3 class="text-center text-sm text-gray-100 font-bold tracking-widest uppercase">
-    <%= if @finished, do: "Game Over", else: "Scores After" %>
+  <h3 class="text-center text-xl text-violet-200 font-bold tracking-wide">
+    <%= if @finished, do: "Game over", else: "Scores after" %>
   </h3>
-  <h2 class="text-center text-4xl leading-9 font-extrabold text-gray-100 uppercase">
+  <h2 class="text-center text-4xl leading-9 font-black text-white tracking-wide">
     <%= if @finished, do: winner_text(@leader, @player_id), else: "Round #{@round_number}" %>
   </h2>
-  <div class="mt-12 sm:mx-auto sm:w-full sm:max-w-md">
-    <ol class="pl-12 list-decimal">
-      <%= for player <- @players do %>
-      <li class="px-4 py-2 font-bold tracking-wide text-2xl text-gray-100">
-        <div class="flex items-center">
-          <div class="flex-1">
-            <%= player.name %>
-            <%= if !@finished && MapSet.member?(@players_ready, player.id), do: " ✓" %>
-            <%= if !MapSet.member?(@remaining_players, player.id), do: " 💀" %>
-          </div>
-          <div>
-            <%= score(@scores, player.id) %><%= level(@scores, player.id) %>
-          </div>
-          <%= if player.id in Map.keys(@presence) do %>
-            <div class="text-sm text-green-500 ml-2 cursor-default" title="online">
-              ●
-            </div>
-            <% else %>
-            <div class="text-sm text-violet-500 ml-2 cursor-default" title="offline">
-              ○
-            </div>
-          <% end %>
+  <ul class="mt-12 sm:mx-auto sm:w-full sm:max-w-md">
+    <%= for {player, index} <- Enum.with_index(@players) do %>
+      <li class="flex items-center px-4 py-2 font-bold tracking-wide text-2xl text-white">
+        <div class="mr-2 text-lg">
+          <%= if !MapSet.member?(@remaining_players, player.id), do: "💀", else: "#{index}." %>
         </div>
+        <div class={[
+          "flex-1",
+          if(!MapSet.member?(@remaining_players, player.id), do: "line-through decoration-2")
+        ]}>
+          <%= player.name %>
+        </div>
+        <div>
+          <%= score(@scores, player.id) %><%= level(@scores, player.id) %>
+        </div>
+        <%= if !@finished && MapSet.member?(@players_ready, player.id) do %>
+          <div class="text-lg ml-2 text-white">✓</div>
+        <% else %>
+          <.status_indicator online={player.id in Map.keys(@presence)} class="ml-2" />
+        <% end %>
       </li>
-      <% end %>
-    </ol>
-  </div>
+    <% end %>
+  </ul>
 </div>
 <div class="sm:mx-auto sm:w-full sm:max-w-md">
   <div class="py-8 px-4 sm:rounded-lg sm:px-10">
-    <div class="mt-6 text-center text-lg text-gray-300">
+    <div class="mt-6 text-center text-xl font-bold text-violet-200">
       <%= if MapSet.member?(@players_ready, @player_id) do %>
         Waiting for others...
       <% else %>
-        <span class="block w-full rounded-md shadow-sm">
-          <button type="submit" phx-click="mark_ready" class="w-full flex justify-center py-2 px-4 border border-transparent text-xl font-bold rounded-md text-white bg-red-600 hover:bg-red-500 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-700 transition duration-150 ease-in-out">
-            <%= button_text(assigns) %>
-          </button>
-        </span>
+        <.button level={:primary} type="submit" phx-click="mark_ready">
+          <%= button_text(assigns) %>
+        </.button>
       <% end %>
     </div>
     <%= if @finished == false do %>
-      <div class="flex mt-4">
-        <button type="cancel" phx-click="leave_game" class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-gray-300 bg-violet-800 hover:bg-violet-700 focus:outline-none focus:border-violet-700 focus:shadow-outline-violet active:bg-violet-800 transition duration-150 ease-in-out">
-          Leave Game
-        </button>
-      </div>
+      <.button level={:ghost} type="button" phx-click="leave_game" class="mt-4">
+        Leave Game
+      </.button>
     <% end %>
   </div>
 </div>
-
 <!-- Leave Confirmation Modal -->
 <%= if @confirm_leave do %>
-  <div class="fixed bottom-0 inset-x-0 px-4 pb-6 sm:inset-0 sm:p-0 sm:flex sm:items-center sm:justify-center">
-    <div class="fixed inset-0 transition-opacity">
+  <div class="fixed bottom-0 inset-x-0 px-4 pb-4 sm:inset-0 sm:p-0 sm:flex sm:items-center sm:justify-center">
+    <div phx-click="cancel_leave" class="fixed inset-0 transition-opacity">
       <div class="absolute inset-0 bg-white opacity-75"></div>
     </div>
 
-    <div class="bg-violet-800 rounded-lg px-4 pt-5 pb-4 overflow-hidden shadow-xl transform transition-all sm:max-w-sm sm:w-full sm:p-6" role="dialog" aria-modal="true" aria-labelledby="modal-headline">
-      <div>
-        <div class="mt-3 text-center sm:mt-5">
-          <h3 class="text-lg leading-6 font-medium text-gray-100" id="modal-headline">
-            Giving Up? 😳
-          </h3>
-          <div class="mt-2">
-            <p class="text-sm leading-5 text-gray-200">
-              Are you sure you want to leave right now? You won't be able to come back to the game later...
-            </p>
-          </div>
-        </div>
-      </div>
-      <div class="mt-5 sm:mt-6">
-        <span class="flex w-full rounded-md shadow-sm">
-          <button phx-click="confirm_leave" class="w-full inline-flex justify-center py-2 px-4 border border-transparent text-xl font-bold rounded-md text-white bg-red-600 hover:bg-red-500 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-700 transition duration-150 ease-in-out">
-            Leave Game
-          </button>
-        </span>
-      </div>
-      <div class="flex mt-4">
-        <button type="cancel" phx-click="cancel_leave" class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-gray-300 bg-violet-800 hover:bg-violet-700 focus:outline-none focus:border-violet-700 focus:shadow-outline-violet active:bg-violet-800 transition duration-150 ease-in-out">
-          Stick Around
-        </button>
+    <div
+      class="bg-violet-800 rounded-3xl px-4 pt-8 pb-4 overflow-hidden shadow-xl transform transition-all text-center space-y-8"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-leave-modal-headline"
+    >
+      <h3
+        class="text-center text-2xl leading-6 font-bold text-white"
+        id="confirm-leave-modal-headline"
+      >
+        Giving Up? 😳
+      </h3>
+      <p class="text-center text-lg leading-5 text-violet-200">
+        Are you sure you want to leave right now? You won't be able to come back to the game later...
+      </p>
+      <div class="mt-5 sm:mt-6 space-y-4">
+        <.button level={:primary} type="submit" phx-click="confirm_leave">Leave game</.button>
+        <.button level={:ghost} type="button" phx-click="cancel_leave">Stick around</.button>
       </div>
     </div>
   </div>

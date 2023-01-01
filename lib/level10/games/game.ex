@@ -266,7 +266,8 @@ defmodule Level10.Games.Game do
   @spec mark_player_ready(t(), Player.id()) :: {:ok | :all_ready, t()}
   def mark_player_ready(game, player_id) do
     players_ready = MapSet.put(game.players_ready, player_id)
-    status = if MapSet.equal?(players_ready, game.remaining_players), do: :all_ready, else: :ok
+    difference = MapSet.difference(game.remaining_players, players_ready)
+    status = if MapSet.equal?(difference, MapSet.new()), do: :all_ready, else: :ok
     {status, update(game, players_ready: players_ready)}
   end
 
@@ -537,6 +538,14 @@ defmodule Level10.Games.Game do
       :game_over ->
         :game_over
     end
+  end
+
+  @doc """
+  Returns whether or not the game has started.
+  """
+  @spec started?(t()) :: boolean
+  def started?(game) do
+    game.current_stage != :lobby
   end
 
   @doc """

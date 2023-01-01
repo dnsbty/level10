@@ -2,21 +2,34 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
     <meta name="csrf-token" content={get_csrf_token()} />
     <.live_title>
       <%= assigns[:page_title] || "Play Level 10!" %>
     </.live_title>
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#5b21b6" />
     <meta property="og:image" content={~p"/images/level10-preview.png"} />
     <link rel="manifest" href={~p"/site.webmanifest"} />
-    <link rel="icon" type="image/png" href="/images/favicon.png" sizes="32x32">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="/images/favicon.png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}></script>
-    <script src="//unpkg.com/alpinejs" defer></script>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Nunito:medium,semibold,bold,black"
+    />
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
+    </script>
+    <script src="//unpkg.com/alpinejs" defer>
+    </script>
   </head>
-  <body class={hide_overflow("select-none bg-violet-800", assigns)}>
+  <body class={[
+    "select-none bg-violet-800",
+    if(assigns[:overflow_hidden], do: "overflow-hidden")
+  ]}>
     <%= @inner_content %>
   </body>
 </html>

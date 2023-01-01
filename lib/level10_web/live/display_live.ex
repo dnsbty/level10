@@ -2,7 +2,7 @@ defmodule Level10Web.DisplayLive do
   @moduledoc false
 
   use Level10Web, :verified_routes
-  use Phoenix.LiveView, layout: {Level10Web.Layouts, :display}
+  use Phoenix.LiveView, layout: {Level10Web.Layouts, :app}
   require Logger
 
   alias Level10.Games

@@ -20,6 +20,10 @@ var smsLink = (message) => {
   return isIosDevice ? "sms:&body=" + msg : "sms:?body=" + msg;
 };
 
+window.addEventListener('phx:update-theme-color', e =>
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', e.detail.color)
+);
+
 window.openSmsInvite = (joinCode) => {
   const { hostname, protocol } = window.location;
   var message = `Come play Level 10 with me!\n${protocol}//${hostname}/join/${joinCode}`;

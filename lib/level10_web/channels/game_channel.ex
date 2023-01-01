@@ -298,6 +298,10 @@ defmodule Level10Web.GameChannel do
     {:noreply, assign(socket, assigns)}
   end
 
+  def handle_info({:current_turn_drawn?, _}, socket) do
+    {:noreply, socket}
+  end
+
   def handle_info({:game_finished, winner}, socket) do
     %{join_code: join_code, player_id: player_id} = socket.assigns
     game = Games.get(join_code)

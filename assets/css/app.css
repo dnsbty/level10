@@ -8,6 +8,7 @@
 
 body {
   -webkit-tap-highlight-color: transparent;
+  font-family: 'Nunito', serif;
 }
 
 #main {
@@ -18,3 +19,18 @@ body {
 iframe[hidden] {
   display: none;
 }
+
+@layer utilities {
+  .text-shadow-red-600 { --tw-text-shadow-color: #dc2626; }
+  .text-shadow-violet-400 { --tw-text-shadow-color: rgba(139, 92, 246, 0.5); }
+  .text-shadow-violet-300 { --tw-text-shadow-color: rgba(196,181,253, 0.25); }
+
+  .text-shadow-md {
+    text-shadow: 0em 0.25em 0.25em var(--tw-text-shadow-color);
+  }
+
+  .text-shadow-none {
+    text-shadow: none;
+  }
+}
+

@@ -66,6 +66,7 @@ defmodule Level10.Games.Levels do
       false
   """
   @spec valid_group?(group(), Game.cards()) :: boolean()
+  def valid_group?(_, nil), do: false
   def valid_group?({_, count}, cards) when length(cards) < count, do: false
 
   def valid_group?({type, _}, cards) do

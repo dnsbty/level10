@@ -1,169 +1,230 @@
 <div>
   <!-- Player Display -->
-  <div class="my-8">
+  <div class="grid grid-cols-5 gap-2 mx-4 mt-2 mb-8">
     <%= for player <- @players, MapSet.member?(@remaining_players, player.id) do %>
-      <div class={"flex flex-row items-center ml-4 mr-2 mb-2 #{player_opacity(player.id, @turn.id)}"}>
-        <%= if player.id in Map.keys(@presence) do %>
-          <div class="text-sm text-green-500 mr-2 cursor-default" title="online">
-            ●
-          </div>
-          <% else %>
-          <div class="text-sm text-violet-500 mr-2 cursor-default" title="offline">
-            ○
-          </div>
-        <% end %>
+      <div class="col-span-2 flex flex-row items-center">
+        <.status_indicator online={player.id in Map.keys(@presence)} class="mr-2" />
 
-        <div class="flex-1 text-white text-lg">
+        <div class={[
+          "flex-1 text-white text-lg decoration-2 truncate",
+          player.id == @turn.id && "text-white underline underline-offset-4 opacity-100",
+          player.id != @turn.id && "opacity-60",
+          player.id in @skipped_players && "line-through"
+        ]}>
           <%= if player.id == @player_id, do: "You", else: player.name %>
         </div>
-        <div class="flex text-white text-sm mr-1 w-4">
-          <%= if player.id in @skipped_players do %>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" role="img" aria-labelledby="skip-icon-title">
-              <title id="skip-icon-title">Skipped</title>
-              <path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z" />
-            </svg>
-          <% end %>
-        </div>
-        <div class="flex text-white text-sm mr-1 mb-1">&#x1F02B;</div>
-        <div class="flex text-white text-sm mr-2"><%= @hand_counts[player.id] %></div>
+        <div class="flex text-violet-300 text-xs"><%= @hand_counts[player.id] %></div>
+      </div>
+      <div class="col-span-3 h-12 flex flex-row items-stretch gap-2">
         <%= if is_nil(@table[player.id]) do %>
-          <div class="flex flex-grow content-center flex-wrap">
-            <%= for group <- @levels[player.id] do %>
-              <div class="flex-1 mr-2 bg-violet-900 text-violet-700 text-center rounded-md py-2">
-                <%= level_group_name(group) %>
-              </div>
-            <% end %>
-          </div>
+          <%= for group <- @levels[player.id] do %>
+            <div class="flex-1 flex items-center justify-center bg-violet-900 text-violet-400 text-center rounded-md py-2">
+              <%= level_group_name(group) %>
+            </div>
+          <% end %>
         <% else %>
-          <div class="flex flex-grow content-center flex-wrap">
-            <%= for {group, position} <- Enum.with_index(@levels[player.id]) do %>
-              <div phx-click="add_to_table" onclick="" phx-value-player_id={player.id} phx-value-position={position} class={if @has_completed_level && MapSet.size(@selected_indexes) > 0, do: "cursor-pointer flex flex-wrap flex-1 bg-violet-900 mr-2 rounded-md p-1", else: "flex flex-wrap flex-1 bg-violet-900 mr-2 rounded-md p-1"}>
-                <p class="w-full text-violet-400 text-center text-xs mb-2"><%= level_group_name(group) %></p>
-                <div class="flex flex-row flex-1 text-violet-400">
-                  <%= for card <- @table[player.id][position] do %>
-                    <div class="flex-1 mr-1">
-                      <GameComponents.card card={card} />
-                    </div>
-                  <% end %>
-                </div>
-              </div>
-            <% end %>
-          </div>
+          <%= for {_group, position} <- Enum.with_index(@levels[player.id]) do %>
+            <div
+              phx-click="add_to_table"
+              onclick=""
+              phx-value-player_id={player.id}
+              phx-value-position={position}
+              class={[
+                "flex flex-row flex-1 items-center bg-violet-900 rounded-md p-2 text-violet-400 gap-1",
+                @has_completed_level && (@new_card_selected || MapSet.size(@selected_indexes) > 0) &&
+                  "cursor-pointer"
+              ]}
+            >
+              <%= for card <- @table[player.id][position] do %>
+                <GameComponents.card card={card} class="flex-1 h-full" />
+              <% end %>
+            </div>
+          <% end %>
         <% end %>
       </div>
     <% end %>
   </div>
-
   <!-- Draw and Discard Piles -->
-  <div class="grid grid-cols-5 gap-2 px-4 mb-8">
-    <div phx-click="draw_card" onclick="" phx-value-source="draw_pile" class={"#{unless @has_drawn_card, do: "cursor-pointer "}col-start-2"}>
+  <div class="grid grid-cols-5 gap-2 items-center px-4 mb-8">
+    <div
+      phx-click="draw_card"
+      onclick=""
+      phx-value-source="draw_pile"
+      class={[
+        "col-start-2",
+        !@has_drawn_card && "cursor-pointer"
+      ]}
+    >
       <GameComponents.card_back />
     </div>
-    <div phx-click={discard_pile_action(@turn.id == @player_id, @has_drawn_card)} onclick="" phx-value-source="discard_pile" class={"#{if MapSet.size(@selected_indexes) > 0 || !@has_drawn_card, do: "cursor-pointer "}col-start-4 text-center #{discard_styles(@discard_top)} rounded-md"}>
-      <span :if={is_nil(@discard_top)}>Discard Pile</span>
+    <div
+      phx-click={discard_pile_action(@turn.id == @player_id, @has_drawn_card)}
+      onclick=""
+      phx-value-source="discard_pile"
+      class={[
+        "col-start-4",
+        (!@has_drawn_card || @new_card_selected || MapSet.size(@selected_indexes) > 0) &&
+          "cursor-pointer"
+      ]}
+    >
+      <GameComponents.empty_discard_pile :if={is_nil(@discard_top)} />
       <GameComponents.card :if={!is_nil(@discard_top)} card={@discard_top} />
     </div>
   </div>
-
   <!-- Player Table -->
   <%= if !@has_completed_level do %>
-    <div class="flex content-center flex-wrap ml-4 mr-2 mb-4">
+    <div class="flex content-center mx-4 mb-4 gap-4 h-20">
       <%= for {group, position} <- Enum.with_index(@player_level) do %>
-        <%= if is_nil(@player_table[position]) do %>
-          <div phx-click="table_cards" onclick="" phx-value-position={position} class={"#{if MapSet.size(@selected_indexes) > 0, do: "cursor-pointer "}flex-1 mr-2 bg-violet-900 text-violet-400 text-center rounded-md py-8"}>
-            <%= level_group_name(group) %>
-          </div>
-        <% else %>
-          <div class="flex flex-wrap flex-1 lg:w-1/3 bg-violet-900 mr-2 rounded-md p-2">
-            <p class="w-full text-violet-400 text-center text-xs mb-2"><%= level_group_name(group) %></p>
-            <div class="flex flex-row flex-1 text-violet-400">
-              <%= for card <- @player_table[position] do %>
-                <div class="flex-1 mr-1 ml-1">
-                  <GameComponents.card card={card} />
-                </div>
-              <% end %>
+        <div class="relative flex-1 bg-violet-900 rounded-md p-2 text-violet-400 text-center">
+          <%= if is_nil(@player_table[position]) do %>
+            <div
+              phx-click="table_cards"
+              onclick=""
+              phx-value-position={position}
+              class={[
+                "flex items-center justify-center h-full w-full rounded-md p-2",
+                MapSet.size(@selected_indexes) > 0 && "cursor-pointer"
+              ]}
+            >
+              <p><%= level_group_name(group) %></p>
             </div>
-          </div>
-        <% end %>
+          <% else %>
+            <div class="flex flex-col items-stretch w-full h-full gap-2">
+              <p class="text-violet-400 text-center text-xs">
+                <%= level_group_name(group) %>
+              </p>
+              <div class="flex flex-row flex-1 items-stretch gap-1 text-violet-400 h-10">
+                <%= for card <- @player_table[position] do %>
+                  <GameComponents.card card={card} class="flex-1" />
+                <% end %>
+              </div>
+            </div>
+            <button
+              type="button"
+              phx-click="untable_cards"
+              phx-value-position={position}
+              class="absolute top-0 right-0 group p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-white"
+              aria-label={gettext("return cards to hand")}
+            >
+              <div class="p-1 bg-violet-400 group-hover:bg-violet-300 text-violet-900 rounded-full">
+                <Heroicons.x_mark solid class="h-3 w-3 stroke-current opacity-80" />
+              </div>
+            </button>
+          <% end %>
+        </div>
       <% end %>
     </div>
   <% end %>
-
   <!-- Player Hand -->
-  <div class="grid grid-cols-5 gap-2 px-4">
+  <div class="grid grid-cols-12 gap-2 px-4">
+    <%= if @new_card do %>
+      <div
+        phx-click="toggle_selected"
+        onclick=""
+        phx-value-position="new"
+        class={[
+          "col-span-2 flex items-center cursor-pointer",
+          length(@hand) > 5 && "row-span-2"
+        ]}
+      >
+        <GameComponents.card card={@new_card} selected={@new_card_selected} />
+      </div>
+    <% else %>
+      <div></div>
+    <% end %>
     <%= for {card, position} <- Enum.with_index(@hand) do %>
-      <div phx-click="toggle_selected" onclick="" phx-value-position={position} class={if @has_drawn_card, do: "cursor-pointer"}>
+      <div
+        phx-click="toggle_selected"
+        onclick=""
+        phx-value-position={position}
+        class={[
+          "col-span-2",
+          !@new_card && position in [0, 5] && "col-start-2",
+          @has_drawn_card && "cursor-pointer"
+        ]}
+      >
         <GameComponents.card card={card} selected={MapSet.member?(@selected_indexes, position)} />
       </div>
     <% end %>
   </div>
-
   <!-- Round Finished Modal -->
   <%= if !is_nil(@round_winner) do %>
-    <div class="fixed bottom-0 inset-x-0 px-4 pb-6 sm:inset-0 sm:p-0 sm:flex sm:items-center sm:justify-center">
+    <div
+      class="fixed bottom-0 inset-x-0 px-4 pb-4 sm:inset-0 sm:p-0 sm:flex sm:items-center sm:justify-center"
+      phx-mounted={update_theme_color("#d7c7ee")}
+      phx-remove={update_theme_color("#5b21b6")}
+    >
       <div class="fixed inset-0 transition-opacity">
         <div class="absolute inset-0 bg-white opacity-75"></div>
       </div>
 
-      <div class="bg-violet-800 rounded-lg px-4 pt-5 pb-4 overflow-hidden shadow-xl transform transition-all sm:max-w-sm sm:w-full sm:p-6" role="dialog" aria-modal="true" aria-labelledby="round-finished-modal-headline">
-        <div>
-          <div class="mt-3 text-center sm:mt-5">
-            <h3 class="text-lg leading-6 font-medium text-gray-100" id="round-finished-modal-headline">
-              <%= if @game_over, do: "Game Over", else: "Round Complete" %> <%= complete_emoji(@table, @player_id) %>
-            </h3>
-            <div class="mt-2">
-              <p class="text-sm leading-5 text-gray-200">
-                <%= round_winner(@round_winner, @player_id) %> won the current round.
-              </p>
-            </div>
-          </div>
-        </div>
+      <div
+        class="bg-violet-800 rounded-3xl px-4 py-4 overflow-hidden shadow-xl transform transition-all text-center space-y-8 py-8"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="round-finished-modal-headline"
+      >
+        <h3
+          class="text-center text-2xl leading-6 font-bold text-white"
+          id="round-finished-modal-headline"
+        >
+          <%= if @game_over, do: "Game Over", else: "Round Complete" %>
+          <%= complete_emoji(@table, @player_id) %>
+        </h3>
+        <p class="text-center text-lg leading-5 text-violet-200">
+          <%= round_winner(@round_winner, @player_id) %> won the current round.
+        </p>
         <div class="mt-5 sm:mt-6">
           <span class="flex w-full rounded-md shadow-sm">
-            <button phx-click="show_scores" class="w-full inline-flex justify-center py-2 px-4 border border-transparent text-xl font-bold rounded-md text-white bg-red-600 hover:bg-red-500 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-700 transition duration-150 ease-in-out">
+            <.button level={:primary} phx-click="show_scores">
               <%= if @game_over, do: "See the Final Scores", else: "Check the Scores" %>
-            </button>
+            </.button>
           </span>
         </div>
       </div>
     </div>
   <% end %>
-
   <!-- Select Skip Modal -->
   <%= if @choose_skip_target do %>
-    <div class="fixed bottom-0 inset-x-0 px-4 pb-6 sm:inset-0 sm:p-0 sm:flex sm:items-center sm:justify-center">
+    <div class="fixed bottom-0 inset-x-0 px-4 pb-4 sm:inset-0 sm:p-0 sm:flex sm:items-center sm:justify-center">
       <div phx-click="cancel_skip" onclick="" class="fixed inset-0 transition-opacity">
         <div class="absolute inset-0 bg-white opacity-75"></div>
       </div>
 
-      <div class="bg-violet-800 rounded-lg px-4 pt-5 pb-4 overflow-hidden shadow-xl transform transition-all sm:max-w-sm sm:w-full sm:p-6" role="dialog" aria-modal="true" aria-labelledby="select-skip-modal-headline">
-        <div>
-          <div class="mt-3 text-center sm:mt-5">
-            <h3 class="text-lg leading-6 font-medium text-gray-100" id="select-skip-modal-headline">
-              Select a Player to Skip
-            </h3>
-            <%= for player <- @players, MapSet.member?(@remaining_players, player.id), player.id != @player_id do %>
-              <%= if player.id in @skipped_players do %>
-                <div class="mt-2">
-                  <button phx-click="discard" phx-value-player_id={player.id} class="w-full flex justify-center py-2 px-4 border border-transparent text-md font-medium rounded-md text-gray-500 bg-violet-800 hover:bg-violet-900 hover:text-gray-600 focus:outline-none focus:border-violet-700 focus:shadow-outline-violet active:bg-violet-800 transition duration-150 ease-in-out">
-                    <%= player.name %>
-                  </button>
-                </div>
-              <% else %>
-                <div class="mt-2">
-                  <button phx-click="discard" phx-value-player_id={player.id} class="w-full flex justify-center py-2 px-4 border border-transparent text-md font-medium rounded-md text-gray-300 bg-violet-700 hover:bg-violet-600 focus:outline-none focus:border-violet-700 focus:shadow-outline-violet active:bg-violet-800 transition duration-150 ease-in-out">
-                    <%= player.name %>
-                  </button>
-                </div>
-              <% end %>
-            <% end %>
-            <div class="mt-2">
-              <button phx-click="cancel_skip" class="w-full flex justify-center py-2 px-4 border border-transparent text-xs font-medium rounded-md text-gray-300 bg-violet-800 hover:bg-violet-600 focus:outline-none focus:border-violet-700 focus:shadow-outline-violet active:bg-violet-800 transition duration-150 ease-in-out">
-                Discard something else
-              </button>
-            </div>
-          </div>
-        </div>
+      <div
+        class="bg-violet-800 rounded-3xl px-4 py-4 overflow-hidden shadow-xl transform transition-all text-center"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="select-skip-modal-headline"
+      >
+        <h3 class="text-2xl leading-6 font-bold text-white my-4" id="select-skip-modal-headline">
+          Who would you like to skip?
+        </h3>
+        <%= for player <- @players, MapSet.member?(@remaining_players, player.id), player.id != @player_id do %>
+          <%= if player.id in @skipped_players do %>
+            <.button
+              level={:secondary}
+              disabled={true}
+              phx-click="discard"
+              phx-value-player-id={player.id}
+              class="mt-2"
+            >
+              <%= player.name %>
+            </.button>
+          <% else %>
+            <.button
+              level={:secondary}
+              phx-click="discard"
+              phx-value-player_id={player.id}
+              class="mt-2"
+            >
+              <%= player.name %>
+            </.button>
+          <% end %>
+        <% end %>
+        <.button level={:ghost} phx-click="cancel_skip" class="mt-2">
+          Discard something else
+        </.button>
       </div>
     </div>
   <% end %>

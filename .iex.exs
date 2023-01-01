@@ -108,7 +108,7 @@ defmodule Seeds do
   def safari, do: __MODULE__.open(["-a", "Safari"])
 
   def set(join_code \\ "ABCD", game) do
-    Agent.update(join_code, fn _ -> game end)
+    Games.update(join_code, fn _ -> game end)
   end
 
   def stack_deck(join_code \\ "ABCD", card) do
