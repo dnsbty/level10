@@ -450,9 +450,19 @@ defmodule Level10.Games.Game do
   """
   @spec round_winner(t()) :: Player.t() | nil
   def round_winner(game) do
-    case Enum.find(game.hands, fn {_, hand} -> hand == [] end) do
-      {player_id, _} -> Enum.find(game.players, fn %{id: id} -> id == player_id end)
-      _ -> nil
+    empty_hand = Enum.find(game.hands, fn {_, hand} -> hand == [] end)
+    num_players = MapSet.size(game.remaining_players)
+
+    case {empty_hand, num_players} do
+      {{winner_id, _}, _} ->
+        Enum.find(game.players, &(&1.id == winner_id))
+
+      {_, 1} ->
+        [winner_id] = game.remaining_players |> MapSet.to_list()
+        Enum.find(game.players, &(&1.id == winner_id))
+
+      _ ->
+        nil
     end
   end
 

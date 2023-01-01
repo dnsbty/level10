@@ -608,22 +608,37 @@ defmodule Level10.Games.GameTest do
     test "returns the player whose hand is empty" do
       game = %Game{
         hands: %{@player1.id => [], @player2.id => [%Card{color: :red, value: :three}]},
-        players: [@player1, @player2]
+        players: [@player1, @player2],
+        remaining_players: MapSet.new([@player1.id, @player2.id])
       }
 
       assert @player1 == Game.round_winner(game)
     end
 
-    test "returns nil if no player's hand is empty" do
+    test "returns last remaining player if no player's hand is empty" do
       game = %Game{
         hands: %{
           @player1.id => [%Card{color: :green, value: :two}],
           @player2.id => [%Card{color: :red, value: :three}]
         },
-        players: [@player1, @player2]
+        players: [@player1, @player2],
+        remaining_players: MapSet.new([@player2.id])
       }
 
-      assert game |> Game.round_winner() |> is_nil()
+      assert @player2 == Game.round_winner(game)
+    end
+
+    test "returns nil if no hand is empty and multiple players remain" do
+      game = %Game{
+        hands: %{
+          @player1.id => [%Card{color: :green, value: :two}],
+          @player2.id => [%Card{color: :red, value: :three}]
+        },
+        players: [@player1, @player2],
+        remaining_players: MapSet.new([@player1.id, @player2.id])
+      }
+
+      assert nil == Game.round_winner(game)
     end
   end
 

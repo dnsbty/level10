@@ -242,9 +242,6 @@ defmodule Level10Web.GameChannel do
         push(socket, "latest_state", state)
 
       :score ->
-        {winner_id, _} = Enum.find(game.hands, fn {_, hand} -> hand == [] end)
-        winner = Enum.find(game.players, &(&1.id == winner_id))
-
         state = %{
           current_player: game.current_player.id,
           discard_top: List.first(game.discard_pile),
@@ -257,7 +254,7 @@ defmodule Level10Web.GameChannel do
           players_ready: game.players_ready,
           remaining_players: game.remaining_players,
           round_number: game.current_round,
-          round_winner: winner,
+          round_winner: Game.round_winner(game),
           scores: Games.format_scores(game.scoring),
           settings: %{
             skip_next_player: skip_next_player
@@ -268,9 +265,6 @@ defmodule Level10Web.GameChannel do
         push(socket, "latest_state", state)
 
       :finish ->
-        {winner_id, _} = Enum.find(game.hands, fn {_, hand} -> hand == [] end)
-        winner = Enum.find(game.players, &(&1.id == winner_id))
-
         state = %{
           current_player: game.current_player.id,
           discard_top: List.first(game.discard_pile),
@@ -283,7 +277,7 @@ defmodule Level10Web.GameChannel do
           players_ready: game.players_ready,
           remaining_players: game.remaining_players,
           round_number: game.current_round,
-          round_winner: winner,
+          round_winner: Game.round_winner(game),
           scores: Games.format_scores(game.scoring),
           settings: %{
             skip_next_player: skip_next_player
