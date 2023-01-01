@@ -9,6 +9,7 @@ defmodule Level10.Games.Game do
   alias Level10.Games.{Card, Levels, Player, Settings}
 
   @type cards :: list(Card.t())
+  @type hand_counts :: %{optional(Player.id()) => non_neg_integer()}
   @type join_code :: String.t()
   @type level :: non_neg_integer()
   @type levels :: %{optional(Player.id()) => level()}
@@ -28,6 +29,7 @@ defmodule Level10.Games.Game do
           device_tokens: %{optional(Player.id()) => String.t()},
           discard_pile: cards(),
           draw_pile: cards(),
+          hand_counts: hand_counts(),
           hands: %{optional(Player.id()) => cards()},
           join_code: join_code(),
           levels: levels(),
@@ -51,6 +53,7 @@ defmodule Level10.Games.Game do
     device_tokens
     discard_pile
     draw_pile
+    hand_counts
     hands
     join_code
     levels
@@ -242,7 +245,7 @@ defmodule Level10.Games.Game do
       iex> hand_counts(%Game{})
       %{"c07a54ff-08c1-4a25-98a2-3694e42855ed" => 10, "ccdd4cba-3fcf-4e5d-a41f-a7f9511f1461" => 3}
   """
-  @spec hand_counts(t()) :: %{optional(Player.id()) => non_neg_integer()}
+  @spec hand_counts(t()) :: hand_counts()
   def hand_counts(game) do
     game.hands
     |> Enum.map(fn {player_id, hand} -> {player_id, length(hand)} end)

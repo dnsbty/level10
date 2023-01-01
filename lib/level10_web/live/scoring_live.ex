@@ -15,9 +15,9 @@ defmodule Level10Web.ScoringLive do
     with %{redirected: nil} <- socket,
          player_id = socket.assigns.player.id,
          %{"join_code" => join_code} <- params,
-         %Game{} = game <- Games.get(join_code),
+         %Game{} = game <- Games.get_for_player(join_code),
          stage when stage in [:finish, :score] <- game.current_stage,
-         true <- Games.player_exists?(game, player_id) do
+         true <- Game.player_exists?(game, player_id) do
       Games.subscribe(join_code, player_id)
 
       scores = game.scoring

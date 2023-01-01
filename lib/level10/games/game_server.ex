@@ -142,6 +142,22 @@ defmodule Level10.Games.GameServer do
     {:reply, game, game}
   end
 
+  def handle_call({:get_for_player, player_id}, _from, game) do
+    [discard_top | _] = game.discard_pile
+    hands = if player_id, do: %{player_id => game.hands[player_id]}, else: %{}
+
+    game_for_player = %{
+      game
+      | device_tokens: nil,
+        hand_counts: Game.hand_counts(game),
+        hands: hands,
+        discard_pile: [discard_top],
+        draw_pile: []
+    }
+
+    {:reply, game_for_player, game}
+  end
+
   def handle_call(:hand_counts, _from, game) do
     {:reply, Game.hand_counts(game), game}
   end

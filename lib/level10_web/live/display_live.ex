@@ -99,7 +99,7 @@ defmodule Level10Web.DisplayLive do
   @impl true
   def handle_params(%{"join_code" => join_code}, _url, socket) do
     Games.subscribe(join_code, :display)
-    game = Games.get(join_code)
+    game = Games.get_for_player(join_code)
 
     assigns = %{
       game: game,

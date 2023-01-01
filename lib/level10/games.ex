@@ -353,6 +353,23 @@ defmodule Level10.Games do
   end
 
   @doc """
+  Returns the game with the information necessary for displaying it to a player.
+
+  This strips out a lot of the heavy elements of the game struct including the draw and discard
+  piles, and all of the player hands except for the hand for the player ID specified.
+
+  ## Examples
+
+      iex> get_for_player("ABCD", "905cda08-ed1c-4756-97b7-69a8f0accc18")
+      %Game{}
+
+  """
+  @spec get_for_player(Game.join_code(), Player.id(), timeout()) :: Game.t()
+  def get_for_player(join_code, player_id \\ nil, timeout \\ 5000) do
+    GenServer.call(via(join_code), {:get_for_player, player_id}, timeout)
+  end
+
+  @doc """
   Get the count of cards in each player's hand.
 
   ## Examples

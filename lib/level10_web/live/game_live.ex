@@ -21,7 +21,7 @@ defmodule Level10Web.GameLive do
          player_id = socket.assigns.player.id,
          %{"join_code" => join_code} <- params,
          true <- Games.exists?(join_code),
-         game = Games.get(join_code),
+         game = Games.get_for_player(join_code, player_id),
          true <- Game.started?(game),
          true <- Game.player_exists?(game, player_id),
          true <- MapSet.member?(game.remaining_players, player_id) do
@@ -41,7 +41,7 @@ defmodule Level10Web.GameLive do
         drawn_card: new_card,
         game_over: false,
         hand: Card.sort(unsorted_hand),
-        hand_counts: Game.hand_counts(game),
+        hand_counts: game.hand_counts,
         has_completed_level: !is_nil(table[player_id]),
         has_drawn_card: has_drawn_card,
         join_code: params["join_code"],
