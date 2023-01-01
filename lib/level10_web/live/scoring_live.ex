@@ -8,6 +8,7 @@ defmodule Level10Web.ScoringLive do
 
   alias Level10.Games
   alias Level10.Games.Game
+  require Logger
 
   def mount(params, session, socket) do
     socket = fetch_player(socket, session)
@@ -99,6 +100,11 @@ defmodule Level10Web.ScoringLive do
 
   def handle_info(%{event: "presence_diff"}, socket) do
     {:noreply, assign(socket, presence: Games.list_presence(socket.assigns.join_code))}
+  end
+
+  def handle_info(event, socket) do
+    Logger.warn(["Scoring live view received unrecognized event: ", inspect(event)])
+    {:noreply, socket}
   end
 
   # Private

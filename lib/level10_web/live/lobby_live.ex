@@ -220,6 +220,11 @@ defmodule Level10Web.LobbyLive do
     {:noreply, assign(socket, presence: Games.list_presence(socket.assigns.join_code))}
   end
 
+  def handle_info(event, socket) do
+    Logger.warn(["Lobby live view received unrecognized event: ", inspect(event)])
+    {:noreply, socket}
+  end
+
   @impl true
   def render(assigns) do
     case assigns[:live_action] do
