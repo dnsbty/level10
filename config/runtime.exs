@@ -88,6 +88,22 @@ case config_env() do
       source_id: logflare_source_id,
       metadata: :all
 
+    sentry_dsn =
+      System.get_env("SENTRY_DSN") ||
+        raise """
+        environment variable SENTRY_DSN is missing.
+        """
+
+    config :sentry,
+      dsn: sentry_dsn,
+      environment_name: :prod,
+      enable_source_code_context: true,
+      root_source_code_path: File.cwd!(),
+      tags: %{
+        env: "production"
+      },
+      included_environments: [:prod]
+
   :dev ->
     disabled = is_nil(key) || is_nil(key_identifier) || is_nil(team_id)
 

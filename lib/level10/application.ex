@@ -4,6 +4,7 @@ defmodule Level10.Application do
   use Application
 
   def start(_type, _args) do
+    Logger.add_backend(Sentry.LoggerBackend)
     topologies = Application.get_env(:level10, :cluster_topologies, [])
 
     children = [
