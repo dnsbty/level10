@@ -244,6 +244,7 @@ defmodule Level10.Games.GameServer do
       end
     else
       :already_skipped -> {:reply, :already_skipped, game}
+      :invalid_stage -> {:reply, :invalid_stage, game}
       :needs_to_draw -> {:reply, :needs_to_draw, game}
       _ -> {:reply, :not_your_turn, game}
     end
@@ -333,6 +334,9 @@ defmodule Level10.Games.GameServer do
         broadcast(game.join_code, :game_started, nil)
         {:noreply, game}
 
+      :invalid_stage ->
+        {:noreply, game}
+
       :single_player ->
         broadcast(game.join_code, :start_error, :single_player)
         {:noreply, game}
@@ -340,6 +344,7 @@ defmodule Level10.Games.GameServer do
   end
 
   def handle_cast({:update, fun}, state) do
+    Logger.info("Directly updating state for game #{state.join_code}")
     {:noreply, fun.(state)}
   end
 

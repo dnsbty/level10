@@ -55,6 +55,7 @@ defmodule Level10.Games.GameTest do
 
       params = %{
         current_player: @player1,
+        current_stage: :play,
         current_turn_drawn?: true,
         hands: hands,
         levels: levels,
@@ -102,6 +103,7 @@ defmodule Level10.Games.GameTest do
       game = %{
         @game
         | current_player: @player1,
+          current_stage: :play,
           current_turn_drawn?: true,
           levels: levels,
           table: table
@@ -111,17 +113,24 @@ defmodule Level10.Games.GameTest do
     end
 
     test "returns an error if the player hasn't finished their level" do
-      game = %{@game | current_player: @player1, current_turn_drawn?: true, table: %{}}
+      game = %{
+        @game
+        | current_player: @player1,
+          current_stage: :play,
+          current_turn_drawn?: true,
+          table: %{}
+      }
+
       assert :level_incomplete == Game.add_to_table(game, @player1.id, @player2.id, 0, [@card])
     end
 
     test "returns an error if the player hasn't drawn yet" do
-      game = %{@game | current_player: @player1, current_turn_drawn?: false}
+      game = %{@game | current_player: @player1, current_stage: :play, current_turn_drawn?: false}
       assert :needs_to_draw == Game.add_to_table(game, @player1.id, @player2.id, 0, [@card])
     end
 
     test "returns an error if it's not the player's turn" do
-      game = %{@game | current_player: @player2}
+      game = %{@game | current_player: @player2, current_stage: :play}
       assert :not_your_turn == Game.add_to_table(game, @player1.id, @player2.id, 0, [@card])
     end
   end
@@ -261,6 +270,7 @@ defmodule Level10.Games.GameTest do
       game = %Game{
         current_player: @player1,
         current_round: 2,
+        current_stage: :play,
         current_turn: 1,
         discard_pile: [],
         hands: hands,
@@ -305,7 +315,7 @@ defmodule Level10.Games.GameTest do
     end
 
     test "returns an error when the current user hasn't drawn yet" do
-      game = %Game{current_turn_drawn?: false}
+      game = %Game{current_stage: :play, current_turn_drawn?: false}
       card = Card.new(:wild)
       assert Game.discard(game, card) == :needs_to_draw
     end
@@ -317,6 +327,7 @@ defmodule Level10.Games.GameTest do
         game: %Game{
           current_player: @player1,
           current_round: 2,
+          current_stage: :play,
           current_turn: 1,
           current_turn_drawn?: false,
           discard_pile: [],
@@ -401,7 +412,14 @@ defmodule Level10.Games.GameTest do
   describe "mark_player_ready/2" do
     test "marks a player as ready" do
       players = [@player1, @player2, @player3]
-      game = %{@game | players: players, remaining_players: MapSet.new(players)}
+
+      game = %{
+        @game
+        | current_stage: :scoring,
+          players: players,
+          remaining_players: MapSet.new(players)
+      }
+
       assert {:ok, game} = Game.mark_player_ready(game, @player1)
       assert @player1 in game.players_ready
       assert %NaiveDateTime{} = game.updated_at
@@ -409,6 +427,7 @@ defmodule Level10.Games.GameTest do
 
     test "returns the all ready status if all remaining players are ready" do
       params = %{
+        current_stage: :scoring,
         players: [@player1, @player2, @player3],
         players_ready: MapSet.new([@player2, @player3]),
         remaining_players: MapSet.new([@player1, @player2, @player3])
@@ -648,7 +667,16 @@ defmodule Level10.Games.GameTest do
       set = for _ <- 1..3, do: card
       hands = %{@player1.id => for(_ <- 1..10, do: card)}
       scores = %{@player1.id => {1, 0}}
-      game = %{@game | current_turn_drawn?: true, hands: hands, scoring: scores, table: %{}}
+
+      game = %{
+        @game
+        | current_stage: :play,
+          current_turn_drawn?: true,
+          hands: hands,
+          scoring: scores,
+          table: %{}
+      }
+
       game = Game.set_player_table(game, @player1.id, %{0 => set, 1 => set})
       assert length(game.table[@player1.id][0]) == 3
       assert length(game.table[@player1.id][1]) == 3
@@ -657,36 +685,53 @@ defmodule Level10.Games.GameTest do
     end
 
     test "returns an error if the player hasn't drawn yet" do
-      game = %{@game | current_player: @player1, current_turn_drawn?: false}
+      game = %{@game | current_player: @player1, current_stage: :play, current_turn_drawn?: false}
       assert :needs_to_draw == Game.set_player_table(game, @player1.id, [@card])
     end
 
     test "returns an error if it's not the player's turn" do
-      game = %{@game | current_player: @player2}
+      game = %{@game | current_player: @player2, current_stage: :play}
       assert :not_your_turn == Game.set_player_table(game, @player1.id, [@card])
     end
 
     test "returns an error if the player's table has already been set" do
-      game = %{@game | current_turn_drawn?: true, table: %{@player1.id => %{0 => [], 1 => []}}}
+      game = %{
+        @game
+        | current_stage: :play,
+          current_turn_drawn?: true,
+          table: %{@player1.id => %{0 => [], 1 => []}}
+      }
+
       assert :already_set == Game.set_player_table(game, @player1.id, %{})
     end
 
     test "returns an error if the table provided isn't valid for the current level" do
-      game = %{@game | current_turn_drawn?: true, scoring: %{@player1.id => {1, 0}}, table: %{}}
+      game = %{
+        @game
+        | current_stage: :play,
+          current_turn_drawn?: true,
+          scoring: %{@player1.id => {1, 0}},
+          table: %{}
+      }
+
       assert :invalid_level == Game.set_player_table(game, @player1.id, %{0 => [], 1 => []})
     end
   end
 
   describe "skip_player/2" do
     test "adds the given player ID into the set of skipped players" do
-      game = %Game{skipped_players: MapSet.new()}
+      game = %Game{current_stage: :play, skipped_players: MapSet.new()}
       result = Game.skip_player(game, "4ebc0075-c609-49e3-9dcf-d5befff8fe72")
       assert MapSet.member?(result.skipped_players, "4ebc0075-c609-49e3-9dcf-d5befff8fe72")
       assert %NaiveDateTime{} = result.updated_at
     end
 
     test "returns :already_skipped if the player was already skipped" do
-      game = %Game{skipped_players: MapSet.new(["4ebc0075-c609-49e3-9dcf-d5befff8fe72"])}
+      game = %Game{
+        current_stage: :play,
+        skipped_players: MapSet.new(["4ebc0075-c609-49e3-9dcf-d5befff8fe72"])
+      }
+
       result = Game.skip_player(game, "4ebc0075-c609-49e3-9dcf-d5befff8fe72")
       assert result == :already_skipped
     end

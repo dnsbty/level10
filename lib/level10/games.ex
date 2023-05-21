@@ -178,7 +178,7 @@ defmodule Level10.Games do
 
   """
   @spec discard_card(Game.join_code(), Player.id(), Card.t(), timeout()) ::
-          :ok | :needs_to_draw | :not_your_turn
+          :ok | :invalid_stage | :needs_to_draw | :not_your_turn
   def discard_card(join_code, player_id, card, timeout \\ 5000) do
     GenServer.call(via(join_code), {:discard, {player_id, card}}, timeout)
   end
@@ -197,7 +197,12 @@ defmodule Level10.Games do
 
   """
   @spec draw_card(Game.join_code(), Player.id(), :discard_pile | :draw_pile, timeout()) ::
-          Card.t() | :already_drawn | :empty_discard_pile | :not_your_turn | :skip
+          Card.t()
+          | :already_drawn
+          | :empty_discard_pile
+          | :invalid_stage
+          | :not_your_turn
+          | :skip
   def draw_card(join_code, player_id, source, timeout \\ 5000) do
     GenServer.call(via(join_code), {:draw, {player_id, source}}, timeout)
   end
@@ -720,7 +725,7 @@ defmodule Level10.Games do
 
   """
   @spec skip_player(Game.join_code(), Player.id(), Player.id(), timeout()) ::
-          :ok | :needs_to_draw | :not_your_turn
+          :ok | :invalid_stage | :needs_to_draw | :not_your_turn
   def skip_player(join_code, player_id, player_to_skip, timeout \\ 5000) do
     GenServer.call(via(join_code), {:skip_player, {player_id, player_to_skip}}, timeout)
   end
@@ -771,7 +776,7 @@ defmodule Level10.Games do
   Set the given player's table to the given cards.
   """
   @spec table_cards(Game.join_code(), Player.id(), Game.player_table(), timeout()) ::
-          :ok | :already_set | :invalid_level | :needs_to_draw | :not_your_turn
+          :ok | :already_set | :invalid_level | :invalid_stage | :needs_to_draw | :not_your_turn
   def table_cards(join_code, player_id, player_table, timeout \\ 5000) do
     GenServer.call(via(join_code), {:table_cards, {player_id, player_table}}, timeout)
   end

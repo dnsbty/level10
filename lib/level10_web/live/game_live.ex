@@ -158,6 +158,10 @@ defmodule Level10Web.GameLive do
       :needs_to_draw ->
         message = "You can't discard when you haven't drawn yet. Refresh the page and try again 🤓"
         {:noreply, flash_warning(socket, message)}
+
+      :invalid_stage ->
+        message = "I'm not sure what you just did, but I don't like it 🤨"
+        {:noreply, flash_warning(socket, message)}
     end
   end
 
@@ -329,6 +333,7 @@ defmodule Level10Web.GameLive do
           :ok
           | {:already_skipped, Player.t()}
           | :choose_skip_target
+          | :invalid_stage
           | :not_your_turn
           | :needs_to_draw
   defp discard(%{value: :skip}, assigns, %{"player-id" => skip_target}) do

@@ -108,6 +108,9 @@ defmodule Level10Web.GameChannel do
       :choose_skip_target ->
         {:reply, {:error, :choose_skip_target}, socket}
 
+      :invalid_stage ->
+        {:reply, {:error, :invalid_stage}, socket}
+
       :not_your_turn ->
         {:reply, {:error, :not_your_turn}, socket}
 
@@ -442,6 +445,7 @@ defmodule Level10Web.GameChannel do
           :ok
           | {:already_skipped, Player.t()}
           | :choose_skip_target
+          | :invalid_stage
           | :not_your_turn
           | :needs_to_draw
   defp discard(%{value: :skip}, assigns, params) do

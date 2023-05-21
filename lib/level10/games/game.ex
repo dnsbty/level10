@@ -194,8 +194,12 @@ defmodule Level10.Games.Game do
   Draw a card from the draw pile or discard pile into the current player's hand
   """
   @spec draw_card(t(), Player.id(), :draw_pile | :discard_pile) ::
-          t() | :already_drawn | :empty_discard_pile | :not_your_turn | :skip
+          t() | :already_drawn | :empty_discard_pile | :invalid_stage | :not_your_turn | :skip
   def draw_card(game, player_id, pile)
+
+  def draw_card(%{current_stage: stage}, _player_id, _pile) when stage != :play do
+    :invalid_stage
+  end
 
   def draw_card(%{current_player: %{id: current_id}}, player_id, _)
       when current_id != player_id do
@@ -278,6 +282,11 @@ defmodule Level10.Games.Game do
       {:all_ready, %Game{}}
   """
   @spec mark_player_ready(t(), Player.id()) :: {:ok | :all_ready, t()}
+  def mark_player_ready(%{current_stage: stage} = game, _player_id)
+      when stage in [:lobby, :play] do
+    {:ok, game}
+  end
+
   def mark_player_ready(game, player_id) do
     players_ready = MapSet.put(game.players_ready, player_id)
     difference = MapSet.difference(game.remaining_players, players_ready)
@@ -481,9 +490,10 @@ defmodule Level10.Games.Game do
   Set a player's table to the given cards
   """
   @spec set_player_table(t(), Player.id(), player_table()) ::
-          t() | :already_set | :invalid_level | :needs_to_draw | :not_your_turn
+          t() | :already_set | :invalid_level | :invalid_stage | :needs_to_draw | :not_your_turn
   def set_player_table(game, player_id, player_table) do
-    with ^player_id <- game.current_player.id,
+    with :play <- game.current_stage,
+         ^player_id <- game.current_player.id,
          {:drawn, true} <- {:drawn, game.current_turn_drawn?},
          nil <- Map.get(game.table, player_id),
          {level_number, _} <- game.scoring[player_id],
@@ -497,6 +507,7 @@ defmodule Level10.Games.Game do
       hands = Map.put(game.hands, player_id, player_hand)
       update(game, hands: hands, table: table)
     else
+      stage when stage in [:finish, :lobby, :score] -> :invalid_stage
       player_id when is_binary(player_id) -> :not_your_turn
       false -> :invalid_level
       {:drawn, false} -> :needs_to_draw
@@ -508,7 +519,11 @@ defmodule Level10.Games.Game do
   Add a player ID to the list of players who should be skipped on their next
   turn.
   """
-  @spec skip_player(t(), Player.id()) :: t() | :already_skipped
+  @spec skip_player(t(), Player.id()) :: t() | :already_skipped | :invalid_stage
+  def skip_player(%{current_stage: stage}, _player_id) when stage != :play do
+    :invalid_stage
+  end
+
   def skip_player(game, player_id) do
     if player_id in game.skipped_players do
       :already_skipped
@@ -522,8 +537,9 @@ defmodule Level10.Games.Game do
 
   Checks to make sure that there are at least two players present.
   """
-  @spec start_game(t()) :: {:ok, t()} | :single_player
+  @spec start_game(t()) :: {:ok, t()} | :invalid_stage | :single_player
   def start_game(%{players: players}) when length(players) < 2, do: :single_player
+  def start_game(%{current_stage: stage}) when stage != :lobby, do: :invalid_stage
 
   def start_game(game) do
     started_game =
