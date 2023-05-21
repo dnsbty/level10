@@ -33,3 +33,5 @@ npm-debug.log
 # Ignore github files
 /.git/
 /.github/
+
+docker-compose.yml

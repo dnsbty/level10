@@ -76,13 +76,19 @@ defmodule Level10.Games.Game do
       {:ok, %Game{}}
   """
   @spec add_to_table(t(), Player.id(), Player.id(), non_neg_integer(), cards()) ::
-          {:ok, t()} | :invalid_group | :level_incomplete | :needs_to_draw | :not_your_turn
+          {:ok, t()}
+          | :invalid_group
+          | :invalid_stage
+          | :level_incomplete
+          | :needs_to_draw
+          | :not_your_turn
   def add_to_table(game, current_player_id, group_player_id, position, cards_to_add) do
     # get the level requirement for the specified group
     requirement = group_requirement(game, group_player_id, position)
 
     # make sure the player is doing this when they should and using valid cards
-    with true <- current_player_id == game.current_player.id || :not_your_turn,
+    with :play <- game.current_stage,
+         true <- current_player_id == game.current_player.id || :not_your_turn,
          {:current_turn_drawn?, true} <- {:current_turn_drawn?, game.current_turn_drawn?},
          {:level_complete?, true} <- {:level_complete?, level_complete?(game, current_player_id)},
          group when is_list(group) <- get_group(game.table, group_player_id, position),
@@ -97,8 +103,9 @@ defmodule Level10.Games.Game do
     else
       nil -> :invalid_group
       false -> :invalid_group
-      {:current_turn_drawn?, _} -> :needs_to_draw
-      {:level_complete?, _} -> :level_incomplete
+      stage when stage in [:lobby, :finish, :score] -> :invalid_stage
+      {:current_turn_drawn?, false} -> :needs_to_draw
+      {:level_complete?, false} -> :level_incomplete
       :not_your_turn -> :not_your_turn
     end
   end
@@ -163,8 +170,12 @@ defmodule Level10.Games.Game do
   @doc """
   Discard a card from the current player's hand
   """
-  @spec discard(t(), Card.t()) :: t() | :needs_to_draw
+  @spec discard(t(), Card.t()) :: t() | :invalid_stage | :needs_to_draw
   def discard(game, card)
+
+  def discard(%{current_stage: stage}, _card) when stage != :play do
+    :invalid_stage
+  end
 
   def discard(%{current_turn_drawn?: false}, _card) do
     :needs_to_draw

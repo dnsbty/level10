@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    ports:
+      - "4000:4000"
+    environment:
+      ADMIN_PASSWORD: password
+      ADMIN_USERNAME: admin
+      APNS_KEY: null
+      APNS_KEY_ID: null
+      APNS_TEAM_ID: null
+      LOGFLARE_API_KEY: null
+      LOGFLARE_SOURCE_ID: null
+      RELEASE_COOKIE: 5qnPRzv7F8L/Tx8JGTF7rIY6lKgwBerV
+      SECRET_KEY_BASE: Li0fCty86RwkcpnOX4e+twYD1Jw+Qxh7
+      SENTRY_DSN: bad

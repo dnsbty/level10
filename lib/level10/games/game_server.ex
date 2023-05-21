@@ -112,6 +112,7 @@ defmodule Level10.Games.GameServer do
       end
     else
       :needs_to_draw -> {:reply, :needs_to_draw, game}
+      :invalid_stage -> {:reply, :invalid_stage, game}
       _ -> {:reply, :not_your_turn, game}
     end
   end

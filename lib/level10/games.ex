@@ -28,7 +28,12 @@ defmodule Level10.Games do
           Game.cards(),
           timeout()
         ) ::
-          :ok | :invalid_group | :level_incomplete | :needs_to_draw | :not_your_turn
+          :ok
+          | :invalid_group
+          | :invalid_stage
+          | :level_incomplete
+          | :needs_to_draw
+          | :not_your_turn
   def add_to_table(join_code, player_id, table_id, position, cards_to_add, timeout \\ 5000) do
     GenServer.call(
       via(join_code),
