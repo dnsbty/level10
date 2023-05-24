@@ -1,33 +1,36 @@
+# fly.toml app configuration file generated for level10 on 2023-05-24T23:44:05+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
 app = "level10"
-
+primary_region = "dfw"
 kill_signal = "SIGTERM"
-kill_timeout = 5
-
-[metrics]
-port = 9091
-path = "/metrics"
-
-[env]
+kill_timeout = "5s"
 
 [[services]]
-  internal_port = 4000
   protocol = "tcp"
+  internal_port = 4000
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
 
   [services.concurrency]
+    type = "connections"
     hard_limit = 250
     soft_limit = 200
 
-  [[services.ports]]
-    handlers = ["http"]
-    port = 80
-
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = 443
-
   [[services.tcp_checks]]
-    grace_period = "10s"
     interval = "5s"
-    port = "4000"
-    restart_limit = 1
     timeout = "1s"
+    grace_period = "10s"
+    restart_limit = 1
+
+[metrics]
+  port = 9091
+  path = "/metrics"

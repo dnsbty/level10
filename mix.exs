@@ -44,6 +44,8 @@ defmodule Level10.MixProject do
     [
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:delta_crdt, "~> 0.6.3"},
+      # Fixes a compilation issue with Ecto <- Etso <- Logflare
+      {:ecto, "~> 3.10", override: true},
       {:esbuild, "~> 0.4", runtime: Mix.env() == :dev},
       {:finch, "~> 0.14", override: true},
       {:gettext, "~> 0.18"},
