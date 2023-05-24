@@ -144,7 +144,6 @@ defmodule Level10.Games.GameServer do
   end
 
   def handle_call({:get_for_player, player_id}, _from, game) do
-    [discard_top | _] = game.discard_pile
     hands = if player_id, do: %{player_id => game.hands[player_id]}, else: %{}
 
     game_for_player = %{
@@ -152,7 +151,7 @@ defmodule Level10.Games.GameServer do
       | device_tokens: nil,
         hand_counts: Game.hand_counts(game),
         hands: hands,
-        discard_pile: [discard_top],
+        discard_pile: Enum.take(game.discard_pile, 1),
         draw_pile: []
     }
 
