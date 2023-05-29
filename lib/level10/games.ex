@@ -95,7 +95,7 @@ defmodule Level10.Games do
   """
   @spec count() :: non_neg_integer()
   def count do
-    %{active: count} = Supervisor.count_children(GameSupervisor)
+    %{active: count} = Horde.DynamicSupervisor.count_children(GameSupervisor)
     count
   catch
     :exit, _ -> 0
