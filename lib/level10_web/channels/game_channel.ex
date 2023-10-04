@@ -102,7 +102,7 @@ defmodule Level10Web.GameChannel do
       nil ->
         {:reply, {:error, :no_card}, socket}
 
-      {:already_skipped, _player} ->
+      :already_skipped ->
         {:reply, {:error, :already_skipped}, socket}
 
       :choose_skip_target ->
@@ -443,7 +443,7 @@ defmodule Level10Web.GameChannel do
 
   @spec discard(Card.t(), map(), map()) ::
           :ok
-          | {:already_skipped, Player.t()}
+          | :already_skipped
           | :choose_skip_target
           | :invalid_stage
           | :not_your_turn
@@ -458,11 +458,6 @@ defmodule Level10Web.GameChannel do
 
       params["player_to_skip"] == nil ->
         :choose_skip_target
-
-      params["player_to_skip"] in Games.get_skipped_players(join_code) ->
-        players = Games.get_players(join_code)
-        player = Enum.find(players, &(&1.id == params["player_to_skip"]))
-        {:already_skipped, player}
 
       true ->
         Games.skip_player(join_code, player_id, params["player_to_skip"])

@@ -725,7 +725,7 @@ defmodule Level10.Games do
 
   """
   @spec skip_player(Game.join_code(), Player.id(), Player.id(), timeout()) ::
-          :ok | :invalid_stage | :needs_to_draw | :not_your_turn
+          :ok | :already_skipped | :invalid_stage | :needs_to_draw | :not_your_turn
   def skip_player(join_code, player_id, player_to_skip, timeout \\ 5000) do
     GenServer.call(via(join_code), {:skip_player, {player_id, player_to_skip}}, timeout)
   end

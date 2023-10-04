@@ -310,14 +310,15 @@ defmodule Level10.Games.Game do
       discard_pile: [],
       draw_pile: [],
       hands: %{},
+      hand_counts: %{},
       join_code: join_code,
       levels: %{},
       players: [player],
       players_ready: MapSet.new(),
       remaining_players: MapSet.new(),
       scoring: %{},
-      skipped_players: MapSet.new(),
       settings: settings,
+      skipped_players: MapSet.new(),
       table: %{},
       updated_at: NaiveDateTime.utc_now()
     }
