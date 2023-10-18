@@ -20,7 +20,7 @@ defmodule Level10Web.LobbyComponents do
     </div>
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
       <div class="py-8 px-4 sm:rounded-lg sm:px-10">
-        <.form :let={f} for={:info} action="#" phx-change="validate" phx-submit="create_game">
+        <.form :let={f} for={%{}} as={:info} action="#" phx-change="validate" phx-submit="create_game">
           <.input
             field={{f, :display_name}}
             label="Display name"
@@ -65,7 +65,8 @@ defmodule Level10Web.LobbyComponents do
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
       <.form
         :let={f}
-        for={:info}
+        for={%{}}
+        as={:info}
         action="#"
         phx-change="validate"
         phx-submit="join_game"

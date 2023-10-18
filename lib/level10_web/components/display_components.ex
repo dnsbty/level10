@@ -119,7 +119,14 @@ defmodule Level10Web.DisplayComponents do
     </div>
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
       <div class="py-8 px-4 sm:rounded-lg sm:px-10">
-        <.form :let={f} for={:game} action="#" phx-change="validate" phx-submit="begin_observing">
+        <.form
+          :let={f}
+          for={%{}}
+          as={:game}
+          action="#"
+          phx-change="validate"
+          phx-submit="begin_observing"
+        >
           <div class="mt-6">
             <.input label="Join code" field={{f, :join_code}} value={@join_code} class="uppercase" />
           </div>
