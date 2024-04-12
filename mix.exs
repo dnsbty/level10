@@ -44,14 +44,15 @@ defmodule Level10.MixProject do
     [
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:delta_crdt, "~> 0.6.3"},
+      {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       # Fixes a compilation issue with Ecto <- Etso <- Logflare
       {:ecto, "~> 3.10", override: true},
       {:esbuild, "~> 0.4", runtime: Mix.env() == :dev},
       {:finch, "~> 0.14", override: true},
       {:gettext, "~> 0.18"},
-      {:hackney, "~> 1.8"},
+      {:hackney, "~> 1.20"},
       {:heroicons, "~> 0.5"},
-      {:horde, "~> 0.8.4"},
+      {:horde, "~> 0.9.0"},
       {:jason, "~> 1.2"},
       {:libcluster, "~> 3.2"},
       {:logflare_logger_backend, "~> 0.11.0"},
@@ -62,12 +63,13 @@ defmodule Level10.MixProject do
       {:phoenix_live_view, "~> 0.18.0"},
       {:phoenix_pubsub, "~> 2.0"},
       {:pigeon, "~> 2.0.0-rc.0"},
-      {:prom_ex, "~> 1.7"},
+      {:prom_ex, "~> 1.9"},
       {:plug_cowboy, "~> 2.6", override: true},
-      {:sentry, "~> 8.0"},
+      {:sentry, "~> 10.3"},
       {:tailwind, "~> 0.1", runtime: Mix.env() == :dev},
       {:telemetry, "~> 1.0", override: true},
-      {:telemetry_metrics, "~> 0.6"},
+      # Need override because prom_ex 1.9 requires version 0.6
+      {:telemetry_metrics, "~> 1.0", override: true},
       {:telemetry_poller, "~> 1.0", override: true},
       {:uinta, "~> 0.9"}
     ]
