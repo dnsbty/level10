@@ -4,9 +4,28 @@ defmodule Level10Web.GameChannel do
   alias Level10.Games
   alias Level10.Games.Card
   alias Level10.Games.Game
+  alias Level10.Games.Levels
   alias Level10.Games.Player
   alias Level10.Games.Settings
   require Logger
+
+  @type state :: %{
+          current_player: String.t(),
+          discard_top: Card.t() | nil,
+          game_over: boolean,
+          hand: Game.cards(),
+          hand_counts: Game.hand_counts(),
+          has_drawn: boolean,
+          levels: %{optional(Player.t()) => Levels.level()},
+          players: [Player.t()],
+          players_ready: MapSet.t(),
+          remaining_players: MapSet.t(),
+          round_number: pos_integer,
+          round_winner: Player.t() | nil,
+          scores: [%{player_id: String.t(), level: pos_integer, points: pos_integer}],
+          settings: Settings.t(),
+          table: %{String.t() => map}
+        }
 
   def join("game:lobby", _params, socket) do
     with :ok <- check_app_version(socket.assigns.app_version) do
@@ -171,7 +190,7 @@ defmodule Level10Web.GameChannel do
       Logger.info("Starting game #{join_code}")
       Games.start_game(join_code)
     else
-      Logger.warn("Non-creator tried to start game #{join_code}")
+      Logger.warning("Non-creator tried to start game #{join_code}")
     end
 
     {:noreply, socket}
@@ -200,6 +219,9 @@ defmodule Level10Web.GameChannel do
 
   # Handle incoming messages from PubSub and other things
 
+  # Ignoring this with the dialyzer because for some reason it thinks
+  # current_state/2 will always return nil
+  @dialyzer {:no_match, handle_info: 2}
   def handle_info(:after_join, socket) do
     %{join_code: join_code, player_id: player_id} = socket.assigns
     Games.subscribe(socket, player_id)
@@ -215,79 +237,13 @@ defmodule Level10Web.GameChannel do
     device_token = socket.assigns[:device_token]
     if device_token, do: Games.put_device_token(join_code, player_id, device_token)
 
-    case game.current_stage do
-      :lobby ->
+    case current_state(game, player_id) do
+      nil ->
+        # This means the game is currently in the lobby stage, so only player
+        # list updates are needed
         push(socket, "players_updated", %{players: game.players})
 
-      :play ->
-        current_player_id = game.current_player.id
-        has_drawn = current_player_id == player_id && game.current_turn_drawn?
-
-        state = %{
-          current_player: current_player_id,
-          discard_top: List.first(game.discard_pile),
-          game_over: false,
-          hand: game.hands[player_id],
-          hand_counts: Game.hand_counts(game),
-          has_drawn: has_drawn,
-          levels: Games.format_levels(game.levels),
-          players: game.players,
-          remaining_players: game.remaining_players,
-          round_number: game.current_round,
-          scores: Games.format_scores(game.scoring),
-          settings: %{
-            skip_next_player: skip_next_player
-          },
-          skipped_players: game.skipped_players,
-          table: Games.format_table(game.table)
-        }
-
-        push(socket, "latest_state", state)
-
-      :score ->
-        state = %{
-          current_player: game.current_player.id,
-          discard_top: List.first(game.discard_pile),
-          game_over: false,
-          hand: game.hands[player_id],
-          hand_counts: Game.hand_counts(game),
-          has_drawn: false,
-          levels: Games.format_levels(game.levels),
-          players: game.players,
-          players_ready: game.players_ready,
-          remaining_players: game.remaining_players,
-          round_number: game.current_round,
-          round_winner: Game.round_winner(game),
-          scores: Games.format_scores(game.scoring),
-          settings: %{
-            skip_next_player: skip_next_player
-          },
-          table: Games.format_table(game.table)
-        }
-
-        push(socket, "latest_state", state)
-
-      :finish ->
-        state = %{
-          current_player: game.current_player.id,
-          discard_top: List.first(game.discard_pile),
-          game_over: true,
-          hand: game.hands[player_id],
-          hand_counts: Game.hand_counts(game),
-          has_drawn: false,
-          levels: Games.format_levels(game.levels),
-          players: game.players,
-          players_ready: game.players_ready,
-          remaining_players: game.remaining_players,
-          round_number: game.current_round,
-          round_winner: Game.round_winner(game),
-          scores: Games.format_scores(game.scoring),
-          settings: %{
-            skip_next_player: skip_next_player
-          },
-          table: Games.format_table(game.table)
-        }
-
+      state ->
         push(socket, "latest_state", state)
     end
 
@@ -407,7 +363,7 @@ defmodule Level10Web.GameChannel do
   end
 
   def handle_info(message, socket) do
-    Logger.warn("Game channel received unrecognized message: #{inspect(message)}")
+    Logger.warning("Game channel received unrecognized message: #{inspect(message)}")
     {:noreply, socket}
   end
 
@@ -467,6 +423,61 @@ defmodule Level10Web.GameChannel do
   defp discard(card, assigns, _) do
     %{join_code: join_code, player_id: player_id} = assigns
     Games.discard_card(join_code, player_id, card)
+  end
+
+  @spec current_state(Game.t(), String.t()) :: state() | nil
+  defp current_state(game, player_id) do
+    skip_next_player = game.settings.skip_next_player || Game.remaining_player_count(game) < 3
+    current_player_id = game.current_player.id
+    has_drawn = current_player_id == player_id && game.current_turn_drawn?
+
+    state = %{
+      current_player: current_player_id,
+      discard_top: List.first(game.discard_pile),
+      game_over: false,
+      hand: game.hands[player_id],
+      hand_counts: Game.hand_counts(game),
+      has_drawn: has_drawn,
+      levels: Games.format_levels(game.levels),
+      players: game.players,
+      players_ready: MapSet.new(),
+      remaining_players: game.remaining_players,
+      round_number: game.current_round,
+      round_winner: nil,
+      scores: Games.format_scores(game.scoring),
+      settings: %{
+        skip_next_player: skip_next_player
+      },
+      skipped_players: game.skipped_players,
+      table: Games.format_table(game.table)
+    }
+
+    case game.current_stage do
+      :lobby ->
+        nil
+
+      :play ->
+        state
+
+      :score ->
+        diff = %{
+          has_drawn: false,
+          players_ready: game.players_ready,
+          round_winner: Game.round_winner(game)
+        }
+
+        Map.merge(state, diff)
+
+      :finish ->
+        diff = %{
+          game_over: true,
+          has_drawn: false,
+          players_ready: game.players_ready,
+          round_winner: Game.round_winner(game)
+        }
+
+        Map.merge(state, diff)
+    end
   end
 
   @spec parse_version(String.t()) :: {integer, integer} | :invalid

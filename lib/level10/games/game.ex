@@ -6,7 +6,10 @@ defmodule Level10.Games.Game do
   down to clients.
   """
   require Logger
-  alias Level10.Games.{Card, Levels, Player, Settings}
+  alias Level10.Games.Card
+  alias Level10.Games.Levels
+  alias Level10.Games.Player
+  alias Level10.Games.Settings
 
   @type cards :: list(Card.t())
   @type hand_counts :: %{optional(Player.id()) => non_neg_integer()}
@@ -162,7 +165,7 @@ defmodule Level10.Games.Game do
 
   def delete_player(game, player_id) do
     metadata = [game_id: game.join_code, player_id: player_id]
-    Logger.warn("Player tried to leave game that has already started", metadata)
+    Logger.warning("Player tried to leave game that has already started", metadata)
 
     :already_started
   end
@@ -645,7 +648,7 @@ defmodule Level10.Games.Game do
     update(game, draw_pile: deck, hands: hands)
   end
 
-  @spec get_group(table(), Player.id(), non_neg_integer()) :: Game.cards() | nil
+  @spec get_group(table(), Player.id(), non_neg_integer()) :: cards() | nil
   defp get_group(table, player_id, position) do
     get_in(table, [player_id, position])
   end
@@ -770,7 +773,7 @@ defmodule Level10.Games.Game do
     update(game, levels: levels)
   end
 
-  @spec put_new_discard(Game.t()) :: Game.t()
+  @spec put_new_discard(t()) :: t()
   defp put_new_discard(%{draw_pile: [top_card | rest]} = game) do
     update(game, discard_pile: [top_card], draw_pile: rest)
   end

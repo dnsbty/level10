@@ -358,7 +358,7 @@ defmodule Level10Web.CoreComponents do
 
   ## JS Commands
 
-  @spec hide(Phoenix.LiveView.JS.t(), String.t()) :: Phoenix.LiveView.JS.t()
+  @spec show(struct(), String.t()) :: struct()
   def show(js \\ %JS{}, selector) do
     JS.show(js,
       to: selector,
@@ -370,7 +370,7 @@ defmodule Level10Web.CoreComponents do
     )
   end
 
-  @spec hide(Phoenix.LiveView.JS.t(), String.t()) :: Phoenix.LiveView.JS.t()
+  @spec hide(struct(), String.t()) :: struct()
   def hide(js \\ %JS{}, selector) do
     JS.hide(js,
       to: selector,
@@ -382,7 +382,7 @@ defmodule Level10Web.CoreComponents do
     )
   end
 
-  @spec update_theme_color(Phoenix.LiveView.JS.t(), String.t()) :: Phoenix.LiveView.JS.t()
+  @spec update_theme_color(struct(), String.t()) :: struct()
   def update_theme_color(js \\ %JS{}, color) do
     JS.dispatch(js, "phx:update-theme-color", detail: %{color: color})
   end

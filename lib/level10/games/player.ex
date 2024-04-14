@@ -3,7 +3,8 @@ defmodule Level10.Games.Player do
   Represents a player within a game.
   """
 
-  @type t :: %__MODULE__{id: String.t(), name: String.t()}
+  @type id :: String.t()
+  @type t :: %__MODULE__{id: id(), name: String.t()}
 
   @derive {Jason.Encoder, only: [:id, :name]}
   defstruct [:id, :name]

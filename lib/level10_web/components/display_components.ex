@@ -6,6 +6,7 @@ defmodule Level10Web.DisplayComponents do
   use Level10Web, :html
   alias Level10.Games.Card
   alias Level10.Games.Game
+  alias Level10.Games.Levels
   alias Level10.Games.Player
   alias Level10Web.GameComponents
 
@@ -242,18 +243,18 @@ defmodule Level10Web.DisplayComponents do
     "text-xs py-5 border border-violet-400 text-violet-400"
   end
 
-  @spec level(Game.scoring(), Player.id()) :: non_neg_integer()
+  @spec level(Game.scores(), Player.id()) :: non_neg_integer()
   defp level(scores, player_id) do
     {level, _} = scores[player_id]
     level
   end
 
-  @spec level_group_name(Levels.level()) :: String.t()
+  @spec level_group_name(Levels.group()) :: String.t()
   defp level_group_name({:set, count}), do: "Set of #{count}"
   defp level_group_name({:run, count}), do: "Run of #{count}"
   defp level_group_name({:color, count}), do: "#{count} of one Color"
 
-  @spec player_score(Game.scoring(), Player.id()) :: non_neg_integer()
+  @spec player_score(Game.scores(), Player.id()) :: non_neg_integer()
   defp player_score(scores, player_id) do
     {_, score} = scores[player_id]
     score

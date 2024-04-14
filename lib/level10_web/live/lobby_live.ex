@@ -169,7 +169,7 @@ defmodule Level10Web.LobbyLive do
   end
 
   def handle_event("start_game", _params, %{assigns: %{is_creator: false}} = socket) do
-    Logger.warn("Non-creator tried to start game #{socket.assigns.join_code}")
+    Logger.warning("Non-creator tried to start game #{socket.assigns.join_code}")
     {:noreply, socket}
   end
 
@@ -221,7 +221,7 @@ defmodule Level10Web.LobbyLive do
   end
 
   def handle_info(event, socket) do
-    Logger.warn(["Lobby live view received unrecognized event: ", inspect(event)])
+    Logger.warning(["Lobby live view received unrecognized event: ", inspect(event)])
     {:noreply, socket}
   end
 

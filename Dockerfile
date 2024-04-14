@@ -1,7 +1,7 @@
 ###
 ### Builder Stage
 ###
-FROM elixir:1.14-alpine AS builder
+FROM hexpm/elixir:1.16.2-erlang-26.2.4-alpine-3.19.1 AS builder
 
 RUN apk update --no-cache \
   && apk add --no-cache build-base openssh git
@@ -34,7 +34,7 @@ RUN mix release
 ###
 ### Final Stage - Separate image to keep it smaller
 ###
-FROM alpine:3.17 AS app
+FROM alpine:3.19 AS app
 RUN apk update --no-cache \
   && apk add --no-cache libstdc++ openssl ncurses-libs
 

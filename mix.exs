@@ -43,7 +43,8 @@ defmodule Level10.MixProject do
   defp deps do
     [
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
-      {:delta_crdt, "~> 0.6.3"},
+      # {:delta_crdt, "~> 0.6.3"},
+      {:delta_crdt, github: "dnsbty/delta_crdt_ex", override: true},
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       # Fixes a compilation issue with Ecto <- Etso <- Logflare
       {:ecto, "~> 3.10", override: true},

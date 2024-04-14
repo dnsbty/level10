@@ -15,6 +15,7 @@ defmodule Level10.Games.GameServer do
   alias Level10.Games.Card
   alias Level10.Games.Game
   alias Level10.Games.Player
+  alias Level10.Games.Settings
   alias Level10.Presence
   alias Level10.PushNotifications
   alias Level10.StateHandoff

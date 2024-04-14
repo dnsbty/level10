@@ -8,8 +8,12 @@ defmodule Level10Web.ScoringLive do
 
   alias Level10.Games
   alias Level10.Games.Game
+  alias Level10.Games.Player
+  alias Phoenix.LiveView.Socket
   require Logger
 
+  @impl Phoenix.LiveView
+  @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
   def mount(params, session, socket) do
     socket = fetch_player(socket, session)
 
@@ -42,12 +46,21 @@ defmodule Level10Web.ScoringLive do
 
       {:ok, assign(socket, assigns)}
     else
-      %{__struct__: Phoenix.LiveView.Socket} = socket -> {:ok, socket}
-      stage when stage in [:play, :lobby] -> {:ok, redirect_to_game(socket, params["join_code"])}
-      _ -> {:ok, push_redirect(socket, to: "/")}
+      %{__struct__: Phoenix.LiveView.Socket} = socket ->
+        {:ok, socket}
+
+      # For some reason the dialyzer thinks that params and socket are both set
+      # to either :lobby or :play here, so the guard clauses are specifically to
+      # help it
+      stage when stage in [:lobby, :play] and is_map(params) and is_struct(socket, Socket) ->
+        {:ok, redirect_to_game(socket, params["join_code"])}
+
+      _ ->
+        {:ok, push_redirect(socket, to: "/")}
     end
   end
 
+  @impl Phoenix.LiveView
   def handle_event("cancel_leave", _params, socket) do
     {:noreply, assign(socket, confirm_leave: false)}
   end
@@ -81,6 +94,7 @@ defmodule Level10Web.ScoringLive do
     {:noreply, socket}
   end
 
+  @impl Phoenix.LiveView
   def handle_info({:game_finished, _}, socket) do
     {:noreply, assign(socket, finished: true)}
   end
@@ -103,7 +117,7 @@ defmodule Level10Web.ScoringLive do
   end
 
   def handle_info(event, socket) do
-    Logger.warn(["Scoring live view received unrecognized event: ", inspect(event)])
+    Logger.warning(["Scoring live view received unrecognized event: ", inspect(event)])
     {:noreply, socket}
   end
 
@@ -114,7 +128,7 @@ defmodule Level10Web.ScoringLive do
   defp button_text(%{starting: true}), do: "Starting..."
   defp button_text(_), do: "Next Round"
 
-  @spec level(Game.scoring(), Player.id()) :: String.t()
+  @spec level(Game.scores(), Player.id()) :: String.t()
   defp level(scores, player_id) do
     {level, _} = scores[player_id]
     if level == 11, do: " 🏆", else: " (#{level})"
@@ -125,7 +139,7 @@ defmodule Level10Web.ScoringLive do
     push_redirect(socket, to: ~p"/game/#{join_code}")
   end
 
-  @spec score(Game.scoring(), Player.id()) :: non_neg_integer()
+  @spec score(Game.scores(), Player.id()) :: non_neg_integer()
   defp score(scores, player_id) do
     {_, score} = scores[player_id]
     score

@@ -162,7 +162,7 @@ defmodule Level10.Games.Card do
         %Card{color: :green, value: :twelve}
       ]}
   """
-  @spec pop_wilds(Game.cards()) :: {non_neg_integer(), Game.cards()}
+  @spec pop_wilds([t()]) :: {non_neg_integer(), [t()]}
   def pop_wilds(cards) do
     Enum.reduce(cards, {0, []}, fn card, {wild_count, group} ->
       case card.value do
@@ -380,7 +380,7 @@ defmodule Level10.Games.Card do
   defp numeric_value(:twelve), do: 12
   defp numeric_value(:skip), do: 13
 
-  @spec put_wilds_in_run(Game.cards(), non_neg_integer(), Game.cards()) :: Game.cards()
+  @spec put_wilds_in_run([t()], non_neg_integer(), [t()]) :: [t()]
   defp put_wilds_in_run([], 0, run), do: run
 
   defp put_wilds_in_run([], wild_count, run) do

@@ -10,7 +10,14 @@ defmodule Level10.Games do
   """
 
   alias Level10.Presence
-  alias Level10.Games.{Game, GameRegistry, GameServer, GameSupervisor, Levels, Player, Settings}
+  alias Level10.Games.Card
+  alias Level10.Games.Game
+  alias Level10.Games.GameRegistry
+  alias Level10.Games.GameServer
+  alias Level10.Games.GameSupervisor
+  alias Level10.Games.Levels
+  alias Level10.Games.Player
+  alias Level10.Games.Settings
   require Logger
 
   @typep game_name :: {:via, module, term}
@@ -284,7 +291,7 @@ defmodule Level10.Games do
       ]
 
   """
-  @spec format_scores(Game.scoring()) :: list(map)
+  @spec format_scores(Game.scores()) :: list(map)
   def format_scores(scoring) do
     for {player_id, {level, points}} <- scoring do
       %{player_id: player_id, level: level, points: points}
@@ -374,7 +381,7 @@ defmodule Level10.Games do
       %Game{}
 
   """
-  @spec get_for_player(Game.join_code(), Player.id(), timeout()) :: Game.t()
+  @spec get_for_player(Game.join_code(), Player.id() | nil, timeout()) :: Game.t()
   def get_for_player(join_code, player_id \\ nil, timeout \\ 5000) do
     GenServer.call(via(join_code), {:get_for_player, player_id}, timeout)
   end
@@ -758,7 +765,8 @@ defmodule Level10.Games do
   @doc """
   Susbscribe a process to updates for the specified game.
   """
-  @spec subscribe(Phoenix.Socket.t() | String.t(), Player.id()) :: :ok | {:error, term()}
+  @spec subscribe(Phoenix.Socket.t() | String.t(), Player.id() | :display) ::
+          :ok | {:error, term()}
   def subscribe(game_code, player_id) when is_binary(game_code) do
     topic = "game:" <> game_code
 

@@ -8,7 +8,9 @@ defmodule Level10Web.GameLive do
   alias Level10.Games.Card
   alias Level10.Games.Game
   alias Level10.Games.Levels
+  alias Level10.Games.Player
   alias Level10Web.GameComponents
+  alias Phoenix.LiveView.Socket
   require Logger
 
   @happy_emoji ~w(🎉 😄 😎 🤩 🤑 🔥)
@@ -66,7 +68,7 @@ defmodule Level10Web.GameLive do
 
       {:ok, assign(socket, assigns)}
     else
-      %{__struct__: Phoenix.LiveView.Socket} = socket -> {:ok, socket}
+      %{__struct__: Socket} = socket -> {:ok, socket}
       _ -> {:ok, push_redirect(socket, to: "/")}
     end
   end
@@ -311,7 +313,7 @@ defmodule Level10Web.GameLive do
   end
 
   def handle_info(event, socket) do
-    Logger.warn(["Game socket received unknown event: ", inspect(event)])
+    Logger.warning(["Game socket received unknown event: ", inspect(event)])
     {:noreply, socket}
   end
 
@@ -382,7 +384,7 @@ defmodule Level10Web.GameLive do
     put_flash(socket, :warning, message)
   end
 
-  @spec level_group_name(Levels.level()) :: String.t()
+  @spec level_group_name(Levels.group()) :: String.t()
   defp level_group_name({:set, count}), do: "Set of #{count}"
   defp level_group_name({:run, count}), do: "Run of #{count}"
   defp level_group_name({:color, count}), do: "#{count} of one Color"
