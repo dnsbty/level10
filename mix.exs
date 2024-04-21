@@ -46,8 +46,7 @@ defmodule Level10.MixProject do
       # {:delta_crdt, "~> 0.6.3"},
       {:delta_crdt, github: "dnsbty/delta_crdt_ex", override: true},
       {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
-      # Fixes a compilation issue with Ecto <- Etso <- Logflare
-      {:ecto, "~> 3.10", override: true},
+      {:ecto, "~> 3.10"},
       {:esbuild, "~> 0.4", runtime: Mix.env() == :dev},
       {:finch, "~> 0.14", override: true},
       {:gettext, "~> 0.18"},
@@ -56,7 +55,6 @@ defmodule Level10.MixProject do
       {:horde, "~> 0.9.0"},
       {:jason, "~> 1.2"},
       {:libcluster, "~> 3.2"},
-      {:logflare_logger_backend, "~> 0.11.0"},
       {:phoenix, "~> 1.7-rc.0", override: true},
       {:phoenix_html, "~> 3.2"},
       {:phoenix_live_dashboard, "~> 0.7"},
