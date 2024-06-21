@@ -9,4 +9,4 @@ config :level10, Level10Web.Endpoint,
 config :level10, Level10.PromEx, disabled: true
 
 # Print only warnings and errors during test
-config :logger, level: :warn
+config :logger, level: :warning

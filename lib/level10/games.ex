@@ -9,7 +9,6 @@ defmodule Level10.Games do
   the distributed registry and supervisor, or with Phoenix Presence or PubSub.
   """
 
-  alias Level10.Presence
   alias Level10.Games.Card
   alias Level10.Games.Game
   alias Level10.Games.GameRegistry
@@ -18,6 +17,7 @@ defmodule Level10.Games do
   alias Level10.Games.Levels
   alias Level10.Games.Player
   alias Level10.Games.Settings
+  alias Level10.Presence
   require Logger
 
   @typep game_name :: {:via, module, term}
