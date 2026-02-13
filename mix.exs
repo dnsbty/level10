@@ -52,7 +52,7 @@ defmodule Level10.MixProject do
       {:gettext, "~> 1.0"},
       {:hackney, "~> 1.20"},
       {:heroicons, "~> 0.5"},
-      {:horde, "~> 0.9.0"},
+      {:horde, "~> 0.10.0"},
       {:jason, "~> 1.2"},
       {:libcluster, "~> 3.2"},
       {:phoenix, "~> 1.7-rc.0", override: true},
