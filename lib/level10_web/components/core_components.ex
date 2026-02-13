@@ -10,7 +10,7 @@ defmodule Level10Web.CoreComponents do
   [heroicons_elixir](https://github.com/mveytsman/heroicons_elixir) project.
   """
   use Phoenix.Component
-  import Level10Web.Gettext
+  use Gettext, backend: Level10Web.Gettext
   alias Phoenix.HTML.Form
   alias Phoenix.LiveView.JS
 

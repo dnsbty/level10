@@ -49,7 +49,7 @@ defmodule Level10.MixProject do
       {:ecto, "~> 3.10"},
       {:esbuild, "~> 0.4", runtime: Mix.env() == :dev},
       {:finch, "~> 0.14", override: true},
-      {:gettext, "~> 0.18"},
+      {:gettext, "~> 1.0"},
       {:hackney, "~> 1.20"},
       {:heroicons, "~> 0.5"},
       {:horde, "~> 0.9.0"},

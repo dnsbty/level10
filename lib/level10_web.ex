@@ -44,7 +44,7 @@ defmodule Level10Web do
         layouts: [html: Level10Web.Layouts]
 
       import Plug.Conn
-      import Level10Web.Gettext
+      use Gettext, backend: Level10Web.Gettext
 
       unquote(verified_routes())
     end
@@ -86,7 +86,7 @@ defmodule Level10Web do
       import Phoenix.HTML
       # Core UI components and translation
       import Level10Web.CoreComponents
-      import Level10Web.Gettext
+      use Gettext, backend: Level10Web.Gettext
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS

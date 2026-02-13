@@ -20,5 +20,5 @@ defmodule Level10Web.Gettext do
 
   See the [Gettext Docs](https://hexdocs.pm/gettext) for detailed usage.
   """
-  use Gettext, otp_app: :level10
+  use Gettext.Backend, otp_app: :level10
 end
