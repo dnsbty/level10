@@ -204,13 +204,7 @@ defmodule Level10Web.GameLive do
 
       # don't send the new table to the server unless all of the groups have
       # cards in them
-      has_completed_level =
-        if Enum.any?(player_table, fn {_, value} -> is_nil(value) end) do
-          false
-        else
-          Games.table_cards(assigns.join_code, assigns.player_id, player_table)
-          true
-        end
+      has_completed_level = maybe_table_cards(player_table, assigns)
 
       assigns = %{
         hand: Card.sort(hand),
@@ -425,6 +419,15 @@ defmodule Level10Web.GameLive do
 
       _ ->
         :multiple_cards_selected
+    end
+  end
+
+  defp maybe_table_cards(player_table, assigns) do
+    if Enum.any?(player_table, fn {_, value} -> is_nil(value) end) do
+      false
+    else
+      Games.table_cards(assigns.join_code, assigns.player_id, player_table)
+      true
     end
   end
 
