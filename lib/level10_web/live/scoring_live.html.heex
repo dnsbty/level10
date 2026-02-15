@@ -6,7 +6,7 @@
     <%= if @finished, do: winner_text(@leader, @player_id), else: "Round #{@round_number}" %>
   </h2>
   <ul class="mt-12 sm:mx-auto sm:w-full sm:max-w-md">
-    <%= for {player, index} <- Enum.with_index(@players) do %>
+    <%= for {player, index} <- Enum.with_index(@players, 1) do %>
       <li class="flex items-center px-4 py-2 font-bold tracking-wide text-2xl text-white">
         <div class="mr-2 text-lg">
           <%= if !MapSet.member?(@remaining_players, player.id), do: "💀", else: "#{index}." %>
