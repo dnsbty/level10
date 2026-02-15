@@ -50,7 +50,6 @@ defmodule Level10.MixProject do
       {:esbuild, "~> 0.4", runtime: Mix.env() == :dev},
       {:finch, "~> 0.14", override: true},
       {:gettext, "~> 1.0"},
-      {:hackney, "~> 1.20"},
       {:heroicons, "~> 0.5"},
       {:horde, "~> 0.10.0"},
       {:jason, "~> 1.2"},
