@@ -1,7 +1,7 @@
 ###
 ### Builder Stage
 ###
-FROM hexpm/elixir:1.16.2-erlang-26.2.4-alpine-3.19.1 AS builder
+FROM hexpm/elixir:1.19.5-erlang-28.3.1-alpine-3.23.3 AS builder
 
 RUN apk update --no-cache \
   && apk add --no-cache build-base openssh git
@@ -34,7 +34,7 @@ RUN mix release
 ###
 ### Final Stage - Separate image to keep it smaller
 ###
-FROM alpine:3.19 AS app
+FROM alpine:3.23.3 AS app
 RUN apk update --no-cache \
   && apk add --no-cache libstdc++ openssl ncurses-libs
 
@@ -42,7 +42,6 @@ ENV LANG=en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 ENV ECTO_IPV6 true
-ENV ERL_AFLAGS "-proto_dist inet6_tcp"
 
 WORKDIR /app
 RUN chown nobody /app

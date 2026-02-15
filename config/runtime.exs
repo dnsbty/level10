@@ -36,17 +36,29 @@ case config_env() do
         ]
       ]
 
-    # Configure push notifications
-    if is_nil(key), do: raise("environment variable APNS_KEY is missing.")
-    if is_nil(key_identifier), do: raise("environment variable APNS_KEY_ID is missing.")
-    if is_nil(team_id), do: raise("environment variable APNS_TEAM_ID is missing.")
+    apns_disabled = System.get_env("DISABLE_APNS") == "true"
 
-    config :level10, Level10.PushNotifications.APNS,
-      adapter: Pigeon.APNS,
-      key: key,
-      key_identifier: key_identifier,
-      mode: :prod,
-      team_id: team_id
+    if apns_disabled do
+      config :level10, Level10.PushNotifications.APNS,
+        adapter: Pigeon.APNS,
+        disabled?: true,
+        key: key,
+        key_identifier: key_identifier,
+        mode: :prod,
+        team_id: team_id
+    else
+      # Configure push notifications
+      if is_nil(key), do: raise("environment variable APNS_KEY is missing.")
+      if is_nil(key_identifier), do: raise("environment variable APNS_KEY_ID is missing.")
+      if is_nil(team_id), do: raise("environment variable APNS_TEAM_ID is missing.")
+
+      config :level10, Level10.PushNotifications.APNS,
+        adapter: Pigeon.APNS,
+        key: key,
+        key_identifier: key_identifier,
+        mode: :prod,
+        team_id: team_id
+    end
 
     admin_username =
       System.get_env("ADMIN_USERNAME") ||
@@ -67,21 +79,25 @@ case config_env() do
         password: admin_password
       ]
 
-    sentry_dsn =
-      System.get_env("SENTRY_DSN") ||
-        raise """
-        environment variable SENTRY_DSN is missing.
-        """
+    sentry_disabled = System.get_env("DISABLE_SENTRY") == "true"
 
-    config :sentry,
-      dsn: sentry_dsn,
-      environment_name: :prod,
-      enable_source_code_context: true,
-      root_source_code_path: File.cwd!(),
-      tags: %{
-        env: "production"
-      },
-      included_environments: [:prod]
+    if !sentry_disabled do
+      sentry_dsn =
+        System.get_env("SENTRY_DSN") ||
+          raise """
+          environment variable SENTRY_DSN is missing.
+          """
+
+      config :sentry,
+        dsn: sentry_dsn,
+        environment_name: :prod,
+        enable_source_code_context: true,
+        root_source_code_path: File.cwd!(),
+        tags: %{
+          env: "production"
+        },
+        included_environments: [:prod]
+    end
 
   :dev ->
     disabled = is_nil(key) || is_nil(key_identifier) || is_nil(team_id)

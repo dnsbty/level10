@@ -5,9 +5,8 @@ defmodule Level10.MixProject do
     [
       app: :level10,
       version: "0.1.0",
-      elixir: "~> 1.14",
+      elixir: "~> 1.19",
       elixirc_paths: elixirc_paths(Mix.env()),
-      compilers: Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       releases: releases(),
       aliases: aliases(),
@@ -77,6 +76,7 @@ defmodule Level10.MixProject do
   defp aliases do
     [
       compile: "compile --warnings-as-errors",
+      test: "test --warnings-as-errors",
       setup: ["deps.get", "cmd --cd assets npm install"],
       "assets.deploy": [
         "tailwind default --minify",
