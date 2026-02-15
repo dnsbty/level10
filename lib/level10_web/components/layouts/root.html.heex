@@ -8,7 +8,7 @@
     />
     <meta name="csrf-token" content={get_csrf_token()} />
     <.live_title>
-      <%= assigns[:page_title] || "Play Level 10!" %>
+      {assigns[:page_title] || "Play Level 10!"}
     </.live_title>
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="#5b21b6" />
@@ -30,6 +30,6 @@
     "select-none bg-violet-800",
     if(assigns[:overflow_hidden], do: "overflow-hidden")
   ]}>
-    <%= @inner_content %>
+    {@inner_content}
   </body>
 </html>

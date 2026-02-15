@@ -26,9 +26,9 @@ defmodule Level10Web.DisplayComponents do
       <!-- Draw and Discard Piles -->
       <div class="w-1/3 flex flex-col items-center">
         <p class="text-center text-3xl mb-32 text-violet-200">
-          Waiting for <%= @game.current_player.name %> to <%= if @game.current_turn_drawn?,
+          Waiting for {@game.current_player.name} to {if @game.current_turn_drawn?,
             do: "discard",
-            else: "draw" %>...
+            else: "draw"}...
         </p>
         <div class="flex flew-row">
           <div class="w-1/3 ml-auto mr-8 text-center rounded-lg">
@@ -58,18 +58,18 @@ defmodule Level10Web.DisplayComponents do
                   player.id != @game.current_player.id && "opacity-60",
                   player.id in @game.skipped_players && "line-through"
                 ]}>
-                  <%= player.name %>
+                  {player.name}
                 </div>
               </div>
               <div class="flex flex-row items-center text-violet-300 text-xl">
                 <div>
-                  <%= player_score(@game.scoring, player.id) %> pts (L<%= level(
+                  {player_score(@game.scoring, player.id)} pts (L{level(
                     @game.scoring,
                     player.id
-                  ) %>)
+                  )})
                 </div>
                 <div class="mx-2 mb-1">&#x1F02B;</div>
-                <div><%= @hand_counts[player.id] %></div>
+                <div>{@hand_counts[player.id]}</div>
               </div>
             </div>
             <%= if is_nil(@game.table[player.id]) do %>
@@ -77,7 +77,7 @@ defmodule Level10Web.DisplayComponents do
                 <%= for group <- @levels[player.id] do %>
                   <div class="flex flex-row items-center flex-1 mr-2 h-full bg-violet-900 rounded-lg py-2">
                     <p class="flex-1 text-violet-400 text-center text-4xl">
-                      <%= level_group_name(group) %>
+                      {level_group_name(group)}
                     </p>
                   </div>
                 <% end %>
@@ -87,7 +87,7 @@ defmodule Level10Web.DisplayComponents do
                 <%= for {group, position} <- Enum.with_index(@levels[player.id]) do %>
                   <div class="flex flex-col flex-1 h-full bg-violet-900 mr-2 rounded-lg p-1">
                     <p class="w-full text-violet-400 text-center text-lg">
-                      <%= level_group_name(group) %>
+                      {level_group_name(group)}
                     </p>
                     <div class="flex flex-row flex-1 text-violet-400 items-center">
                       <%= for card <- @game.table[player.id][position] do %>
@@ -156,11 +156,11 @@ defmodule Level10Web.DisplayComponents do
             Join Code
           </h3>
           <h2 class="text-center text-6xl mt-4 leading-9 font-black text-violet-100">
-            <%= @game.join_code %>
+            {@game.join_code}
           </h2>
         </div>
         <p class="text-center text-3xl my-32 text-violet-200">
-          Waiting for <%= Level10.Games.Game.creator(@game).name %> to start the game...
+          Waiting for {Level10.Games.Game.creator(@game).name} to start the game...
         </p>
       </div>
       <div class="flex-1 pt-12 h-screen">
@@ -174,7 +174,7 @@ defmodule Level10Web.DisplayComponents do
                 online={player.id in Map.keys(@presence)}
                 class="mr-4 cursor-default"
               />
-              <div><%= player.name %></div>
+              <div>{player.name}</div>
             </li>
           <% end %>
         </ul>
@@ -196,23 +196,23 @@ defmodule Level10Web.DisplayComponents do
     <div class="flex flex-row items-center justify-around h-screen mx-16">
       <div class="w-1/3 flex flex-col items-center">
         <p class="text-center text-6xl text-violet-200 font-black">
-          <%= @round_winner.name %> wins the round!
+          {@round_winner.name} wins the round!
         </p>
       </div>
       <!-- Player Display -->
       <div class="w-1/2">
         <h3 class="text-center text-3xl font-bold text-violet-200">
-          Scores after round <%= @game.current_round %>
+          Scores after round {@game.current_round}
         </h3>
         <ol class="pl-12 list-decimal mt-16">
           <%= for player <- @players do %>
             <li class="px-4 py-2 font-extrabold tracking-wide text-4xl text-violet-100">
               <div class="flex items-center">
                 <div class="flex-1">
-                  <%= player.name %>
+                  {player.name}
                 </div>
                 <div>
-                  <%= player_score(@game.scoring, player.id) %> (<%= level(@game.scoring, player.id) %>)
+                  {player_score(@game.scoring, player.id)} ({level(@game.scoring, player.id)})
                 </div>
                 <%= if MapSet.member?(@game.players_ready, player.id) do %>
                   <div>✓</div>

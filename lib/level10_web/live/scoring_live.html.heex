@@ -1,24 +1,24 @@
 <div class="flex-1 mt-10 sm:mx-auto sm:w-full sm:max-w-md">
   <h3 class="text-center text-xl text-violet-200 font-bold tracking-wide">
-    <%= if @finished, do: "Game over", else: "Scores after" %>
+    {if @finished, do: "Game over", else: "Scores after"}
   </h3>
   <h2 class="text-center text-4xl leading-9 font-black text-white tracking-wide">
-    <%= if @finished, do: winner_text(@leader, @player_id), else: "Round #{@round_number}" %>
+    {if @finished, do: winner_text(@leader, @player_id), else: "Round #{@round_number}"}
   </h2>
   <ul class="mt-12 sm:mx-auto sm:w-full sm:max-w-md">
     <%= for {player, index} <- Enum.with_index(@players, 1) do %>
       <li class="flex items-center px-4 py-2 font-bold tracking-wide text-2xl text-white">
         <div class="mr-2 text-lg">
-          <%= if !MapSet.member?(@remaining_players, player.id), do: "💀", else: "#{index}." %>
+          {if !MapSet.member?(@remaining_players, player.id), do: "💀", else: "#{index}."}
         </div>
         <div class={[
           "flex-1",
           if(!MapSet.member?(@remaining_players, player.id), do: "line-through decoration-2")
         ]}>
-          <%= player.name %>
+          {player.name}
         </div>
         <div>
-          <%= score(@scores, player.id) %><%= level(@scores, player.id) %>
+          {score(@scores, player.id)}{level(@scores, player.id)}
         </div>
         <%= if !@finished && MapSet.member?(@players_ready, player.id) do %>
           <div class="text-lg ml-2 text-white">✓</div>
@@ -36,7 +36,7 @@
         Waiting for others...
       <% else %>
         <.button level={:primary} type="submit" phx-click="mark_ready">
-          <%= button_text(assigns) %>
+          {button_text(assigns)}
         </.button>
       <% end %>
     </div>

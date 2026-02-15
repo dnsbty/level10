@@ -45,7 +45,7 @@ defmodule Level10Web.CoreComponents do
       ]}
       {@rest}
     >
-      <p class="text-lg leading-5"><%= msg %></p>
+      <p class="text-lg leading-5">{msg}</p>
       <button
         :if={@close}
         type="button"
@@ -101,7 +101,7 @@ defmodule Level10Web.CoreComponents do
       disabled={@disabled}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </button>
     """
   end
@@ -222,8 +222,8 @@ defmodule Level10Web.CoreComponents do
         </span>
       </button>
       <span class="flex-grow flex flex-col ml-4" id="toggleLabel">
-        <span class="text-lg font-semibold text-white"><%= @label %></span>
-        <span class="text-md text-violet-300 leading-normal"><%= @description %></span>
+        <span class="text-lg font-semibold text-white">{@label}</span>
+        <span class="text-md text-violet-300 leading-normal">{@description}</span>
       </span>
     </div>
     """
@@ -232,7 +232,7 @@ defmodule Level10Web.CoreComponents do
   def input(assigns) do
     ~H"""
     <div>
-      <.label for={@id}><%= @label %></.label>
+      <.label for={@id}>{@label}</.label>
       <input
         type={@type}
         name={@name}
@@ -247,7 +247,7 @@ defmodule Level10Web.CoreComponents do
         ]}
         {@rest}
       />
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
   end
@@ -267,7 +267,7 @@ defmodule Level10Web.CoreComponents do
   def label(assigns) do
     ~H"""
     <label for={@for} class="block text-xl font-bold mb-2.5 text-white">
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </label>
     """
   end
@@ -281,7 +281,7 @@ defmodule Level10Web.CoreComponents do
     ~H"""
     <p class="mt-3 flex gap-3 text-sm leading-6 text-rose-600">
       <Heroicons.exclamation_circle mini class="mt-0.5 h-5 w-5 flex-none fill-rose-500" />
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </p>
     """
   end

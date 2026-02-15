@@ -11,15 +11,15 @@
           player.id != @turn.id && "opacity-60",
           player.id in @skipped_players && "line-through"
         ]}>
-          <%= if player.id == @player_id, do: "You", else: player.name %>
+          {if player.id == @player_id, do: "You", else: player.name}
         </div>
-        <div class="flex text-violet-300 text-xs"><%= @hand_counts[player.id] %></div>
+        <div class="flex text-violet-300 text-xs">{@hand_counts[player.id]}</div>
       </div>
       <div class="col-span-3 h-12 flex flex-row items-stretch gap-2">
         <%= if is_nil(@table[player.id]) do %>
           <%= for group <- @levels[player.id] do %>
             <div class="flex-1 flex items-center justify-center bg-violet-900 text-violet-400 text-center rounded-md py-2">
-              <%= level_group_name(group) %>
+              {level_group_name(group)}
             </div>
           <% end %>
         <% else %>
@@ -86,12 +86,12 @@
                 MapSet.size(@selected_indexes) > 0 && "cursor-pointer"
               ]}
             >
-              <p><%= level_group_name(group) %></p>
+              <p>{level_group_name(group)}</p>
             </div>
           <% else %>
             <div class="flex flex-col items-stretch w-full h-full gap-2">
               <p class="text-violet-400 text-center text-xs">
-                <%= level_group_name(group) %>
+                {level_group_name(group)}
               </p>
               <div class="flex flex-row flex-1 items-stretch gap-1 text-violet-400 h-10">
                 <%= for card <- @player_table[position] do %>
@@ -168,16 +168,16 @@
           class="text-center text-2xl leading-6 font-bold text-white"
           id="round-finished-modal-headline"
         >
-          <%= if @game_over, do: "Game Over", else: "Round Complete" %>
-          <%= complete_emoji(@table, @player_id) %>
+          {if @game_over, do: "Game Over", else: "Round Complete"}
+          {complete_emoji(@table, @player_id)}
         </h3>
         <p class="text-center text-lg leading-5 text-violet-200">
-          <%= round_winner(@round_winner, @player_id) %> won the current round.
+          {round_winner(@round_winner, @player_id)} won the current round.
         </p>
         <div class="mt-5 sm:mt-6">
           <span class="flex w-full rounded-md shadow-sm">
             <.button level={:primary} phx-click="show_scores">
-              <%= if @game_over, do: "See the Final Scores", else: "Check the Scores" %>
+              {if @game_over, do: "See the Final Scores", else: "Check the Scores"}
             </.button>
           </span>
         </div>
@@ -209,7 +209,7 @@
               phx-value-player-id={player.id}
               class="mt-2"
             >
-              <%= player.name %>
+              {player.name}
             </.button>
           <% else %>
             <.button
@@ -218,7 +218,7 @@
               phx-value-player_id={player.id}
               class="mt-2"
             >
-              <%= player.name %>
+              {player.name}
             </.button>
           <% end %>
         <% end %>

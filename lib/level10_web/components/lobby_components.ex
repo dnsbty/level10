@@ -131,7 +131,7 @@ defmodule Level10Web.LobbyComponents do
         Join Code
       </h3>
       <h2 class="text-center text-4xl leading-9 font-extrabold text-white">
-        <%= @join_code %>
+        {@join_code}
       </h2>
       <div class="mt-12 sm:mx-auto sm:w-full sm:max-w-md">
         <h2 class="text-center text-xl text-violet-200 font-semibold tracking-wide">
@@ -141,7 +141,7 @@ defmodule Level10Web.LobbyComponents do
           <%= for player <- @players do %>
             <li class="flex px-4 py-2 font-bold text-3xl text-white items-center">
               <.status_indicator online={player.id in Map.keys(@presence)} class="mr-2" />
-              <div><%= player.name %></div>
+              <div>{player.name}</div>
             </li>
           <% end %>
         </ul>
@@ -151,7 +151,7 @@ defmodule Level10Web.LobbyComponents do
       <div class="py-8 px-4 sm:rounded-lg sm:px-10">
         <div :if={@is_creator} class="mt-6">
           <.button level={:primary} phx-click="start_game" disabled={@starting}>
-            <%= if @starting, do: "Starting...", else: "Start Game" %>
+            {if @starting, do: "Starting...", else: "Start Game"}
           </.button>
         </div>
         <div class="flex mt-4">
