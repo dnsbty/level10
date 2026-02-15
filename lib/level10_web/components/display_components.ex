@@ -122,14 +122,12 @@ defmodule Level10Web.DisplayComponents do
       <div class="py-8 px-4 sm:rounded-lg sm:px-10">
         <.form
           :let={f}
-          for={%{}}
-          as={:game}
-          action="#"
+          for={to_form(%{}, as: :game)}
           phx-change="validate"
           phx-submit="begin_observing"
         >
           <div class="mt-6">
-            <.input label="Join code" field={{f, :join_code}} value={@join_code} class="uppercase" />
+            <.input label="Join code" field={f[:join_code]} value={@join_code} class="uppercase" />
           </div>
           <div class="mt-6 mb-32">
             <.button level={:primary} type="submit">

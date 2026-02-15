@@ -20,15 +20,15 @@ defmodule Level10Web.LobbyComponents do
     </div>
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
       <div class="py-8 px-4 sm:rounded-lg sm:px-10">
-        <.form :let={f} for={%{}} as={:info} action="#" phx-change="validate" phx-submit="create_game">
+        <.form :let={f} for={to_form(%{}, as: :info)} phx-change="validate" phx-submit="create_game">
           <.input
-            field={{f, :display_name}}
+            field={f[:display_name]}
             label="Display name"
             value={@display_name}
             phx-hook="SelectOnMount"
           />
           <.input
-            field={{f, :skip_next_player}}
+            field={f[:skip_next_player]}
             label="Skip next player"
             type="checkbox"
             value={@settings.skip_next_player}
@@ -41,9 +41,9 @@ defmodule Level10Web.LobbyComponents do
           <.button type="submit" phx-click="create_game" level={:primary}>Create Game</.button>
         </div>
         <div class="mt-4">
-          <%= live_patch to: ~p"/", replace: true do %>
+          <.link patch={~p"/"} replace>
             <.button type="cancel" phx-click="cancel" level={:ghost}>Nevermind</.button>
-          <% end %>
+          </.link>
         </div>
       </div>
     </div>
@@ -65,20 +65,18 @@ defmodule Level10Web.LobbyComponents do
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
       <.form
         :let={f}
-        for={%{}}
-        as={:info}
-        action="#"
+        for={to_form(%{}, as: :info)}
         phx-change="validate"
         phx-submit="join_game"
         class="py-8 px-4 sm:rounded-lg sm:px-10 space-y-6"
       >
         <.input
-          field={{f, :display_name}}
+          field={f[:display_name]}
           label="Display name"
           value={@display_name}
           phx-hook="SelectOnMount"
         />
-        <.input field={{f, :join_code}} label="Join code" value={@join_code} class="uppercase" />
+        <.input field={f[:join_code]} label="Join code" value={@join_code} class="uppercase" />
         <.button type="submit" level={:primary}>Join Game</.button>
         <.button type="button" phx-click="cancel" level={:ghost}>Nevermind</.button>
       </.form>
@@ -99,16 +97,16 @@ defmodule Level10Web.LobbyComponents do
       <div class="py-8 px-4 sm:rounded-lg sm:px-10">
         <div class="mt-6">
           <span class="block w-full rounded-md shadow-sm">
-            <%= live_patch to: ~p"/create", replace: true do %>
+            <.link patch={~p"/create"} replace>
               <.button level={:secondary}>Create Game</.button>
-            <% end %>
+            </.link>
           </span>
         </div>
         <div class="mt-6">
           <span class="block w-full rounded-md shadow-sm">
-            <%= live_patch to: ~p"/join", replace: true do %>
+            <.link patch={~p"/join"} replace>
               <.button level={:primary}>Join Game</.button>
-            <% end %>
+            </.link>
           </span>
         </div>
       </div>

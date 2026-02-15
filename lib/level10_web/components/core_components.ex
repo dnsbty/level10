@@ -11,7 +11,6 @@ defmodule Level10Web.CoreComponents do
   """
   use Phoenix.Component
   use Gettext, backend: Level10Web.Gettext
-  alias Phoenix.HTML.Form
   alias Phoenix.LiveView.JS
 
   @doc """
@@ -167,7 +166,7 @@ defmodule Level10Web.CoreComponents do
   attr :click, :string, default: nil
   attr :setting, :string, default: nil
   attr :value, :any
-  attr :field, :any, doc: "a %Phoenix.HTML.Form{}/field name tuple, for example: {f, :email}"
+  attr :field, Phoenix.HTML.FormField, doc: "a form field struct, e.g. f[:email]"
   attr :errors, :list
   attr :checked, :boolean, doc: "the checked flag for checkbox inputs"
   attr :prompt, :string, default: nil, doc: "the prompt for select inputs"
@@ -177,16 +176,17 @@ defmodule Level10Web.CoreComponents do
                                    pattern placeholder readonly required size step)
   slot(:inner_block)
 
-  def input(%{field: {f, field}} = assigns) do
+  def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
     assigns
     |> assign(field: nil)
     |> assign_new(:name, fn ->
-      name = Form.input_name(f, field)
-      if assigns.multiple, do: name <> "[]", else: name
+      if assigns.multiple, do: field.name <> "[]", else: field.name
     end)
-    |> assign_new(:id, fn -> Form.input_id(f, field) end)
-    |> assign_new(:value, fn -> Form.input_value(f, field) end)
-    |> assign_new(:errors, fn -> translate_errors(f.errors || [], field) end)
+    |> assign_new(:id, fn -> field.id end)
+    |> assign_new(:value, fn -> field.value end)
+    |> assign_new(:errors, fn ->
+      Enum.map(field.errors, &translate_error(&1))
+    end)
     |> input()
   end
 
@@ -231,7 +231,7 @@ defmodule Level10Web.CoreComponents do
 
   def input(assigns) do
     ~H"""
-    <div phx-feedback-for={@name}>
+    <div>
       <.label for={@id}><%= @label %></.label>
       <input
         type={@type}
@@ -279,7 +279,7 @@ defmodule Level10Web.CoreComponents do
 
   def error(assigns) do
     ~H"""
-    <p class="phx-no-feedback:hidden mt-3 flex gap-3 text-sm leading-6 text-rose-600">
+    <p class="mt-3 flex gap-3 text-sm leading-6 text-rose-600">
       <Heroicons.exclamation_circle mini class="mt-0.5 h-5 w-5 flex-none fill-rose-500" />
       <%= render_slot(@inner_block) %>
     </p>

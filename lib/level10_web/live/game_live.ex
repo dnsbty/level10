@@ -69,7 +69,7 @@ defmodule Level10Web.GameLive do
       {:ok, assign(socket, assigns)}
     else
       %{__struct__: Socket} = socket -> {:ok, socket}
-      _ -> {:ok, push_redirect(socket, to: "/")}
+      _ -> {:ok, push_navigate(socket, to: "/")}
     end
   end
 
@@ -191,7 +191,7 @@ defmodule Level10Web.GameLive do
 
   def handle_event("show_scores", _params, socket) do
     %{join_code: join_code, player_id: player_id} = socket.assigns
-    {:noreply, push_redirect(socket, to: ~p"/scores/#{join_code}?player_id=#{player_id}")}
+    {:noreply, push_navigate(socket, to: ~p"/scores/#{join_code}?player_id=#{player_id}")}
   end
 
   def handle_event("table_cards", %{"position" => position}, %{assigns: assigns} = socket) do

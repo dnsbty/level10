@@ -56,7 +56,7 @@ defmodule Level10Web.ScoringLive do
         {:ok, redirect_to_game(socket, params["join_code"])}
 
       _ ->
-        {:ok, push_redirect(socket, to: "/")}
+        {:ok, push_navigate(socket, to: "/")}
     end
   end
 
@@ -72,7 +72,7 @@ defmodule Level10Web.ScoringLive do
       socket =
         socket
         |> assign(action: :none, join_code: "")
-        |> push_redirect(to: "/")
+        |> push_navigate(to: "/")
 
       {:noreply, socket}
     end
@@ -85,7 +85,7 @@ defmodule Level10Web.ScoringLive do
   def handle_event("mark_ready", _params, %{assigns: %{finished: true}} = socket) do
     %{join_code: join_code, player_id: player_id} = socket.assigns
     Games.mark_player_ready(join_code, player_id)
-    {:noreply, push_redirect(socket, to: "/")}
+    {:noreply, push_navigate(socket, to: "/")}
   end
 
   def handle_event("mark_ready", _params, socket) do
@@ -136,7 +136,7 @@ defmodule Level10Web.ScoringLive do
 
   @spec redirect_to_game(Socket.t(), Game.join_code()) :: Socket.t()
   defp redirect_to_game(socket, join_code) do
-    push_redirect(socket, to: ~p"/game/#{join_code}")
+    push_navigate(socket, to: ~p"/game/#{join_code}")
   end
 
   @spec score(Game.scores(), Player.id()) :: non_neg_integer()

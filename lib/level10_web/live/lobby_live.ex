@@ -196,7 +196,7 @@ defmodule Level10Web.LobbyLive do
 
   @impl true
   def handle_info({:game_started, _}, socket) do
-    {:noreply, push_redirect(socket, to: ~p"/game/#{socket.assigns.join_code}")}
+    {:noreply, push_navigate(socket, to: ~p"/game/#{socket.assigns.join_code}")}
   end
 
   def handle_info({:players_updated, players}, socket) do
