@@ -103,9 +103,6 @@ defmodule Level10Web.GameLive do
       :not_your_turn ->
         {:noreply, flash_warning(socket, "Watch it bud! It's not your turn yet 😠")}
 
-      [] ->
-        {:noreply, socket}
-
       _ ->
         {:noreply, flash_warning(socket, "I'm not sure what you just did, but I don't like it 🤨")}
     end

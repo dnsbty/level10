@@ -300,6 +300,7 @@ defmodule Level10.Games.Game do
   @doc """
   Create a new game
   """
+  @dialyzer {:no_opaque, new: 3}
   @spec new(join_code(), Player.t(), Settings.t()) :: t()
   def new(join_code, player, settings) do
     %__MODULE__{
