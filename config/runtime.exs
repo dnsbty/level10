@@ -95,12 +95,12 @@ case config_env() do
         root_source_code_path: File.cwd!(),
         tags: %{
           env: "production"
-        },
-        included_environments: [:prod]
+        }
     end
 
   :dev ->
     disabled = is_nil(key) || is_nil(key_identifier) || is_nil(team_id)
+    IO.inspect(disabled, label: "apns disabled")
 
     config :level10, Level10.PushNotifications.APNS,
       adapter: Pigeon.APNS,

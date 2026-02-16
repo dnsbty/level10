@@ -8,10 +8,13 @@ defmodule Level10Web.Endpoint do
   @session_options [
     store: :cookie,
     key: "_level10_key",
-    signing_salt: "jmi0sffy"
+    signing_salt: "jmi0sffy",
+    same_site: "Lax"
   ]
 
-  socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
+  socket "/live", Phoenix.LiveView.Socket,
+    websocket: [connect_info: [session: @session_options]],
+    longpoll: [connect_info: [session: @session_options]]
 
   socket "/socket", Level10Web.UserSocket, websocket: true, longpoll: false
 
