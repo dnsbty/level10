@@ -6,4 +6,8 @@ defmodule Level10Web.PageController do
   def privacy_policy(conn, _params) do
     render(conn, :privacy_policy)
   end
+
+  def sms_terms(conn, _params) do
+    render(conn, :sms_terms)
+  end
 end
